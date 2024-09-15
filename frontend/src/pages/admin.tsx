@@ -23,20 +23,16 @@ export function Admin() {
         <div className="flex flex-row justify-center items-center space-x-4 m-4">
             <Button
                 onclickFunction={() => navigateTo('/admin/approveouting')}
-                value={`OutingRequests (${Outings.length})`}
-            />
+                value={`OutingRequests (${Outings.length})`} loading={false}            />
             <Button
                 onclickFunction={() => navigateTo('/admin/approveoutpass')}
-                value={`OutpassRequests (${Outpasses.length})`}
-            />
+                value={`OutpassRequests (${Outpasses.length})`} loading={false}            />
             <Button
                 onclickFunction={() => navigateTo('/admin/updatestudentstatus')}
-                value={`Students outside campus (${students.length})`}
-            />
+                value={`Students outside campus (${students.length})`} loading={false}            />
             <Button
                 onclickFunction={() => navigateTo('/admin/searchstudents')}
-                value={`Search students`}
-            />
+                value={`Search students`} loading={false}            />
         </div>
     );
 }

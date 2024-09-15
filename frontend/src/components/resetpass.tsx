@@ -84,9 +84,8 @@ export function Resetpassword() {
                     placeholder="Re-enter New Password" 
                 />
                 <Button 
-                    value="Reset My Password" 
-                    onclickFunction={sendDataToBackend} 
-                />
+                    value="Reset My Password"
+                    onclickFunction={sendDataToBackend} loading={false}                />
                 <p className="text-center mt-4">
                     Click <a className="font-bold text-blue-600 underline cursor-pointer" onClick={() => navigateTo('/student')}>here</a> to go back to the dashboard!
                 </p>
