@@ -540,6 +540,9 @@ adminRouter.post("/updatestudents", authMiddleware,async (req,res) => {
     for (const student of students) {
       await addStudent(student.IDNO.toLowerCase(),student.Password.toLowerCase(),student.GENDER,student.NAME);
       records++;
+      if(records%100){
+        console.log(`Completed ${records} records until ${new Date().toLocaleString()}`)
+      }
     }
     console.log(`Successfully added ${records} students from the Excel file`);
     res.json({

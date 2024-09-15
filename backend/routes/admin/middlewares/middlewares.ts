@@ -17,7 +17,7 @@ export const validateSigninInputs = async (
   const zodPasswordSchema = zod
     .string()
     .min(8, "Your password should contain minimum 8 characters")
-    .max(10, "Your password should contain maximum 10 characters");
+    .max(20, "Your password should contain maximum 20 characters");
 
   const isUsernameValidated = zodUsernameSchema.safeParse(username);
   const isPasswordValidated = zodPasswordSchema.safeParse(password);

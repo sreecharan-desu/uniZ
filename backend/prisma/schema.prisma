@@ -43,8 +43,8 @@ model Outpass {
   id String @id 
   StudentId String
   Reason String
-  FromDay DateTime
-  ToDay DateTime
+  FromDay DateTime @db.Date()
+  ToDay DateTime @db.Date()
   Days Int @default(0)
   RequestedTime DateTime @default(now())
   isExpired Boolean @default(false)
@@ -63,8 +63,8 @@ model Outing {
   id String @id
   StudentId String
   reason String
-  FromTime DateTime
-  ToTime DateTime
+  FromTime DateTime @db.Time()
+  ToTime DateTime @db.Time()
   Hours Int @default(0)
   RequestedTime DateTime @default(now())
   isExpired Boolean @default(false)

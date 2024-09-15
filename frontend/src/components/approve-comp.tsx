@@ -100,7 +100,7 @@ export function ApproveComp({ type }: ApproveProps) {
                                         <p className="mt-2"><span className="font-semibold">IdNumber:</span> {outing.username}</p>
                                         <p><span className="font-semibold">Email:</span> {outing.email}</p>
                                         <p><span className="font-semibold">Reason:</span> {outing.reason}</p>
-                                        <p><span className="font-semibold">Requested time:</span> {outing.requested_time}</p>
+                                        <p><span className="font-semibold">Requested time:</span> {outing.requested_time.split(",")[1]}</p>
                                         <p><span className="font-semibold">No_of_days:</span> {outing.no_of_days}</p>
                                         <p><span className="font-semibold">Duration:</span> {outing.from_time} to {outing.to_time}</p>
                                         <p><span className="font-semibold">Status:</span> {outing.is_approved ? "Approved" : "Pending"}</p>

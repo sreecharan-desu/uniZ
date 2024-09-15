@@ -6,9 +6,74 @@ import { useStudentData } from "../customhooks/student_info";
 import { useRecoilValue } from "recoil";
 import { student } from "../store";
 
-function RequestCard({ request, type }: { request: any; type: 'outing' | 'outpass'; }) {
+export function Student() {
+    useIsAuth();
+    useStudentData();
+    const navigateTo = useNavigate();
+    const Student = useRecoilValue(student);
+    const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
+    const completedRequests = (list: any[]) => list.filter((request: any) => (request.is_approved || request.is_rejected) && !request.is_expired).length;
+
     return (
-        <div className="shadow-lg p-4 border border-gray-200 rounded-lg bg-white">
+        <div>
+            <div className="flex justify-center items-center">
+                <Button onclickFunction={() => navigateTo('/student/requestouting')} value="Request Outing" loading={false} />&nbsp;
+                <Button onclickFunction={() => navigateTo('/student/requestoutpass')} value="Request Outpass" loading={false} />&nbsp;
+                <Button onclickFunction={() => navigateTo('/student/resetpassword')} value="Reset Password" loading={false} />&nbsp;
+            </div>
+            <div className="m-5">
+                <div className="flex justify-start">
+                <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length}) requests pending</h4>
+                <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">*Note expired requests by (date/time) won't appear here</p>
+                </div>
+                               {Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length === 0 ? (
+                    <p>You have no pending requests, you can request outing/outpass above</p>
+                ) : (
+                    <>
+                        {!Student.is_in_campus ? (
+                            <>
+                                <h2>You are currently Outside the Campus (Consult your warden to update your presence)</h2>
+                                {Student.outings_list.map(outing => !outing.is_expired && outing.is_approved ? (
+                                    <RequestCard request={outing} email = {Student.email} type="outing" key={outing._id} />
+                                ) : null)}
+                                {Student.outpasses_list.map(outpass => !outpass.is_expired && outpass.is_approved ? (
+                                    <RequestCard request={outpass} type="outpass" key={outpass._id} email={""} />
+                                ) : null)}
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="underline text-xl m-3">*Pending requests ({pendingRequests(Student.outings_list) + pendingRequests(Student.outpasses_list)})</h2>
+                                {Student.outings_list.map(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected ? (
+                                    <RequestCard request={outing} type="outing" key={outing._id} email={Student.email} />
+                                ) : null)}
+                                {Student.outpasses_list.map(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected ? (
+                                    <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
+                                ) : null)}
+
+                                {completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list) > 0 && (
+                                    <>
+                                        <h2>Completed requests ({completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list)})</h2>
+                                        {Student.outings_list.map(outing => !outing.is_expired && (outing.is_approved || outing.is_rejected) ? (
+                                            <RequestCard request={outing} type="outing" key={outing._id} email={Student.email} />
+                                        ) : null)}
+                                        {Student.outpasses_list.map(outpass => !outpass.is_expired && (outpass.is_approved || outpass.is_rejected) ? (
+                                            <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
+                                        ) : null)}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
+function RequestCard({ request, type,email }: { request: any; type: 'outing' | 'outpass';email : string}) {
+    return (
+        <div className="shadow-lg p-4 border border-gray-600 rounded-lg bg-white">
             <p className="font-semibold text-lg text-gray-800">{request._id}</p>
             <p className="my-2">
                 <span className="font-semibold">Reason:</span> {request.reason}
@@ -58,70 +123,8 @@ function RequestCard({ request, type }: { request: any; type: 'outing' | 'outpas
                 </>
             ) : null}
             <p className="mt-4 text-sm text-gray-600">
-                *We have sent you a mail to email-id <b>{request.email}</b> regarding your {type} confirmation!
+                *We have sent you a mail to email-id <b className="font-bold text-black">{email}</b> regarding your {type} confirmation!
             </p>
-        </div>
-    );
-}
-
-export function Student() {
-    useIsAuth();
-    useStudentData();
-    const navigateTo = useNavigate();
-    const Student = useRecoilValue(student);
-    const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
-    const completedRequests = (list: any[]) => list.filter((request: any) => (request.is_approved || request.is_rejected) && !request.is_expired).length;
-
-    return (
-        <div>
-            <div className="flex justify-center items-center">
-                <Button onclickFunction={() => navigateTo('/student/requestouting')} value="Request Outing" />&nbsp;
-                <Button onclickFunction={() => navigateTo('/student/requestoutpass')} value="Request Outpass" />&nbsp;
-                <Button onclickFunction={() => navigateTo('/student/resetpassword')} value="Reset Password" />&nbsp;
-            </div>
-            <div className="m-5">
-                <h4>Your requests ({Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length})</h4>
-                *Note expired requests by (date/time) won't appear here
-                {Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length === 0 ? (
-                    <p>You have no pending requests, you can request outing/outpass above</p>
-                ) : (
-                    <>
-                        {!Student.is_in_campus ? (
-                            <>
-                                <h2>You are currently Outside the Campus (Consult your warden to update your presence)</h2>
-                                {Student.outings_list.map(outing => !outing.is_expired && outing.is_approved ? (
-                                    <RequestCard request={outing} type="outing" key={outing._id} />
-                                ) : null)}
-                                {Student.outpasses_list.map(outpass => !outpass.is_expired && outpass.is_approved ? (
-                                    <RequestCard request={outpass} type="outpass" key={outpass._id} />
-                                ) : null)}
-                            </>
-                        ) : (
-                            <>
-                                <h2>Pending requests ({pendingRequests(Student.outings_list) + pendingRequests(Student.outpasses_list)})</h2>
-                                {Student.outings_list.map(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected ? (
-                                    <RequestCard request={outing} type="outing" key={outing._id} />
-                                ) : null)}
-                                {Student.outpasses_list.map(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected ? (
-                                    <RequestCard request={outpass} type="outpass" key={outpass._id} />
-                                ) : null)}
-
-                                {completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list) > 0 && (
-                                    <>
-                                        <h2>Completed requests ({completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list)})</h2>
-                                        {Student.outings_list.map(outing => !outing.is_expired && (outing.is_approved || outing.is_rejected) ? (
-                                            <RequestCard request={outing} type="outing" key={outing._id} />
-                                        ) : null)}
-                                        {Student.outpasses_list.map(outpass => !outpass.is_expired && (outpass.is_approved || outpass.is_rejected) ? (
-                                            <RequestCard request={outpass} type="outpass" key={outpass._id} />
-                                        ) : null)}
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </>
-                )}
-            </div>
         </div>
     );
 }

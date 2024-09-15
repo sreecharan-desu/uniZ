@@ -2,6 +2,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { is_authenticated, student } from "../store";
 // import { useEffect} from "react";
 import { useStudentData } from "../customhooks/student_info";
+import { Button } from "./button";
 
 export default function Navbar() {
     const [isAuth, setAuth] = useRecoilState(is_authenticated);
@@ -16,7 +17,7 @@ export default function Navbar() {
             is_authnticated: false,
             type: ''
         });
-        window.location.reload(); // Reload to reflect logout changes
+        location.href = "/";
     };
 
     // useEffect(() => {
@@ -30,11 +31,22 @@ export default function Navbar() {
         <div className="flex justify-between items-center p-4 bg-white border-b border-gray-300">
             <div>
                 <a href="/">
-                    <h1 className="font-bold text-xl text-black">
+                    <h1 className="font-bold text-xl lg:text-3xl  text-black">
                         uniZ
                     </h1>
                 </a>
             </div>
+                {!localStorage.getItem('student_token') && !localStorage.getItem('admin_token') ? <>
+                    <a href="/student/signin">
+                        <Button
+                            onclickFunction={() =>undefined}
+                            value="Get Outpass"
+                            loading= {false}
+                        />
+                    </a>
+                </> : <>
+                     </>
+            }
             {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || (localStorage.getItem('student_token') && username) ? (
                 <div className="flex items-center space-x-4">
                     <p className="text-black">Hello, {username.name}</p>
@@ -47,7 +59,7 @@ export default function Navbar() {
                 </div>
             ) : (isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || (localStorage.getItem('admin_token') && username) ? (
                 <div className="flex items-center space-x-4">
-                    <p className="text-black">Hello Admin</p>
+                    <p className="text-black">Hello Warden</p>
                     <button
                         onClick={logout}
                         className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-300"

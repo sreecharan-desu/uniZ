@@ -34,7 +34,7 @@ export function Signin({ type }: SigninProps) {
         }
         setLoading(true);
         const bodyData = JSON.stringify({ username, password });
-        const res = await fetch(`https://uni-z-api.vercel.app/api/v1/${type}/signin`, {
+        const res = await fetch(`http://localhost:3000/api/v1/${type}/signin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export function Signin({ type }: SigninProps) {
     return (
         <>
             <h1 className="text-2xl font-bold mb-4">
-                {type === "student" ? "Student - Signin" : "Admin - Signin"}
+                {type === "student" ? "/ Student - Signin" : "/ Admin - Signin"}
             </h1>
             <div className="flex justify-center items-center">
                 <div className="flex flex-col justify-center w-full max-w-sm p-6 bg-white shadow-md rounded-lg border border-gray-200">

@@ -7,20 +7,20 @@ import { useRecoilValue } from "recoil";
 import { student } from "../store";
 import { useStudentData } from "../customhooks/student_info";
 import { REQUEST_OUTING, REQUEST_OUTPASS } from "../apis";
-import { useIsAuth } from "../customhooks/is_authenticated";
+// import { useIsAuth } from "../customhooks/is_authenticated";
 
 type RequestCompProps = {
     type: "outpass" | "outing";
 };
 
 export function RequestComp({ type }: RequestCompProps) {
-    useIsAuth();
+    // useIsAuth();
     useStudentData();
     const [reason, setReason] = useState('');
-    const [fromDate, setFromDate] = useState<string | null>(null);
-    const [toDate, setToDate] = useState<string | null>(null);
-    const [fromTime, setFromTime] = useState<string | null>(null);
-    const [toTime, setToTime] = useState<string | null>(null);
+    const [from_date, setFromDate] = useState<string | null>(null);
+    const [to_date, setToDate] = useState<string | null>(null);
+    const [from_time, setFromTime] = useState<string | null>(null);
+    const [to_time, setToTime] = useState<string | null>(null);
     const Student = useRecoilValue(student);
     const [isLoading,setLoading] = useState(false);
     const navigateTo = useNavigate();
@@ -35,7 +35,10 @@ export function RequestComp({ type }: RequestCompProps) {
             alert('Missing auth_token. Authorization failed!');
             localStorage.removeItem('student_token');
             localStorage.removeItem('username');
-            window.location.reload();
+            location.href = "";
+            return;
+        }else if((type == "outpass" && (from_date == null || to_date == null || reason == null)) || (type=="outing" && (from_time == null || to_time == null || reason == null))){
+            alert("Please fill all the details!");
             return;
         }
 
@@ -43,7 +46,7 @@ export function RequestComp({ type }: RequestCompProps) {
         const bodyData = JSON.stringify({
             reason,
             userId,
-            ...(type === "outing" ? { fromTime, toTime } : { fromDate, toDate })
+            ...(type === "outing" ? {from_time, to_time } : { from_date, to_date })
         });
 
         try {
