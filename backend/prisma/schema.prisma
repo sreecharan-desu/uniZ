@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE")
+  url      = "postgresql://uniZ_owner:FHBT9qp2LhiM@ep-broad-surf-a5632yl2.us-east-2.aws.neon.tech/uniZ"
 }
 
 

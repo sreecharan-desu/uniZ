@@ -147,10 +147,10 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.headers.authorization;
-  if (authorization && process.env.JWTSECRETKEY) {
+  if (authorization && 'a74d9ff8f6c0638b05c21de570d57805') {
     try {
       const token = authorization.split(" ")[1];
-      const verified = jwt.verify(token, process.env.JWTSECRETKEY);
+      const verified = jwt.verify(token,'a74d9ff8f6c0638b05c21de570d57805');
       if (verified) {
         next();
       } else {

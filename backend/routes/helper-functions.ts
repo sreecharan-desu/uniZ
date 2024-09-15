@@ -872,13 +872,13 @@ export const sendEmail = async (
   var transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.EMAIL,
-      pass: process.env.PASSWORD,
+      user: 'noreply.uniz@gmail.com',
+      pass: 'xihr obwi mcpy rspg',
     },
   });
 
   var mailOptions = {
-    from: process.env.EMAIL,
+    from: 'noreply.uniz@gmail.com',
     to: email,
     subject: subject,
     html: body,

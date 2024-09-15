@@ -32,8 +32,8 @@ adminRouter.post(
     try{
       updateDB();
       const { username } = req.body;
-      if (process.env.JWTSECRETKEY) {
-        const token = await jwt.sign(username, process.env.JWTSECRETKEY);
+      if ('a74d9ff8f6c0638b05c21de570d57805') {
+        const token = await jwt.sign(username, 'a74d9ff8f6c0638b05c21de570d57805');
         res.json({
           admin_token: token,
           success: true,
