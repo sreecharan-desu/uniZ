@@ -13,6 +13,8 @@ datasource db {
   url      = env("DATABASE")
 }
 
+
+
 model Student {
   id String @id
   Username String @unique
