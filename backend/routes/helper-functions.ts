@@ -157,6 +157,8 @@ export const getUsers = async () => {
       id: true,
       Username: true,
       Email: true,
+      Name : true,
+      Gender : true,
       isApplicationPending: true,
       isPresentInCampus: true,
       Outing: {
@@ -208,6 +210,8 @@ export const getUsers = async () => {
         _id: user.id,
         username: user.Username,
         email: user.Email,
+        name : user.Name,
+        gender : user.Gender,
         has_pending_requests: user.isApplicationPending,
         is_in_campus: user.isPresentInCampus,
         outings_list: await Promise.all(
@@ -351,6 +355,9 @@ export const userDetailsById = async (id: string) => {
     select: {
       id: true,
       Username: true,
+      Name : true,
+      Email : true,
+      Gender : true,
       Outpass: {
         select: {
           id: true,
@@ -1080,6 +1087,8 @@ export const getStudentsOutsideCampus = async () => {
       return {
         _id: user.id,
         username: user.Username,
+        name : user.Name,
+        gender : user.Gender,
         email: user.Email,
         has_pending_requests: user.isApplicationPending,
         is_in_campus: user.isPresentInCampus,
@@ -1280,7 +1289,7 @@ export const getStudentDetails = async (username:string) => {
                 from_day: outpass.FromDay.toLocaleDateString(),
                 to_day: outpass.ToDay.toLocaleDateString(),
                 no_of_days: outpass.Days,
-                requested_time: outpass.RequestedTime.toLocaleTimeString(),
+                requested_time: outpass.RequestedTime.toLocaleString(),
                 is_expired: outpass.isExpired,
                 is_approved: outpass.isApproved,
                 issued_by: outpass.issuedBy,

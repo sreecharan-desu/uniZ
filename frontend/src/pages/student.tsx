@@ -23,16 +23,16 @@ export function Student() {
             </div>
             <div className="m-5">
                 <div className="flex justify-start">
-                <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length}) requests pending</h4>
+                <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>
                 <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">*Note expired requests by (date/time) won't appear here</p>
                 </div>
-                               {Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length === 0 ? (
+                    {Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length === 0 ? (
                     <p>You have no pending requests, you can request outing/outpass above</p>
                 ) : (
                     <>
                         {!Student.is_in_campus ? (
                             <>
-                                <h2>You are currently Outside the Campus (Consult your warden to update your presence)</h2>
+                                <h2 className="text-center text-black text-xl m-5 font-bold">You are currently Outside the Campus (Consult your warden to update your presence)</h2>
                                 {Student.outings_list.map(outing => !outing.is_expired && outing.is_approved ? (
                                     <RequestCard request={outing} email = {Student.email} type="outing" key={outing._id} />
                                 ) : null)}
@@ -43,16 +43,19 @@ export function Student() {
                         ) : (
                             <>
                                 <h2 className="underline text-xl m-3">*Pending requests ({pendingRequests(Student.outings_list) + pendingRequests(Student.outpasses_list)})</h2>
+                                {pendingRequests(Student.outings_list) == 0 || pendingRequests(Student.outpasses_list) == 0 ? <>
+                                <p className="text-black text-lg m-5 italic">You don't have any pending requests</p>                                    </> : null}
                                 {Student.outings_list.map(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected ? (
                                     <RequestCard request={outing} type="outing" key={outing._id} email={Student.email} />
-                                ) : null)}
+                                ) : <>
+                                </>)}
                                 {Student.outpasses_list.map(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected ? (
                                     <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
                                 ) : null)}
 
                                 {completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list) > 0 && (
                                     <>
-                                        <h2>Completed requests ({completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list)})</h2>
+                                        <h2 className="underline text-xl m-3">*Completed requests ({completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list)})</h2>
                                         {Student.outings_list.map(outing => !outing.is_expired && (outing.is_approved || outing.is_rejected) ? (
                                             <RequestCard request={outing} type="outing" key={outing._id} email={Student.email} />
                                         ) : null)}
@@ -84,9 +87,6 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
             {type === 'outing' ? (
                 <>
                     <p className="my-2">
-                        <span className="font-semibold">No_of_days:</span> {request.no_of_days}
-                    </p>
-                    <p className="my-2">
                         <span className="font-semibold">Duration:</span> {request.from_time} to {request.to_time}
                     </p>
                 </>
@@ -101,7 +101,7 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
                 </>
             )}
             <p className="my-2">
-                <span className="font-semibold">Status:</span> {request.is_approved ? "Approved" : request.is_rejected ? "Rejected" : "Pending"}
+                <span className="font-semibold">Status:</span> {request.is_approved ? "Approved ✅" : request.is_rejected ? "Rejected ❌" : "Pending ⏳"}
             </p>
             {request.is_approved ? (
                 <>

@@ -62,7 +62,7 @@ export function UpdateStatus() {
           </div>
           {student.outings_list.filter((outing) => !outing.is_expired && outing.is_approved).length > 0
             ? student.outings_list
-                .filter((outing) => outing.is_expired)
+                .filter((outing) => !outing.is_expired)
                 .map((outing) => (
                   <div
                     key={outing._id}
@@ -83,6 +83,12 @@ export function UpdateStatus() {
                     <div>
                       <b>Approved at:</b> {outing.issued_time}
                     </div>
+                    <button
+                      onClick={() => updateStatus(student._id, outing._id)}
+                      className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                    >
+                      Update Student Status
+                    </button>
                   </div>
                 ))
             : student.outpasses_list
