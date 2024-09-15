@@ -76,13 +76,13 @@ export function Student() {
 
 function RequestCard({ request, type,email }: { request: any; type: 'outing' | 'outpass';email : string}) {
     return (
-        <div className="shadow-lg p-4 border border-gray-600 rounded-lg bg-white">
+        <div className="shadow-lg p-4 border border-gray-600 rounded-lg bg-white m-5">
             <p className="font-semibold text-lg text-gray-800">{request._id}</p>
             <p className="my-2">
                 <span className="font-semibold">Reason:</span> {request.reason}
             </p>
             <p className="my-2">
-                <span className="font-semibold">Requested time:</span> {request.requested_time}
+                <span className="font-semibold">Requested on :</span> {request.requested_time.split(",")[0]}
             </p>
             {type === 'outing' ? (
                 <>

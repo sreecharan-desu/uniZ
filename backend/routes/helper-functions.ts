@@ -221,20 +221,20 @@ export const getUsers = async () => {
               student_id: outing.StudentId,
               reason: outing.reason,
               from_time: new Date(outing.FromTime)
-                .toLocaleString()
+                .toLocaleString("en-IN")
                 .split(",")[1],
-              to_time: new Date(outing.ToTime).toLocaleString().split(",")[1],
+              to_time: new Date(outing.ToTime).toLocaleString("en-IN").split(",")[1],
               no_of_hours: outing.Hours,
-              requested_time: new Date(outing.RequestedTime).toLocaleString(),
+              requested_time: new Date(outing.RequestedTime).toLocaleString("en-IN"),
               is_expired: outing.isExpired,
               is_approved: outing.isApproved,
               issued_by: outing.issuedBy,
-              issued_time: new Date(outing.issuedTime).toLocaleString(),
+              issued_time: new Date(outing.issuedTime).toLocaleString("en-IN"),
               message: outing.Message,
               is_rejected: outing.isRejected,
               rejected_by: outing.rejectedBy,
-              rejected_time: new Date(outing.rejectedTime).toLocaleString(),
-              in_time: new Date(outing.inTime).toLocaleString().split(",")[1],
+              rejected_time: new Date(outing.rejectedTime).toLocaleString("en-IN"),
+              in_time: new Date(outing.inTime).toLocaleString("en-IN").split(",")[1],
             };
           })
         ),
@@ -244,19 +244,19 @@ export const getUsers = async () => {
               _id: outpass.id,
               student_id: outpass.StudentId,
               reason: outpass.Reason,
-              from_day: outpass.FromDay.toLocaleDateString(),
-              to_day: outpass.ToDay.toLocaleDateString(),
+              from_day: outpass.FromDay.toLocaleDateString("en-IN"),
+              to_day: outpass.ToDay.toLocaleDateString("en-IN"),
               no_of_days: outpass.Days,
-              requested_time: outpass.RequestedTime.toLocaleTimeString(),
+              requested_time: outpass.RequestedTime.toLocaleTimeString("en-IN"),
               is_expired: outpass.isExpired,
               is_approved: outpass.isApproved,
               issued_by: outpass.issuedBy,
-              issued_time: outpass.issuedTime.toLocaleTimeString(),
+              issued_time: outpass.issuedTime.toLocaleTimeString("en-IN"),
               message: outpass.Message,
               is_rejected: outpass.isRejected,
               rejected_by: outpass.rejectedBy,
-              rejected_time: outpass.rejectedTime.toLocaleTimeString(),
-              in_time: outpass.inTime.toLocaleString(),
+              rejected_time: outpass.rejectedTime.toLocaleTimeString("en-IN"),
+              in_time: outpass.inTime.toLocaleString("en-IN"),
             };
           })
         ),
@@ -464,11 +464,11 @@ export const updatePasses = async () => {
     console.log(
       `Outpasses with IDs: ${expiredPasses.map(
         (pass) => pass.id
-      )} have expired at ${new Date().toLocaleTimeString()}`
+      )} have expired at ${new Date().toLocaleTimeString("en-IN")}`
     );
   } else {
     console.log(
-      `No outpasses were expired at ${new Date().toLocaleTimeString()}`
+      `No outpasses were expired at ${new Date().toLocaleTimeString("en-IN")}`
     );
   }
 
@@ -476,11 +476,11 @@ export const updatePasses = async () => {
     console.log(
       `Outings with IDs: ${expiredOutings.map(
         (pass) => pass.id
-      )} have expired at ${new Date().toLocaleTimeString()}`
+      )} have expired at ${new Date().toLocaleTimeString("en-IN")}`
     );
   } else {
     console.log(
-      `No outings were expired at ${new Date().toLocaleTimeString()}`
+      `No outings were expired at ${new Date().toLocaleTimeString("en-IN")}`
     );
   }
 };
@@ -972,10 +972,10 @@ export const getOutPassRequests = async () => {
         _id: outpass.id,
         student_id: outpass.StudentId,
         reason: outpass.Reason,
-        from_day: outpass.FromDay.toLocaleDateString(),
-        to_day: outpass.ToDay.toLocaleDateString(),
+        from_day: outpass.FromDay.toLocaleDateString("en-IN"),
+        to_day: outpass.ToDay.toLocaleDateString("en-IN"),
         no_of_days: outpass.Days,
-        requested_time: outpass.RequestedTime.toLocaleString().split("GMT")[0],
+        requested_time: outpass.RequestedTime.toLocaleString("en-IN").split("GMT")[0],
         is_expired: outpass.isExpired,
         is_approved: outpass.isApproved,
         username : outpass.Student.Username,
@@ -1012,9 +1012,9 @@ export const getOutingRequests = async () => {
         _id: outing.id,
         student_id: outing.StudentId,
         reason: outing.reason,
-        from_time: outing.FromTime.toLocaleTimeString(),
-        to_time: outing.ToTime.toLocaleTimeString(),
-        requested_time: outing.RequestedTime.toLocaleString().split("GMT")[0],
+        from_time: outing.FromTime.toLocaleTimeString("en-IN"),
+        to_time: outing.ToTime.toLocaleTimeString("en-IN"),
+        requested_time: outing.RequestedTime.toLocaleString("en-IN").split("GMT")[0],
         is_expired: outing.isExpired,
         is_approved: outing.isApproved,
         username : outing.Student.Username,
@@ -1099,20 +1099,20 @@ export const getStudentsOutsideCampus = async () => {
               student_id: outing.StudentId,
               reason: outing.reason,
               from_time: new Date(outing.FromTime)
-                .toLocaleString()
+                .toLocaleString("en-IN")
                 .split(",")[1],
-              to_time: new Date(outing.ToTime).toLocaleString().split(",")[1],
+              to_time: new Date(outing.ToTime).toLocaleString("en-IN").split(",")[1],
               no_of_hours: outing.Hours,
-              requested_time: new Date(outing.RequestedTime).toLocaleString(),
+              requested_time: new Date(outing.RequestedTime).toLocaleString("en-IN"),
               is_expired: outing.isExpired,
               is_approved: outing.isApproved,
               issued_by: outing.issuedBy,
-              issued_time: new Date(outing.issuedTime).toLocaleString(),
+              issued_time: new Date(outing.issuedTime).toLocaleString("en-IN"),
               message: outing.Message,
               is_rejected: outing.isRejected,
               rejected_by: outing.rejectedBy,
-              rejected_time: new Date(outing.rejectedTime).toLocaleString(),
-              in_time: new Date(outing.inTime).toLocaleString().split(",")[1],
+              rejected_time: new Date(outing.rejectedTime).toLocaleString("en-IN"),
+              in_time: new Date(outing.inTime).toLocaleString("en-IN").split(",")[1],
             };
           })
         ),
@@ -1122,18 +1122,18 @@ export const getStudentsOutsideCampus = async () => {
               _id: outpass.id,
               student_id: outpass.StudentId,
               reason: outpass.Reason,
-              from_day: outpass.FromDay.toLocaleDateString(),
-              to_day: outpass.ToDay.toLocaleDateString(),
+              from_day: outpass.FromDay.toLocaleDateString("en-IN"),
+              to_day: outpass.ToDay.toLocaleDateString("en-IN"),
               no_of_days: outpass.Days,
-              requested_time: outpass.RequestedTime.toLocaleTimeString(),
+              requested_time: outpass.RequestedTime.toLocaleTimeString("en-IN"),
               is_expired: outpass.isExpired,
               is_approved: outpass.isApproved,
               issued_by: outpass.issuedBy,
-              issued_time: outpass.issuedTime.toLocaleTimeString(),
+              issued_time: outpass.issuedTime.toLocaleTimeString("en-IN"),
               message: outpass.Message,
               is_rejected: outpass.isRejected,
               rejected_by: outpass.rejectedBy,
-              rejected_time: outpass.rejectedTime.toLocaleTimeString(),
+              rejected_time: outpass.rejectedTime.toLocaleTimeString("en-IN"),
               in_time: outpass.inTime,
             };
           })
@@ -1263,20 +1263,20 @@ export const getStudentDetails = async (username:string) => {
                 student_id: outing.StudentId,
                 reason: outing.reason,
                 from_time: new Date(outing.FromTime)
-                  .toLocaleString()
+                  .toLocaleString("en-IN")
                   .split(",")[1],
-                to_time: new Date(outing.ToTime).toLocaleString().split(",")[1],
+                to_time: new Date(outing.ToTime).toLocaleString("en-IN").split(",")[1],
                 no_of_hours: outing.Hours,
-                requested_time: new Date(outing.RequestedTime).toLocaleString(),
+                requested_time: new Date(outing.RequestedTime).toLocaleString("en-IN"),
                 is_expired: outing.isExpired,
                 is_approved: outing.isApproved,
                 issued_by: outing.issuedBy,
-                issued_time: new Date(outing.issuedTime).toLocaleString(),
+                issued_time: new Date(outing.issuedTime).toLocaleString("en-IN"),
                 message: outing.Message,
                 is_rejected: outing.isRejected,
                 rejected_by: outing.rejectedBy,
-                rejected_time: new Date(outing.rejectedTime).toLocaleString(),
-                in_time: new Date(outing.inTime).toLocaleString().split(",")[1],
+                rejected_time: new Date(outing.rejectedTime).toLocaleString("en-IN"),
+                in_time: new Date(outing.inTime).toLocaleString("en-IN").split(",")[1],
               };
             })
           ),
@@ -1286,19 +1286,19 @@ export const getStudentDetails = async (username:string) => {
                 _id: outpass.id,
                 student_id: outpass.StudentId,
                 reason: outpass.Reason,
-                from_day: outpass.FromDay.toLocaleDateString(),
-                to_day: outpass.ToDay.toLocaleDateString(),
+                from_day: outpass.FromDay.toLocaleDateString("en-IN"),
+                to_day: outpass.ToDay.toLocaleDateString("en-IN"),
                 no_of_days: outpass.Days,
-                requested_time: outpass.RequestedTime.toLocaleString(),
+                requested_time: outpass.RequestedTime.toLocaleString("en-IN"),
                 is_expired: outpass.isExpired,
                 is_approved: outpass.isApproved,
                 issued_by: outpass.issuedBy,
-                issued_time: outpass.issuedTime.toLocaleTimeString(),
+                issued_time: outpass.issuedTime.toLocaleTimeString("en-IN"),
                 message: outpass.Message,
                 is_rejected: outpass.isRejected,
                 rejected_by: outpass.rejectedBy,
-                rejected_time: outpass.rejectedTime.toLocaleTimeString(),
-                in_time: outpass.inTime.toLocaleString(),
+                rejected_time: outpass.rejectedTime.toLocaleTimeString("en-IN"),
+                in_time: outpass.inTime.toLocaleString("en-IN"),
               };
             })
           ),
