@@ -69,7 +69,6 @@ export function Student() {
     useStudentData();
     const navigateTo = useNavigate();
     const Student = useRecoilValue(student);
-
     const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
     const completedRequests = (list: any[]) => list.filter((request: any) => (request.is_approved || request.is_rejected) && !request.is_expired).length;
 

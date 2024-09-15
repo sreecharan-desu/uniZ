@@ -7,12 +7,14 @@ import { useRecoilValue } from "recoil";
 import { student } from "../store";
 import { useStudentData } from "../customhooks/student_info";
 import { REQUEST_OUTING, REQUEST_OUTPASS } from "../apis";
+import { useIsAuth } from "../customhooks/is_authenticated";
 
 type RequestCompProps = {
     type: "outpass" | "outing";
 };
 
 export function RequestComp({ type }: RequestCompProps) {
+    useIsAuth();
     useStudentData();
     const [reason, setReason] = useState('');
     const [fromDate, setFromDate] = useState<string | null>(null);
