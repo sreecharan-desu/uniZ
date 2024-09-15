@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Outpass" ADD COLUMN     "Days" INTEGER NOT NULL DEFAULT 0;

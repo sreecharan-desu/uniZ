@@ -1,25 +1,18 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = "postgresql://uniZ_owner:FHBT9qp2LhiM@ep-broad-surf-a5632yl2.us-east-2.aws.neon.tech/uniZ"
+  provider = "mongodb"
+  url      = "mongodb+srv://srecharandesu:charan%402006@cluster0.a9berin.mongodb.net/uniZ"
 }
 
-
 model Student {
-  id String @id
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   Username String @unique
   Name String @default("")
-  Gender String @default("")
-  Password String @default("")
+  Gender String @default("Male")
+  Password String
   Email String @default("")
   Outpass Outpass[]
   Outing Outing[]
@@ -34,53 +27,54 @@ model Student {
   Roomno String @default("")
   isPresentInCampus Boolean @default(true)
   isApplicationPending Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
-model Admin{
-  id String @id
+model Admin {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   Username String @unique
   Password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
 
 model Outpass {
-  id String @id
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   StudentId String
   Reason String
-  FromDay DateTime @db.Date
-  ToDay DateTime @db.Date
+  FromDay DateTime
+  ToDay DateTime
   Days Int @default(0)
-  RequestedTime DateTime @db.Timestamp() @default(now())
+  RequestedTime DateTime @default(now())
   isExpired Boolean @default(false)
   isApproved Boolean @default(false)
   issuedBy String @default("none")
-  issuedTime DateTime @db.Timestamp() @default(now()) 
-  Message String
-  isRejected Boolean @default(false)
-  rejectedBy   String @default("none")
-  rejectedTime DateTime @db.Timestamp() @default(now()) 
-  inTime DateTime @db.Timestamp() @default(now())
-  Student Student @relation(fields: [StudentId],references: [id])
-}
-
-
-model Outing{
-  id String @id
-  StudentId String
-  reason String
-  FromTime DateTime @db.Time
-  ToTime DateTime @db.Time
-  Hours Int @default(0)
-  RequestedTime DateTime @db.Timestamp() @default(now())
-  isExpired Boolean @default(false)
-  isApproved Boolean @default(false)
-  issuedBy String @default("none")
-  issuedTime DateTime @db.Timestamp() @default(now()) 
-  Message String @default("No message")
+  issuedTime DateTime @default(now())
+  Message String?
   isRejected Boolean @default(false)
   rejectedBy String @default("none")
-  inTime DateTime @db.Time() @default(now())
-  rejectedTime DateTime @db.Timestamp() @default(now()) 
-  Student Student @relation(fields: [StudentId],references: [id])
+  rejectedTime DateTime @default(now())
+  inTime DateTime @default(now())
+  Student Student @relation(fields: [StudentId], references: [id])
+}
+
+model Outing {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  StudentId String
+  reason String
+  FromTime DateTime
+  ToTime DateTime
+  Hours Int @default(0)
+  RequestedTime DateTime @default(now())
+  isExpired Boolean @default(false)
+  isApproved Boolean @default(false)
+  issuedBy String @default("none")
+  issuedTime DateTime @default(now())
+  Message String?
+  isRejected Boolean @default(false)
+  rejectedBy String @default("none")
+  rejectedTime DateTime @default(now())
+  inTime DateTime @default(now())
+  Student Student @relation(fields: [StudentId], references: [id])
 }

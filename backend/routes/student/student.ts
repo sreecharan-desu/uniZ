@@ -26,18 +26,11 @@ const client = new PrismaClient();
 
 studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, res) => {
     const { username } = req.body;
-    if ('a74d9ff8f6c0638b05c21de570d57805') {
-        const token = await jwt.sign(username,'a74d9ff8f6c0638b05c21de570d57805');
-        res.json({
-            student_token: token,
-            success: true,
-        });
-    } else {
-        res.json({
-            msg: "Internal Server Error Please Try again!",
-            success: false,
-        });
-    }
+    const token = await jwt.sign(username,'a74d9ff8f6c0638b05c21de570d57805');
+    res.json({
+        student_token: token,
+        success: true,
+    });
 });
 
 studentRouter.put("/resetpass", validateResetPassInputs, fetchStudent, authMiddleware, async (req, res) => {
@@ -559,7 +552,7 @@ studentRouter.post('/requestouting', isPresentInCampus, isApplicationPending, au
 
 
             await sendEmail(email, "Regarding your OutingRequest", studentOutingEmailBody);
-            if ('sreecharan309@gmail.com') await sendEmail('sreecharan309@gmail.com', "New Outing Request", wardenOutingEmailBody);
+             await sendEmail('sreecharan309@gmail.com', "New Outing Request", wardenOutingEmailBody);
             res.json({
                 msg: outing?.msg,
                 success: outing?.success,

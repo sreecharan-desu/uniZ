@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Outing" ADD COLUMN     "rejectedBy" TEXT NOT NULL DEFAULT 'none',
-ADD COLUMN     "rejectedTime" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
