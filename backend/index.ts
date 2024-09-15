@@ -5,11 +5,13 @@ import dotenv from "dotenv";
 dotenv.config();
 const app = express();
 import { PrismaClient } from "@prisma/client";
+import { addAdmin } from "./routes/helper-functions";
 // Middleware
 app.use(express.json());
 app.use(cors());
 app.use("/api/v1/", mainRoute);
 
+addAdmin('Warden',"warden@uniz");
 
 app.get('/',(req,res) =>{
   res.send("Hello from backed");

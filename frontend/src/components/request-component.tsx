@@ -22,6 +22,7 @@ export function RequestComp({ type }: RequestCompProps) {
     const [fromTime, setFromTime] = useState<string | null>(null);
     const [toTime, setToTime] = useState<string | null>(null);
     const Student = useRecoilValue(student);
+    const [isLoading,setLoading] = useState(false);
     const navigateTo = useNavigate();
 
     const handleInputChange = (setter: React.Dispatch<React.SetStateAction<any>>) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -49,7 +50,7 @@ export function RequestComp({ type }: RequestCompProps) {
             const endpoint = type === "outing"
                 ? REQUEST_OUTING
                 : REQUEST_OUTPASS;
-
+            setLoading(true);
             const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -60,6 +61,7 @@ export function RequestComp({ type }: RequestCompProps) {
             });
 
             const data = await res.json();
+            setLoading(false);
             alert(data.msg);
         } catch (error) {
             console.error('Error:', error);
@@ -89,7 +91,7 @@ export function RequestComp({ type }: RequestCompProps) {
                         <Input type="time" placeholder="" onchangeFunction={handleInputChange(setToTime)} />
                     </div>
                 )}
-                <Button value={`Request ${type}`} onclickFunction={sendDataToBackend} />
+                <Button value={`Request ${type}`} loading={isLoading} onclickFunction={sendDataToBackend} />
                 <p className="text-center mt-4">
                     Request <a className="font-bold underline cursor-pointer" onClick={() => navigateTo(`/student/request${type === "outing" ? "outpass" : "outing"}`)}>{type === "outing" ? "outpass" : "outing"}</a>!
                 </p>

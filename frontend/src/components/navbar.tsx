@@ -1,12 +1,13 @@
 import { useRecoilState, useRecoilValue } from "recoil";
 import { is_authenticated, student } from "../store";
-import { useEffect, useState } from "react";
+// import { useEffect} from "react";
+import { useStudentData } from "../customhooks/student_info";
 
 export default function Navbar() {
     const [isAuth, setAuth] = useRecoilState(is_authenticated);
-    const [studentUsername, setUsername] = useState('');
+    // const [studentUsername, setUsername] = useState('');
     const username = useRecoilValue(student);
-
+    useStudentData();
     const logout = () => {
         localStorage.removeItem('student_token');
         localStorage.removeItem('username');
@@ -18,12 +19,12 @@ export default function Navbar() {
         window.location.reload(); // Reload to reflect logout changes
     };
 
-    useEffect(() => {
-        const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(JSON.parse(storedUsername));
-        }
-    }, []);
+    // useEffect(() => {
+    //     const storedUsername = localStorage.getItem('username');
+    //     if (storedUsername) {
+    //         setUsername(JSON.parse(storedUsername));
+    //     }
+    // }, []);
 
     return (
         <div className="flex justify-between items-center p-4 bg-white border-b border-gray-300">
@@ -36,10 +37,10 @@ export default function Navbar() {
             </div>
             {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || (localStorage.getItem('student_token') && username) ? (
                 <div className="flex items-center space-x-4">
-                    <p className="text-black">Hello, {studentUsername}</p>
+                    <p className="text-black">Hello, {username.name}</p>
                     <button
                         onClick={logout}
-                        className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-300"
+                        className="bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800 transition duration-300"
                     >
                         Logout
                     </button>

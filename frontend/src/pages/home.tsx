@@ -14,10 +14,12 @@ export function Home() {
                 <Button
                     onclickFunction={() => navigateTo('/student/signin')}
                     value="Student"
+                    loading= {false}
                 />
                 <Button
                     onclickFunction={() => navigateTo('/admin/signin')}
                     value="Admin"
+                    loading= {false}
                 />
             </div>
         </div>

@@ -121,6 +121,7 @@ export const hashPassword = async (password: string) => {
 // Add a new student to the database
 export const addStudent = async (username: string, password: string,gender : string,name:string) => {
   const hashedPassword = await hashPassword(password);
+  const id = "id_" + (await crypto.randomBytes(4).toString("hex"));
   const isUserPresent = await findUserByUsername(username);
   if (isUserPresent) {
     console.log("User already exists. Try a new username");
@@ -131,6 +132,7 @@ export const addStudent = async (username: string, password: string,gender : str
     try {
       const user = await client.student.create({
         data: {
+          id,
           Username: username,
           Password: hashedPassword.password,
           Email: `${username}@rguktong.ac.in`,

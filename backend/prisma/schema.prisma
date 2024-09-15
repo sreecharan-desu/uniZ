@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = "mongodb+srv://srecharandesu:charan%402006@cluster0.a9berin.mongodb.net/uniZ"
+  provider = "postgres"
+  url      = "postgresql://uniZ_owner:FHBT9qp2LhiM@ep-broad-surf-a5632yl2.us-east-2.aws.neon.tech/uniZ"
 }
 
 model Student {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id 
   Username String @unique
   Name String @default("")
   Gender String @default("Male")
@@ -32,7 +32,7 @@ model Student {
 }
 
 model Admin {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id 
   Username String @unique
   Password String
   createdAt DateTime @default(now())
@@ -40,7 +40,7 @@ model Admin {
 }
 
 model Outpass {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id 
   StudentId String
   Reason String
   FromDay DateTime
@@ -60,7 +60,7 @@ model Outpass {
 }
 
 model Outing {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id
   StudentId String
   reason String
   FromTime DateTime
