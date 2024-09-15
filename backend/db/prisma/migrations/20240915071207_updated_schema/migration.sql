@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Student" ADD COLUMN     "Gender" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "Name" TEXT NOT NULL DEFAULT '',
+ALTER COLUMN "Password" SET DEFAULT '';
