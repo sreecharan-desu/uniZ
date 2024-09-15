@@ -4,7 +4,7 @@ import { mainRoute } from "./routes";
 import dotenv from "dotenv";
 dotenv.config();
 const app = express();
-
+import { PrismaClient } from "@prisma/client";
 // Middleware
 app.use(express.json());
 app.use(cors());
