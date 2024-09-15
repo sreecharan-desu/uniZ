@@ -26,3 +26,8 @@ UniZ is a scalable college management system, currently featuring an advanced **
 - **State Management**: Recoil
 - **API Handling**: Axios
 - **Deployment**: Vercel
+
+# Contribution ✨
+Contributions are welcome! Feel free to fork this repository, raise issues, or submit a pull request.
+
+
