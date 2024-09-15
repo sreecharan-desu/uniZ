@@ -12,6 +12,10 @@ app.use(express.json());
 app.use(cors());
 app.use("/api/v1/", mainRoute);
 
+
+app.get('/',(req,res) =>{
+  res.send("Hello from backed");
+})
 // Define port with a fallback to 3000
 const port = process.env.PORT || 3000;
 
