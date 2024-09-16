@@ -12,7 +12,7 @@ export function Student() {
     const navigateTo = useNavigate();
     const Student = useRecoilValue(student);
     const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
-    const completedRequests = (list: any[]) => list.filter((request: any) => (request.is_approved || request.is_rejected) && !request.is_expired).length;
+    // const completedRequests = (list: any[]) => list.filter((request: any) => (request.is_approved || request.is_rejected) && !request.is_expired).length;
 
     return (
         <div>
@@ -24,10 +24,10 @@ export function Student() {
             <div className="m-5">
                 <div className="flex justify-start">
                 <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>
-                <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">**Note : expired requests by (date/time) and <b>rejected</b> requests won't appear here Updates about your requests will be sent to {Student.email}</p>
                 </div>
+                <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">**Note : expired requests by (date/time) and <b>rejected</b> requests won't appear here Updates about your requests will be sent to {Student.email}</p>
                     {Student.outings_list.filter(outing => !outing.is_expired && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_rejected).length === 0 ? (
-                    <p>You have no pending requests, you can request outing/outpass above</p>
+                    <p className="flex justify-center m-10 lg:m-20">You have no pending requests, you can request outing/outpass above</p>
                 ) : (
                     <>
                         {!Student.is_in_campus ? (
@@ -53,7 +53,7 @@ export function Student() {
                                     <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
                                 ) : null)}
 
-                                {completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list) > 0 && (
+                                {/* {completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list) > 0 && (
                                     <>
                                         <h2 className="underline text-xl m-3">*Completed requests ({completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list)})</h2>
                                         {Student.outings_list.map(outing => !outing.is_expired && (outing.is_approved || outing.is_rejected) ? (
@@ -63,7 +63,7 @@ export function Student() {
                                             <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
                                         ) : null)}
                                     </>
-                                )}
+                                )} */}
                             </>
                         )}
                     </>
