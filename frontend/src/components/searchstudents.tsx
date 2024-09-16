@@ -126,7 +126,7 @@ export function SearchStudents() {
                                 </div>
                             </div>
 
-                            {student.outings_list.map((outing) => (
+                            {/* {student.outings_list.map((outing) => (
                                 <div
                                     key={outing._id}
                                     className="mt-5 p-4 border border-gray-300 rounded-lg bg-white"
@@ -186,7 +186,7 @@ export function SearchStudents() {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            ))} */}
                         </>
                     ) : <></>}
                 </>
