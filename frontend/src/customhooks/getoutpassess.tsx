@@ -19,7 +19,8 @@ export function useGetOutpasses(){
                 const data = await res.json();
                 setOutpasses(data.outpasses)
             }
-            setInterval(()=>getDetails(),5000)  
+            getDetails();
+            setInterval(()=>getDetails(),60*1000)  
         }else{
             alert("No token found!")
         }

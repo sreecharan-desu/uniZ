@@ -19,6 +19,7 @@ export function useGetOutings(){
                 const data = await res.json();
                 setOutings(data.outings);
             }
-            setInterval(()=>getDetails(),5000)  
+            getDetails();
+            setInterval(()=>getDetails(),60*1000)  
     }},[])
 }

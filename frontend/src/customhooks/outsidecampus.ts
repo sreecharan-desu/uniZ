@@ -19,6 +19,7 @@ export function useOutsideCampus(){
                 const data = await res.json();
                 setOffCampus(data.studens);
             }
-            setInterval(()=>getDetails(),5000)  
+            getDetails();
+            setInterval(()=>getDetails(),60*1000)  
     }},[])
 }
