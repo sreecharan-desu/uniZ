@@ -20,7 +20,7 @@ export function Admin() {
     const students = useRecoilValue(offCampus);
 
     return (
-        <div className="flex-col lg:flex-row justify-center items-center space-x-4 m-4">
+        <div className="flex-col lg:flex justify-center place-content-center text-center items-center space-x-4 m-4">
             <Button
                 onclickFunction={() => navigateTo('/admin/approveouting')}
                 value={`OutingRequests (${Outings.length})`} loading={false}            />
