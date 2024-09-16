@@ -16,7 +16,7 @@ type RequestCompProps = {
 export function RequestComp({ type }: RequestCompProps) {
     // useIsAuth();
     useStudentData();
-    const [reason, setReason] = useState('');
+    const [reason, setReason] = useState(null);
     const [from_date, setFromDate] = useState<string | null>(null);
     const [to_date, setToDate] = useState<string | null>(null);
     const [from_time, setFromTime] = useState<string | null>(null);
