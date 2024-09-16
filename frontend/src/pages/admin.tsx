@@ -21,18 +21,26 @@ export function Admin() {
 
     return (
         <div className="grid grid-cols-1 lg:grid lg:grid-cols-4 justify-center place-content-center text-center items-center space-x-4 m-4">
+            <div className="m-1 ml-4 lg:ml-0">
             <Button
                 onclickFunction={() => navigateTo('/admin/approveouting')}
                 value={`OutingRequests (${Outings.length})`} loading={false}            />
+            </div>
+            <div className="m-1">
             <Button
                 onclickFunction={() => navigateTo('/admin/approveoutpass')}
                 value={`OutpassRequests (${Outpasses.length})`} loading={false}            />
-            <Button
+            </div>
+                <div className="m-1">
+                <Button
                 onclickFunction={() => navigateTo('/admin/updatestudentstatus')}
                 value={`Students outside campus (${students.length})`} loading={false}            />
-            <Button
+                </div>
+                <div className="m-1">
+                <Button
                 onclickFunction={() => navigateTo('/admin/searchstudents')}
                 value={`Search students`} loading={false}            />
+                </div>
         </div>
     );
 }

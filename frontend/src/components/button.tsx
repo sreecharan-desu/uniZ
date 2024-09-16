@@ -9,7 +9,7 @@ export function Button({ value,loading, onclickFunction }: ButtonProps) {
         return (
             <button
                 onClick={onclickFunction}
-                className="bg-gray-400 text-white py-2 px-4 rounded m-1"
+                className="bg-gray-400 text-white py-2 px-4 rounded w-full"
                 disabled
             >
                 Loading...
@@ -19,7 +19,7 @@ export function Button({ value,loading, onclickFunction }: ButtonProps) {
         return (
             <button
                 onClick={onclickFunction}
-                className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-300"
+                className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-300 w-full"
             >
                 {value}
             </button>
