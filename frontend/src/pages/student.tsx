@@ -24,9 +24,9 @@ export function Student() {
             <div className="m-5">
                 <div className="flex justify-start">
                 <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>
-                <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">*Note expired requests by (date/time) won't appear here</p>
+                <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">**Note : expired requests by (date/time) and <b>rejected</b> requests won't appear here Updates about your requests will be sent to {Student.email}</p>
                 </div>
-                    {Student.outings_list.filter(outing => !outing.is_expired).length + Student.outpasses_list.filter(outpass => !outpass.is_expired).length === 0 ? (
+                    {Student.outings_list.filter(outing => !outing.is_expired && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_rejected).length === 0 ? (
                     <p>You have no pending requests, you can request outing/outpass above</p>
                 ) : (
                     <>
