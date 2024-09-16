@@ -143,8 +143,6 @@ export const outpasses = atom({
 export const outings = atom({
     key : 'outings',
     default : [{
-        username : '',
-        email : '',   
         from_time: '',
         in_time: "",
         is_approved: true,

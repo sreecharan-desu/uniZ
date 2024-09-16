@@ -25,14 +25,14 @@ export function Student() {
                 <div className="flex justify-start">
                 <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>
                 </div>
-                <p className="bg-gray-200 rounded-lg px-2 m-1 text-gray-800 italic">**Note : expired requests by (date/time) and <b>rejected</b> requests won't appear here Updates about your requests will be sent to {Student.email}</p>
+                <p className="bg-gray-200 rounded-lg px-2 py-2 m-1 text-gray-800 italic">**Note : Only <b className="italic">APPROVED REQUESTS</b> will be displayed here <br/>Expired requests by (date/time) and <b className="italic">INCLUDING REJECTED</b> requests won't appear here <br/> Updates about your requests will be sent to <b className="italic">{Student.email}</b></p>
                     {Student.outings_list.filter(outing => !outing.is_expired && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_rejected).length === 0 ? (
                     <p className="flex justify-center m-10 lg:m-20">You have no pending requests, you can request outing/outpass above</p>
                 ) : (
                     <>
                         {!Student.is_in_campus ? (
                             <>
-                                <h2 className="text-center text-black text-xl m-5 font-bold">You are currently Outside the Campus (Consult your warden to update your presence)</h2>
+                                <h2 className="text-center text-black text-xl m-5 font-bold">You are considered to be Outside the Campus Since your request is approved (Consult your warden to update your presence)</h2>
                                 {Student.outings_list.map(outing => !outing.is_expired && outing.is_approved ? (
                                     <RequestCard request={outing} email = {Student.email} type="outing" key={outing._id} />
                                 ) : null)}
@@ -123,7 +123,7 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
                 </>
             ) : null}
             <p className="mt-4 text-sm text-gray-600">
-                *We have sent you a mail to email-id <b className="font-bold text-black">{email}</b> regarding your {type} confirmation!
+                **An email will be sent to your college email-id <b className="font-bold text-black">{email}</b> regarding your {type} confirmation!
             </p>
         </div>
     );
