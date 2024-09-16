@@ -2,7 +2,7 @@ import { useRecoilValue } from "recoil";
 import { useGetOutings } from "../customhooks/getoutings";
 import { useGetOutpasses } from "../customhooks/getoutpassess";
 import { outings, outpasses } from "../store";
-import { APPROVE_OUTING, REJECT_OUTING } from "../apis";
+import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "../apis";
 
 type ApproveProps = {
     type: "outing" | "outpass",
@@ -52,7 +52,7 @@ export function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });
         if (token) {
-            const res = await fetch("http://localhost:3000/api/v1/admin/approveoutpass", {
+            const res = await fetch(APPROVE_OUTPASS, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });
         if (token) {
-            const res = await fetch("http://localhost:3000/api/v1/admin/rejectoutpass", {
+            const res = await fetch(REJECT_OUTPASS, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
