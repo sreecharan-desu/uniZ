@@ -106,7 +106,7 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
             {request.is_approved ? (
                 <>
                     <p className="my-2">
-                        <span className="font-semibold">Approved by:</span> {request.issued_by} at {request.issued_time}
+                        <span className="font-semibold">Approved by:</span> {request.issued_by} at {request.issued_time.split(",")[0]}
                     </p>
                     <p className="my-2">
                         <span className="font-semibold">Message:</span> You should return by {request.to_time}
@@ -115,7 +115,7 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
             ) : request.is_rejected ? (
                 <>
                     <p className="my-2">
-                        <span className="font-semibold">Rejected by:</span> {request.rejected_by} at {request.rejected_time}
+                        <span className="font-semibold">Rejected by:</span> {request.rejected_by} on {request.rejected_time.split(",")[0]}
                     </p>
                     <p className="my-2">
                         <span className="font-semibold">Message:</span> {request.message}
