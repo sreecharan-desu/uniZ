@@ -3,6 +3,8 @@ import { useGetOutings } from "../customhooks/getoutings";
 import { useGetOutpasses } from "../customhooks/getoutpassess";
 import { outings, outpasses } from "../store";
 import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "../apis";
+import { useState } from "react";
+import { Button } from "./button";
 
 type ApproveProps = {
     type: "outing" | "outpass",
@@ -11,6 +13,7 @@ type ApproveProps = {
 export function ApproveComp({ type }: ApproveProps) {
     useGetOutings();
     useGetOutpasses();
+    const [loading,setloading] = useState(false);
     const Outings = useRecoilValue(outings);
     const Outpasses = useRecoilValue(outpasses);
 
@@ -18,6 +21,7 @@ export function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });
         if (token) {
+            setloading(true);
             const res = await fetch(APPROVE_OUTING, {
                 method: 'POST',
                 headers: {
@@ -27,6 +31,7 @@ export function ApproveComp({ type }: ApproveProps) {
                 body: bodyData
             });
             const data = await res.json();
+            setloading(false);
             alert(data.msg);
         }
     }
@@ -35,6 +40,7 @@ export function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });
         if (token) {
+            setloading(true);
             const res = await fetch(REJECT_OUTING, {
                 method: 'POST',
                 headers: {
@@ -44,6 +50,7 @@ export function ApproveComp({ type }: ApproveProps) {
                 body: bodyData
             });
             const data = await res.json();
+            setloading(false);
             alert(data.msg);
         }
     }
@@ -52,6 +59,7 @@ export function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });
         if (token) {
+            setloading(true);
             const res = await fetch(APPROVE_OUTPASS, {
                 method: 'POST',
                 headers: {
@@ -61,6 +69,7 @@ export function ApproveComp({ type }: ApproveProps) {
                 body: bodyData
             });
             const data = await res.json();
+            setloading(false);
             alert(data.msg);
         }
     }
@@ -69,6 +78,7 @@ export function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });
         if (token) {
+            setloading(true);
             const res = await fetch(REJECT_OUTPASS, {
                 method: 'POST',
                 headers: {
@@ -78,6 +88,7 @@ export function ApproveComp({ type }: ApproveProps) {
                 body: bodyData
             });
             const data = await res.json();
+            setloading(false);
             alert(data.msg);
         }
     }
@@ -111,18 +122,14 @@ export function ApproveComp({ type }: ApproveProps) {
                                             </>
                                         ) : null}
                                         <div className="flex gap-4 mt-4">
-                                            <button
-                                                className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800"
-                                                onClick={() => approveouting(outing._id)}
-                                            >
-                                                Approve
-                                            </button>
-                                            <button
-                                                className="bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-600"
-                                                onClick={() => rejectouting(outing._id)}
-                                            >
-                                                Reject
-                                            </button>
+                                            <Button
+                                                onclickFunction={() => approveouting(outing._id)}
+                                                value="Approve"
+                                                loading ={loading}
+                                            />
+                                            <Button
+                                                onclickFunction={() => rejectouting(outing._id)} value={"Reject"} loading={loading}                                                
+                                            />
                                         </div>
                                     </div>
                                 );
