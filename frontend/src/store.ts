@@ -68,6 +68,8 @@ export const student = atom({
         gender : "",
         is_in_campus: true,
         outings_list:[{
+            email : "",
+            username : "",
             from_time: "",
             in_time: "",
             is_approved: true,
@@ -143,6 +145,8 @@ export const outpasses = atom({
 export const outings = atom({
     key : 'outings',
     default : [{
+        username : '',
+        email : '',  
         from_time: '',
         in_time: "",
         is_approved: true,
