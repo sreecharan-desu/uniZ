@@ -9,7 +9,7 @@ export function Button({ value,loading, onclickFunction }: ButtonProps) {
         return (
             <button
                 onClick={onclickFunction}
-                className="bg-gray-400 text-white py-2 px-4 rounded"
+                className="bg-gray-400 text-white py-2 px-4 rounded m-1"
                 disabled
             >
                 Loading...
