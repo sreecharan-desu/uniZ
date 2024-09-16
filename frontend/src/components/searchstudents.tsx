@@ -140,12 +140,21 @@ export function SearchStudents() {
                                     <div>
                                         <b>Reason:</b> {outing.reason}
                                     </div>
-                                    <div>
+                                    {outing.is_approved ? <>
+                                        <div>
                                         <b>Approved by:</b> {outing.issued_by}
                                     </div>
                                     <div>
                                         <b>Approved at:</b> {outing.issued_time}
                                     </div>
+                                    </> : <>
+                                    <div>
+                                        <b>Rejected by:</b> {outing.rejected_by}
+                                    </div>
+                                    <div>
+                                        <b>Rejected at:</b> {outing.rejected_time}
+                                    </div>
+                                    </>}
                                 </div>
                             ))}
 
