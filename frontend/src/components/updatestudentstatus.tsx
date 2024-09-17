@@ -122,7 +122,14 @@ export function UpdateStatus() {
             <div className="m-2"><b>Present in Campus:</b> {student.is_in_campus ? "Yes" : "No"}</div>
 
             {/* Outing details */}
-            {student.outings_list.filter(outing => !outing.is_expired && outing.is_approved).length > 0 ? (
+            {student.outings_list.filter(outing => !outing.is_expired && outing.is_approved).length > 0 ? (<>
+            
+            <p className="underline text-2xl mt-5 font-bold">
+              Reason : Outing
+            </p>
+            {
+
+
               student.outings_list.reverse().filter(outing => !outing.is_expired && outing.is_approved).map(outing => (
                 <div key={outing._id} className="mt-5 p-4 border border-gray-300 rounded-lg bg-white">
                   <div><b>Went on:</b> {outing.from_time}</div>
@@ -139,9 +146,33 @@ export function UpdateStatus() {
                   </div>
                 </div>
               ))
-            ) : (
-              <p>No active outings found.</p>
+}</>) : (null
             )}
+
+            {/* Outpass details */}
+            {student.outpasses_list.filter(outing => !outing.is_expired && outing.is_approved).length > 0 ? (<>
+            <p className="underline text-2xl mt-5 font-bold">
+              Reason : Outpass
+            </p>
+            {
+              student.outpasses_list.reverse().filter(outing => !outing.is_expired && outing.is_approved).map(outing => (
+                <div key={outing._id} className="mt-5 p-4 border border-gray-300 rounded-lg bg-white">
+                  <div><b>Went on:</b> {outing.from_day}</div>
+                  <div><b>Requested timings:</b> {outing.from_day} to {outing.to_day}</div>
+                  <div><b>Reason:</b> {outing.reason}</div>
+                  <div><b>Approved by:</b> {outing.issued_by}</div>
+                  <div className="m-3">
+                    <Button
+                      onclickFunction={() => updateStatus(student._id, outing._id)}
+                      value="Update Student Status"
+                      loading={loading}
+                    />
+                  </div>
+                </div>
+              ))
+            }</>) : (
+                null
+  )}
           </div>
         ))
       ) : (
