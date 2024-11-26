@@ -43,7 +43,7 @@ export function Student() {
                         ) : (
                             <>
                                 <h2 className="underline text-xl m-3">*Pending requests ({pendingRequests(Student.outings_list) + pendingRequests(Student.outpasses_list)})</h2>
-                                {pendingRequests(Student.outings_list) == 0 || pendingRequests(Student.outpasses_list) == 0 ? <>
+                                {pendingRequests(Student.outings_list) == 0 && pendingRequests(Student.outpasses_list) == 0 ? <>
                                 <p className="text-black text-lg m-5 italic">You don't have any pending requests</p>                                    </> : null}
                                 {Student.outings_list.map(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected ? (
                                     <RequestCard request={outing} type="outing" key={outing._id} email={Student.email} />
