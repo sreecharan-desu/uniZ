@@ -145,8 +145,8 @@ export const getOutpassMailFormatForWarden = (outpass:any,user:any)=>{
             <p><strong>No. of Days:</strong> ${
               outpass.outpass_details?.Days
             }</p>
+            <p>Go to the <a href="https://sreesuniz.vercel.app/">website</a> now to approve or reject requests...</p>
         </div>
-        <p>Go to the website now to approve or reject requests...</p>
         <div class="footer">
             <p>Thank you for your patience.</p>
             <p>Best regards,<br>uniZ</p>
@@ -294,8 +294,8 @@ export const getOutingMailFormatForWarden = (outing:any,user:any)=>{
                 <p><strong>Reason:</strong> ${outing.outing_details?.reason}</p>
                 <p><strong>From Time:</strong> ${outing.outing_details?.FromTime.toLocaleString().split("05:30:00")[0].split(",")[1]}</p>
                 <p><strong>To Time:</strong> ${outing.outing_details?.ToTime.toLocaleString().split("05:30:00")[0].split(",")[1]}</p>
+                <p>Go to the <a href="https://sreesuniz.vercel.app/">website</a> now to approve or reject requests...</p>
             </div>
-            <p>Go to the website now to approve or reject requests...</p>
             <div class="footer">
                 <p>Thank you for your patience.</p>
                 <p>Best regards,<br>uniZ</p>
