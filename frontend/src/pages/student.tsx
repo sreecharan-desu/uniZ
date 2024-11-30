@@ -97,16 +97,13 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
                         <span className="font-semibold">Approved by : </span> {request.issued_by} 
                     </p>
                     <p className="my-2">
-                        <span className="font-semibold">Message from {request.issued_by} : </span> You should return by {request.to_time}
+                        <span className="font-semibold">Message from {request.issued_by} : </span> You should return by {request.to_time ? request.to_time : request.to_day}
                     </p>
                 </>
             ) : request.is_rejected ? (
                 <>
                     <p className="my-2">
                         <span className="font-semibold">Rejected by:</span> {request.rejected_by}
-                    </p>
-                    <p className="my-2">
-                        <span className="font-semibold">Message from {request.issued_by} : </span> {request.message}
                     </p>
                 </>
             ) : null}
