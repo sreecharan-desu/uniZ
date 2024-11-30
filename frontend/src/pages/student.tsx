@@ -93,7 +93,7 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
             ) : (
                 <>
                     <p className="my-2">
-                        <span className="font-semibold">No_of_days:</span> {request.no_of_days}
+                        <span className="font-semibold">No_of_days:</span> {request.no_of_days+1}
                     </p>
                     <p className="my-2">
                         <span className="font-semibold">Duration:</span> {request.from_day} to {request.to_day}
