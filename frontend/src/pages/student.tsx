@@ -52,18 +52,6 @@ export function Student() {
                                 {Student.outpasses_list.map(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected ? (
                                     <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
                                 ) : null)}
-
-                                {/* {completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list) > 0 && (
-                                    <>
-                                        <h2 className="underline text-xl m-3">*Completed requests ({completedRequests(Student.outings_list) + completedRequests(Student.outpasses_list)})</h2>
-                                        {Student.outings_list.map(outing => !outing.is_expired && (outing.is_approved || outing.is_rejected) ? (
-                                            <RequestCard request={outing} type="outing" key={outing._id} email={Student.email} />
-                                        ) : null)}
-                                        {Student.outpasses_list.map(outpass => !outpass.is_expired && (outpass.is_approved || outpass.is_rejected) ? (
-                                            <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student.email} />
-                                        ) : null)}
-                                    </>
-                                )} */}
                             </>
                         )}
                     </>
@@ -106,19 +94,19 @@ function RequestCard({ request, type,email }: { request: any; type: 'outing' | '
             {request.is_approved ? (
                 <>
                     <p className="my-2">
-                        <span className="font-semibold">Approved by:</span> {request.issued_by} at {request.issued_time.split(",")[0]}
+                        <span className="font-semibold">Approved by : </span> {request.issued_by} 
                     </p>
                     <p className="my-2">
-                        <span className="font-semibold">Message:</span> You should return by {request.to_time}
+                        <span className="font-semibold">Message from {request.issued_by} : </span> You should return by {request.to_time}
                     </p>
                 </>
             ) : request.is_rejected ? (
                 <>
                     <p className="my-2">
-                        <span className="font-semibold">Rejected by:</span> {request.rejected_by} on {request.rejected_time.split(",")[0]}
+                        <span className="font-semibold">Rejected by:</span> {request.rejected_by}
                     </p>
                     <p className="my-2">
-                        <span className="font-semibold">Message:</span> {request.message}
+                        <span className="font-semibold">Message from {request.issued_by} : </span> {request.message}
                     </p>
                 </>
             ) : null}
