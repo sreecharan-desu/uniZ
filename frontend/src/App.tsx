@@ -10,14 +10,14 @@ import { ApproveComp } from './components/approve-comp';
 import { UpdateStatus } from './components/updatestudentstatus';
 import { Resetpassword } from './components/resetpass';
 import { SearchStudents } from './components/searchstudents';
-import { Analytics } from '@vercel/analytics/next';
+// import { Analytics } from '@vercel/analytics/next';
 
 function App() {
   return (
     <React.StrictMode>
       <BrowserRouter>
         <Routes>
-          <Analytics/>
+          {/* <Analytics/> */}
           <Route element={<Home />} path='/' />
           <Route element={<Signin type='student' />} path='/student/signin' />
           <Route element={<Signin type='admin' />} path='/admin/signin' />
