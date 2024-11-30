@@ -8,73 +8,73 @@ datasource db {
 }
 
 model Student {
-  id String @id 
-  Username String @unique
-  Name String @default("")
-  Gender String @default("Male")
-  Password String
-  Email String @default("")
-  Outpass Outpass[]
-  Outing Outing[]
-  OTP String @default("")
-  PhoneNumber String @default("")
-  FatherPhoneNumber String @default("")
-  MotherPhoneNumber String @default("")
-  Address String @default("")
-  Year String @default("E2")
-  Branch String @default("")
-  Section String @default("")
-  Roomno String @default("")
-  isPresentInCampus Boolean @default(true)
-  isApplicationPending Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String    @id
+  Username            String    @unique
+  Name                String    @default("")
+  Gender              String    @default("Male")
+  Password            String
+  Email               String    @default("")
+  Outpass             Outpass[]
+  Outing              Outing[]
+  OTP                 String    @default("")
+  PhoneNumber         String    @default("")
+  FatherPhoneNumber   String    @default("")
+  MotherPhoneNumber   String    @default("")
+  Address             String    @default("")
+  Year                String    @default("E2")
+  Branch              String    @default("")
+  Section             String    @default("")
+  Roomno              String    @default("")
+  isPresentInCampus   Boolean   @default(true)
+  isApplicationPending Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 model Admin {
-  id String @id 
-  Username String @unique
-  Password String
+  id        String   @id
+  Username  String   @unique
+  Password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Outpass {
-  id String @id 
-  StudentId String
-  Reason String
-  FromDay DateTime @db.Date()
-  ToDay DateTime @db.Date()
-  Days Int @default(0)
-  RequestedTime DateTime @default(now())
-  isExpired Boolean @default(false)
-  isApproved Boolean @default(false)
-  issuedBy String @default("none")
-  issuedTime DateTime @default(now())
-  Message String?
-  isRejected Boolean @default(false)
-  rejectedBy String @default("none")
-  rejectedTime DateTime @default(now())
-  inTime DateTime @default(now())
-  Student Student @relation(fields: [StudentId], references: [id])
+  id             String    @id
+  StudentId      String
+  Reason         String
+  FromDay        DateTime  // Use DateTime for consistency, including UTC time
+  ToDay          DateTime  // Use DateTime for consistency, including UTC time
+  Days           Int       @default(0)
+  RequestedTime  DateTime  @default(now()) // Defaults to current timestamp in UTC
+  isExpired      Boolean   @default(false)
+  isApproved     Boolean   @default(false)
+  issuedBy       String    @default("none")
+  issuedTime     DateTime  @default(now()) // Defaults to current timestamp in UTC
+  Message        String?
+  isRejected     Boolean   @default(false)
+  rejectedBy     String    @default("none")
+  rejectedTime   DateTime  @default(now()) // Defaults to current timestamp in UTC
+  inTime         DateTime  @default(now()) // Defaults to current timestamp in UTC
+  Student        Student   @relation(fields: [StudentId], references: [id])
 }
 
 model Outing {
-  id String @id
-  StudentId String
-  reason String
-  FromTime DateTime @db.Time()
-  ToTime DateTime @db.Time()
-  Hours Int @default(0)
-  RequestedTime DateTime @default(now())
-  isExpired Boolean @default(false)
-  isApproved Boolean @default(false)
-  issuedBy String @default("none")
-  issuedTime DateTime @default(now())
-  Message String?
-  isRejected Boolean @default(false)
-  rejectedBy String @default("none")
-  rejectedTime DateTime @default(now())
-  inTime DateTime @default(now())
-  Student Student @relation(fields: [StudentId], references: [id])
+  id             String    @id
+  StudentId      String
+  reason         String
+  FromTime       DateTime  // Use DateTime for consistency, including UTC time
+  ToTime         DateTime  // Use DateTime for consistency, including UTC time
+  Hours          Int       @default(0)
+  RequestedTime  DateTime  @default(now()) // Defaults to current timestamp in UTC
+  isExpired      Boolean   @default(false)
+  isApproved     Boolean   @default(false)
+  issuedBy       String    @default("none")
+  issuedTime     DateTime  @default(now()) // Defaults to current timestamp in UTC
+  Message        String?
+  isRejected     Boolean   @default(false)
+  rejectedBy     String    @default("none")
+  rejectedTime   DateTime  @default(now()) // Defaults to current timestamp in UTC
+  inTime         DateTime  @default(now()) // Defaults to current timestamp in UTC
+  Student        Student   @relation(fields: [StudentId], references: [id])
 }
