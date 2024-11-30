@@ -136,7 +136,7 @@ export function UpdateStatus() {
                   <div><b>Requested timings:</b> {outing.from_time} to {outing.to_time}</div>
                   <div><b>Reason:</b> {outing.reason}</div>
                   <div><b>Approved by:</b> {outing.issued_by}</div>
-                  <div><b>Approved at:</b> {outing.issued_time.split(",")[0]}</div>
+                  {/* <div><b>Approved at:</b> {outing.issued_time.split(",")[0]}</div> */}
                   <div className="m-3">
                     <Button
                       onclickFunction={() => updateStatus(student._id, outing._id)}

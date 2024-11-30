@@ -66,11 +66,6 @@ export const getOutpassMailFormatForStudent = (outpass:any)=>{
             <p><strong>No. of Days:</strong> ${
               outpass.outpass_details?.Days
             }</p>
-            <p><strong>Time Requested:</strong> ${
-              outpass.outpass_details?.RequestedTime.toLocaleString().split(
-                "GMT"
-              )[0]
-            }</p>
         </div>
         <div class="footer">
             <p>Thank you for your patience.</p>
@@ -149,11 +144,6 @@ export const getOutpassMailFormatForWarden = (outpass:any,user:any)=>{
             }</p>
             <p><strong>No. of Days:</strong> ${
               outpass.outpass_details?.Days
-            }</p>
-            <p><strong>Time Requested:</strong> ${
-              outpass.outpass_details?.RequestedTime.toLocaleString().split(
-                "GMT"
-              )[0]
             }</p>
         </div>
         <p>Go to the website now to approve or reject requests...</p>
@@ -235,11 +225,6 @@ export const getOutingMailFormatForStudent = (outing)=>{
                                 .split("05:30:00")[0]
                                 .split(",")[1]
                             }</p>
-                            <p><strong>Time Requested:</strong> ${
-                            outing.outing_details?.RequestedTime.toLocaleString().split(
-                                "GMT"
-                            )[0]
-                            }</p>
                         </div>
                         <div class="footer">
                             <p>Thank you for your patience.</p>
@@ -309,7 +294,6 @@ export const getOutingMailFormatForWarden = (outing:any,user:any)=>{
                 <p><strong>Reason:</strong> ${outing.outing_details?.reason}</p>
                 <p><strong>From Time:</strong> ${outing.outing_details?.FromTime.toLocaleString().split("05:30:00")[0].split(",")[1]}</p>
                 <p><strong>To Time:</strong> ${outing.outing_details?.ToTime.toLocaleString().split("05:30:00")[0].split(",")[1]}</p>
-                <p><strong>Time Requested:</strong> ${outing.outing_details?.RequestedTime.toLocaleString().split("GMT")[0]}</p>
             </div>
             <p>Go to the website now to approve or reject requests...</p>
             <div class="footer">

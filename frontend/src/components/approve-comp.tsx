@@ -111,8 +111,8 @@ export function ApproveComp({ type }: ApproveProps) {
                                         <p className="mt-2"><span className="font-semibold">IdNumber:</span> {outing.username}</p>
                                         <p><span className="font-semibold">Email:</span> {outing.email}</p>
                                         <p><span className="font-semibold">Reason:</span> {outing.reason}</p>
-                                        <p><span className="font-semibold">Requested time:</span> {outing.requested_time.split(",")[1]}</p>
-                                        <p><span className="font-semibold">No_of_days:</span> {outing.no_of_days}</p>
+                                        {/* <p><span className="font-semibold">Requested time:</span> {outing.requested_time.split(",")[1]}</p> */}
+                                        {/* <p><span className="font-semibold">No_of_days:</span> {outing.no_of_days}</p> */}
                                         <p><span className="font-semibold">Duration:</span> {outing.from_time} to {outing.to_time}</p>
                                         <p><span className="font-semibold">Status:</span> {outing.is_approved ? "Approved" : "Pending"}</p>
                                         {outing.is_approved ? (
@@ -150,8 +150,8 @@ export function ApproveComp({ type }: ApproveProps) {
                                         <p className="mt-2"><span className="font-semibold">IdNumber:</span> {outpass.username}</p>
                                         <p><span className="font-semibold">Email:</span> {outpass.email}</p>
                                         <p><span className="font-semibold">Reason:</span> {outpass.reason}</p>
-                                        <p><span className="font-semibold">Requested time:</span> {outpass.requested_time}</p>
-                                        <p><span className="font-semibold">No_of_days:</span> {outpass.no_of_days}</p>
+                                        {/* <p><span className="font-semibold">Requested time:</span> {outpass.requested_time}</p>
+                                        <p><span className="font-semibold">No_of_days:</span> {outpass.no_of_days}</p> */}
                                         <p><span className="font-semibold">Duration:</span> {outpass.from_day} to {outpass.to_day}</p>
                                         <p><span className="font-semibold">Status:</span> {outpass.is_approved ? "Approved" : "Pending"}</p>
                                         {outpass.is_approved ? (
