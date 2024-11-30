@@ -87,7 +87,7 @@ studentRouter.post('/requestoutpass', isPresentInCampus, isApplicationPending, a
             const wardenOutpassEmail = await getOutpassMailFormatForWarden(outpass,user);
             if (user?.Email) {
                 await sendEmail(user?.Email, "Regarding your OutpassRequest",studentOutpassEmail);
-                await sendEmail('sreecharan309@gmail.com', "New Outpass Request", wardenOutpassEmail);
+                await sendEmail('sreecharan309@gmail.com', `New Outpass Request From ${user.Username}`, wardenOutpassEmail);
                 res.json({
                     msg: outpass?.msg,
                     success: outpass?.success,
@@ -126,7 +126,7 @@ studentRouter.post('/requestouting', isPresentInCampus, isApplicationPending, au
         const wardenOutingEmailBody = await getOutingMailFormatForWarden(outing,user);
         if (user?.Email) {
            await sendEmail(user.Email, "Regarding your OutingRequest", studentOutingEmailBody);
-           await sendEmail('sreecharan309@gmail.com', "New Outing Request", wardenOutingEmailBody);
+           await sendEmail('sreecharan309@gmail.com',`New Outing Request From ${user.Username}`, wardenOutingEmailBody);
             res.json({
                 msg: outing?.msg,
                 success: outing?.success,
