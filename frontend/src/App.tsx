@@ -11,6 +11,7 @@ import { UpdateStatus } from './components/updatestudentstatus';
 import { Resetpassword } from './components/resetpass';
 import { SearchStudents } from './components/searchstudents';
 // import { Analytics } from '@vercel/analytics/next';
+import './index.css'
 
 function App() {
   return (
