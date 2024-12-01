@@ -31,14 +31,6 @@ export default function Sidebar({content}:MainContent){
       });
       location.href = "/";
   };
-  // useEffect(()=>{
-  //   if(!useIsAuth()) navigateTo('/');
-  //   // return;
-  //   if(!isAuth.is_authnticated){
-  //     navigateTo('/signin');
-  //     alert("You need to signin to access that page.")
-  //   }
-  // },[isAuth])
   return (
     <div className="flex -m-10 min-h-screen w-full">
       <aside

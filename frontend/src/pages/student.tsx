@@ -24,15 +24,18 @@ export function Student() {
 
 
                 {username.outings_list.map(outing => !outing.is_expired && outing.is_approved && !outing.is_rejected? (
-                    <>
+                <>
                     <h2 className="text-left ml-5 text-lg font-bold italic">
                         *You are outside campus according to your last request listed below.Consult your warden to update your prescence in the website.
                     </h2>
                     <RequestCard request={outing} email = {username.email} type="outing" key={outing._id} />
                 </>) : null)}
                 {username.outpasses_list.map(outpass => !outpass.is_expired && outpass.is_approved && !outpass.is_rejected? (
+                                        <><h2 className="text-left ml-5 text-lg font-bold italic">
+                                        *You are outside campus according to your last request listed below.Consult your warden to update your prescence in the website.
+                                    </h2>
                     <RequestCard request={outpass} type="outpass" key={outpass._id} email={""} />
-                ) : null)}
+                </>) : null)}
             
             </> : <>
             
