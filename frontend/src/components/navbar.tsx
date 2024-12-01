@@ -40,7 +40,7 @@ export default function Navbar() {
                     <a href="/student/signin">
                         <Button
                             onclickFunction={() =>undefined}
-                            value="Get Outpass"
+                            value="Signin Now"
                             loading= {false}
                         />
                     </a>
@@ -49,7 +49,10 @@ export default function Navbar() {
             }
             {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || (localStorage.getItem('student_token') && username) ? (
                 <div className="flex items-center space-x-4">
-                    <p className="text-black">Hello, {username.name}</p>
+                    <div className="flex-col justify-center">
+                    <p className="text-gray-700 text-left text-sm">{username.name}</p>
+                    <p className="text-gray-700 text-left text-sm">{username.email}</p>
+                    </div>
                     <button
                         onClick={logout}
                         className="bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800 transition duration-300"

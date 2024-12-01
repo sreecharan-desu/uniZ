@@ -14,7 +14,7 @@ export function Input({ type, placeholder, onchangeFunction }: InputProps) {
 
     if (type === "password") {
         return (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 w-full">
                 <input
                     type={passwordVisible ? 'text' : 'password'}
                     placeholder={placeholder}

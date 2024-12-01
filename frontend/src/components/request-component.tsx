@@ -96,7 +96,7 @@ export function RequestComp({ type }: RequestCompProps) {
                 )}
                 <Button value={`Request ${type}`} loading={isLoading} onclickFunction={sendDataToBackend} />
                 <p className="text-center mt-4">
-                    Request <a className="font-bold underline cursor-pointer" onClick={() => navigateTo(`/student/request${type === "outing" ? "outpass" : "outing"}`)}>{type === "outing" ? "outpass" : "outing"}</a>!
+                    Request <a className="font-bold underline cursor-pointer" onClick={() => navigateTo(`/student/${type === "outing" ? "outpass" : "outing"}/request${type === "outing" ? "outpass" : "outing"}`)}>{type === "outing" ? "outpass" : "outing"}</a>!
                 </p>
                 <p className="text-center mt-4">
                     Click <a className="font-bold underline cursor-pointer" onClick={() => navigateTo('/student')}>here</a> to go back to dashboard!

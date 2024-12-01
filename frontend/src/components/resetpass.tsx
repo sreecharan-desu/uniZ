@@ -63,21 +63,21 @@ export function Resetpassword() {
     };
 
     return (
-        <div className="flex justify-center py-8">
-            <div className="flex flex-col items-center w-full max-w-sm p-6 shadow-lg border border-gray-300 bg-white rounded-lg">
-                <label className="block text-gray-700 font-semibold mb-2">Current Password</label>
+        <div className="flex justify-center py-8 px-10">
+            <div className="flex flex-col items-center w-full max-w-sm p-6 shadow-lg border border-gray-300 bg-white rounded-lg text-left">
+                <label className="block text-gray-700 font-semibold mb-2 text-left ">Current Password</label>
                 <Input 
                     type="password" 
                     onchangeFunction={handleInputChange(setOldPassword)} 
                     placeholder="Current Password" 
                 />
-                <label className="block text-gray-700 font-semibold mt-4 mb-2">New Password</label>
+                <label className="block text-gray-700 font-semibold mt-4 mb-2 text-left">New Password</label>
                 <Input 
                     type="password" 
                     onchangeFunction={handleInputChange(setPassword)} 
                     placeholder="New Password" 
                 />
-                <label className="block text-gray-700 font-semibold mt-4 mb-2">Re-enter New Password</label>
+                <label className="block text-gray-700 font-semibold mt-4 mb-2 text-left">Re-enter New Password</label>
                 <Input 
                     type="password" 
                     onchangeFunction={handleInputChange(setRePassword)} 

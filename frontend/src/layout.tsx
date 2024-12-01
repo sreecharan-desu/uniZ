@@ -13,7 +13,7 @@ export function Layout({ children }: LayoutProps) {
       <Suspense fallback={<div className="text-center py-4">Loading Navbar...</div>}>
         <Navbar />
       </Suspense>
-      <main className="flex-grow  m-10">{children}</main>
+      <main className="flex-grow m-10">{children}</main>
       <Footer/>
     </div>
   );
