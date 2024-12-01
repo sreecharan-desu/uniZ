@@ -4,7 +4,6 @@ import './App.css';
 import { Home } from './pages/home';
 import { Signin } from './components/signin-component';
 import { Admin } from './pages/admin';
-import { Student } from './pages/student';
 import { ApproveComp } from './components/approve-comp';
 import { UpdateStatus } from './components/updatestudentstatus';
 import { SearchStudents } from './components/searchstudents';
