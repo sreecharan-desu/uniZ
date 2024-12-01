@@ -75,26 +75,25 @@ export function UpdateStatus() {
       const data = await res.json();
       alert(data.msg);
       setLoading(false);
-      
+      location.href="";
       // Fetch updated student list
-      const res2 = await fetch(STUDENT_OUTSIDE_CAMPUS, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${JSON.parse(token)}`,
-        },
-      });
-      const data2 = await res2.json();
-      setOffCampus(data2.students);
+      // const res2 = await fetch(STUDENT_OUTSIDE_CAMPUS, {
+      //   method: 'GET',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${JSON.parse(token)}`,
+      //   },
+      // });
+      // const data2 = await res2.json();
+      // setOffCampus(data2.students);
     }
   };
 
   return (
     <>
-      <h1 className="m-5 text-xl font-bold">
-        Students Outside Campus ({students.length})
+      <h1 className="text-xl font-bold first-letter:text-3xl">
+        /Students Outside Campus ({students.length})
       </h1>
-      <h1 className="text-xl font-bold mb-4">Search students by Id number</h1>
       <div className="flex justify-center items-center">
         <div className="relative inline-block">
           <input
@@ -130,7 +129,7 @@ export function UpdateStatus() {
             {
 
 
-              student.outings_list.reverse().filter(outing => !outing.is_expired && outing.is_approved).map(outing => (
+              student.outings_list.filter(outing => !outing.is_expired && outing.is_approved).map(outing => (
                 <div key={outing._id} className="mt-5 p-4 border border-gray-300 rounded-lg bg-white">
                   <div><b>Went on:</b> {outing.from_time}</div>
                   <div><b>Requested timings:</b> {outing.from_time} to {outing.to_time}</div>

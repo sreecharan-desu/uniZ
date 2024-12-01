@@ -44,7 +44,7 @@ export default function RequestCard({ request, type,email }: { request: any; typ
                 </>
             ) : null}
             <p className="mt-4 text-sm text-gray-600">
-                **An email will be sent to your college email-id <b className="font-bold text-black">{email}</b> regarding your {type} confirmation!
+                **An email will be sent to your college email-id <b className="font-bold text-black">{email}</b> regarding your {type} confirmation & updates!
             </p>
         </div>
     );

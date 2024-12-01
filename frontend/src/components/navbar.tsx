@@ -21,7 +21,7 @@ export default function Navbar() {
     };
 
     return (
-        <div className="flex justify-between items-center p-4 bg-black border-gray-300">
+        <div className="flex justify-between items-center p-1 bg-black border-gray-300 sticky top-0">
             <div className="flex">
                 <img src="/vite.svg" width="40"/>
                 <a href="/" className="m-3 mt-4">
@@ -55,6 +55,17 @@ export default function Navbar() {
                 </div>
             ): (isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || (localStorage.getItem('admin_token') && username) ? (
                 <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
+                        <div className='bg-white text-black rounded-full p-2 px-3 text-xl font-bold'>
+                            W
+                        </div>
+                        <div className="flex-col justify-center">
+                            <p className="text-white text-left text-sm font-semibold">Warden</p>
+                            <p className="text-white text-left text-sm font-semibold">sreecharan309@gmail.com</p>
+                        </div>
+                        </div>
+                    </div>
                     <button onClick={logout} className="bg-white rounded-full px-4 py-2">
                         Logout
                     </button>

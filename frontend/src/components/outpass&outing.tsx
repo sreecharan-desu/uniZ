@@ -7,16 +7,24 @@ const RequestCard = React.lazy(()=>import('../components/requestCard'));
 type requestProps = {
     request : "outing" | "outpass"
 }
-export default function Outpass_Outing({request}:requestProps){
-    const Student = useRecoilValue(student);    const navigateTo = useNavigate();
-    const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
+
+export function OutButton({request}:requestProps){
+    const navigateTo = useNavigate();
     return<>
-        <div className="justify-center place-content-center w-full">
-            <div className="flex justify-center items-center">
+    <div className="flex justify-center items-center">
                 {request == "outing" ? <>                <Button onclickFunction={() => navigateTo('/student/outing/requestouting')} value="Request Outing" loading={false} />&nbsp;
                 </> : <>                <Button onclickFunction={() => navigateTo('/student/outpass/requestoutpass')} value="Request Outpass" loading={false} />&nbsp;
                 </>}
-            </div>
+    </div>
+    </>
+}
+
+export default function Outpass_Outing({request}:requestProps){
+    const Student = useRecoilValue(student);    
+    const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
+    return<>
+        <div className="justify-center place-content-center w-full">
+            <OutButton request={request}/>
             <div className="m-5">
                 <div className="flex justify-start">
                 <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>
