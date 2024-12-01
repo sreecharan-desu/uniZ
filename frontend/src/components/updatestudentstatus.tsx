@@ -94,7 +94,7 @@ export function UpdateStatus() {
   return (
     <>
       <h1 className="text-xl font-bold first-letter:text-3xl">
-        /Students Outside Campus ({students.length})
+        /Students Outside Campus ({students ? students.length : ''})
       </h1>
       <div className="flex justify-center items-center">
         <div className="relative inline-block">
