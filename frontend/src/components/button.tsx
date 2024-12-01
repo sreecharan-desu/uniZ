@@ -19,7 +19,7 @@ export function Button({ value,loading, onclickFunction }: ButtonProps) {
         return (
             <button
                 onClick={onclickFunction}
-                className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-300 w-full"
+                className="bg-black text-white py-2 px-4 underline rounded hover:bg-gray-800 transition duration-300 w-full"
             >
                 {value}
             </button>

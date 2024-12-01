@@ -20,18 +20,12 @@ export default function Navbar() {
         location.href = "/";
     };
 
-    // useEffect(() => {
-    //     const storedUsername = localStorage.getItem('username');
-    //     if (storedUsername) {
-    //         setUsername(JSON.parse(storedUsername));
-    //     }
-    // }, []);
-
     return (
-        <div className="flex justify-between items-center p-4 bg-white border-b border-gray-300">
-            <div>
-                <a href="/">
-                    <h1 className="font-bold text-xl lg:text-3xl  text-black">
+        <div className="flex justify-between items-center p-4 bg-black border-gray-300">
+            <div className="flex">
+                <img src="/vite.svg" width="40"/>
+                <a href="/" className="m-3 mt-4">
+                    <h1 className="font-bold text-xl lg:text-3xl  text-white">
                         uniZ
                     </h1>
                 </a>
@@ -48,25 +42,20 @@ export default function Navbar() {
                      </>
             }
             {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || (localStorage.getItem('student_token') && username) ? (
-                <div className="flex items-center space-x-4">
-                    <div className="flex-col justify-center">
-                    <p className="text-gray-700 text-left text-sm">{username.name}</p>
-                    <p className="text-gray-700 text-left text-sm">{username.email}</p>
+                <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                    <div className={`${username.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-3 font-bold`}>
+                        {username.name ? (username.name[0] + username.name.split(' ')[1][0]) : <></>}
                     </div>
-                    <button
-                        onClick={logout}
-                        className="bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800 transition duration-300"
-                    >
-                        Logout
-                    </button>
+                    <div className="flex-col justify-center">
+                        <p className="text-white text-left text-sm font-semibold">{username.name}</p>
+                        <p className="text-white text-left text-sm font-semibold">{username.email}</p>
+                    </div>
+                    </div>
                 </div>
-            ) : (isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || (localStorage.getItem('admin_token') && username) ? (
+            ): (isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || (localStorage.getItem('admin_token') && username) ? (
                 <div className="flex items-center space-x-4">
-                    <p className="text-black">Hello Warden</p>
-                    <button
-                        onClick={logout}
-                        className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition duration-300"
-                    >
+                    <button onClick={logout} className="bg-white rounded-full px-4 py-2">
                         Logout
                     </button>
                 </div>

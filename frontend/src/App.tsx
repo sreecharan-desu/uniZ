@@ -26,11 +26,11 @@ function App() {
           <Route element={<Sidebar content='requestOutpass'></Sidebar>} path='/student/outpass/requestoutpass' />
           <Route element={<Sidebar content='resetpassword'/>} path='/student/resetpassword' />
           <Route element={<Admin />} path='/admin' />
-          <Route element={<ApproveComp type='outing' />} path='/admin/outings/approveouting' />
-          <Route element={<ApproveComp type='outpass' />} path='/admin/outpass/approveoutpass' />
+          <Route element={<ApproveComp type='outing' />} path='/admin/approveouting' />
+          <Route element={<ApproveComp type='outpass' />} path='/admin/approveoutpass' />
           <Route element={<UpdateStatus />} path='/admin/updatestudentstatus' />
           <Route element={<SearchStudents />} path='/admin/searchstudents' />
-          <Route element={<Sidebar content='error'/>} path='*'/>
+          <Route element={<Error/>} path='*'/>
         </Routes>
       </BrowserRouter>
     </React.StrictMode>
