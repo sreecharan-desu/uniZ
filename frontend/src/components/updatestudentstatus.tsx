@@ -156,7 +156,7 @@ export function UpdateStatus() {
               Reason : Outpass
             </p>
             {
-              student.outpasses_list.reverse().filter(outing => !outing.is_expired && outing.is_approved).map(outing => (
+              student.outpasses_list.filter(outing => !outing.is_expired && outing.is_approved).map(outing => (
                 <div key={outing._id} className="mt-5 p-4 border border-gray-300 rounded-lg bg-white">
                   <div><b>Went on:</b> {outing.from_day}</div>
                   <div><b>Requested timings:</b> {outing.from_day} to {outing.to_day}</div>
