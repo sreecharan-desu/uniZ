@@ -6,6 +6,7 @@ import { Resetpassword } from "./resetpass";
 import { RequestComp } from "./request-component";
 import { Error } from "../App";
 import { Student } from "../pages/student";
+import GradeLite from "./gradelite";
 
 
 type MainContent = {
@@ -71,13 +72,6 @@ export default function Sidebar({content}:MainContent){
     </svg>
     <span className="text-white text-center">GradeHub <sup><b className="bg-gray-700 rounded-full px-3 -pt-2">Lite</b></sup></span>
   </div>
-  {/* <div className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer" onClick={() => navigateTo('/student/gradehub')}>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-6 h-6">
-      <path d="M7.702 1.368a.75.75 0 0 1 .597 0c2.098.91 4.105 1.99 6.004 3.223a.75.75 0 0 1-.194 1.348A34.27 34.27 0 0 0 8.341 8.25a.75.75 0 0 1-.682 0c-.625-.32-1.262-.62-1.909-.901v-.542a36.878 36.878 0 0 1 2.568-1.33.75.75 0 0 0-.636-1.357 38.39 38.39 0 0 0-3.06 1.605.75.75 0 0 0-.372.648v.365c-.773-.294-1.56-.56-2.359-.8a.75.75 0 0 1-.194-1.347 40.901 40.901 0 0 1 6.005-3.223ZM4.25 8.348c-.53-.212-1.067-.411-1.611-.596a40.973 40.973 0 0 0-.418 2.97.75.75 0 0 0 .474.776c.175.068.35.138.524.21a5.544 5.544 0 0 1-.58.681.75.75 0 1 0 1.06 1.06c.35-.349.655-.726.915-1.124a29.282 29.282 0 0 0-1.395-.617A5.483 5.483 0 0 0 4.25 8.5v-.152Z" />
-    </svg>
-    <span className="text-white text-center">GradeHub <b className="bg-gray-700 rounded-full px-3 -pt-2">exp</b></span>
-  </div> */}
-
   <div className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer" onClick={() => navigateTo('/student/resetpassword')}>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-6 h-6">
       <path fillRule="evenodd" d="M8 1a3.5 3.5 0 0 0-3.5 3.5V7A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11.5 7V4.5A3.5 3.5 0 0 0 8 1Zm2 6V4.5a2 2 0 1 0-4 0V7h4Z" clipRule="evenodd" />
@@ -103,9 +97,9 @@ export default function Sidebar({content}:MainContent){
 
 </nav>
       </aside>
-      <div className="w-full mt-0 mr-0 mb-0 ml-2">
+      <div className="w-full h-full m-0">
         <div className="w-full p-10">
-            { (content == 'outing') ? <><Outpass_Outing request="outing"/></> : (content == 'outpass') ? <><Outpass_Outing request="outpass"/></> : (content == 'resetpassword') ? <><Resetpassword/></> : (content == 'requestOuting') ? <><RequestComp type='outing' /></> : (content == 'requestOutpass') ? <><RequestComp type="outpass"/></> : (content == 'dashboard' ? <><Student/></> : (content == "error" ? <><Error/></> : <></>))}
+            { (content == 'outing') ? <><Outpass_Outing request="outing"/></> : (content == 'outpass') ? <><Outpass_Outing request="outpass"/></> : (content == 'resetpassword') ? <><Resetpassword/></> : (content == 'requestOuting') ? <><RequestComp type='outing' /></> : (content == 'requestOutpass') ? <><RequestComp type="outpass"/></> : (content == 'dashboard' ? <><Student/></> : (content == "error" ? <><Error/></> : (content == 'gradehub' ? <><GradeLite/></> : <></>)))}
         </div>
       </div>
     </div>

@@ -25,6 +25,7 @@ function App() {
           <Route element={<Sidebar content='requestOuting'></Sidebar>} path='/student/outing/requestouting' />
           <Route element={<Sidebar content='requestOutpass'></Sidebar>} path='/student/outpass/requestoutpass' />
           <Route element={<Sidebar content='resetpassword'/>} path='/student/resetpassword' />
+          <Route element={<Sidebar content='gradehub'/>} path='/student/gradehub' />
           <Route element={<Admin />} path='/admin' />
           <Route element={<ApproveComp type='outing' />} path='/admin/approveouting' />
           <Route element={<ApproveComp type='outpass' />} path='/admin/approveoutpass' />
