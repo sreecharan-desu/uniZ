@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import React, { Suspense} from 'react';
+import { BrowserRouter, Route, Routes} from 'react-router-dom';
 import './App.css';
 import { Home } from './pages/home';
 import { Signin } from './components/signin-component';
@@ -7,9 +7,9 @@ import { Admin } from './pages/admin';
 import { ApproveComp } from './components/approve-comp';
 import { UpdateStatus } from './components/updatestudentstatus';
 import { SearchStudents } from './components/searchstudents';
-// import { Analytics } from '@vercel/analytics/next';
 import './index.css'
 import Sidebar from './components/sideBar';
+import { useIsAuth } from './customhooks/is_authenticated';
 function App() {
   return (
     <React.StrictMode>
@@ -39,7 +39,8 @@ function App() {
 }
 
 export function Error() {
-  return (
+    useIsAuth();
+    return (
     <div style={{ textAlign: 'center' }}>
       <h2>
         The page you are trying to search doesn't exist! or will be available soon . . . <br />

@@ -21,8 +21,6 @@ export function useGetOutpasses(){
             }
             getDetails();
             setInterval(()=>getDetails(),60*1000)  
-        }else{
-            alert("No token found!")
         }
     },[])
 }

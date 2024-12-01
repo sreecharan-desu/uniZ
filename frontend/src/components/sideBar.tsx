@@ -7,6 +7,7 @@ import { RequestComp } from "./request-component";
 import { Error } from "../App";
 import { Student } from "../pages/student";
 import GradeLite from "./gradelite";
+import { useIsAuth } from "../customhooks/is_authenticated";
 
 
 type MainContent = {
@@ -16,6 +17,7 @@ type MainContent = {
 
 
 export default function Sidebar({content}:MainContent){
+    useIsAuth();
     const username = useRecoilValue(student);
     const navigateTo = useNavigate();
     const [isAuth, setAuth] = useRecoilState(is_authenticated);
@@ -29,7 +31,14 @@ export default function Sidebar({content}:MainContent){
       });
       location.href = "/";
   };
-
+  // useEffect(()=>{
+  //   if(!useIsAuth()) navigateTo('/');
+  //   // return;
+  //   if(!isAuth.is_authnticated){
+  //     navigateTo('/signin');
+  //     alert("You need to signin to access that page.")
+  //   }
+  // },[isAuth])
   return (
     <div className="flex -m-10 min-h-screen w-full">
       <aside

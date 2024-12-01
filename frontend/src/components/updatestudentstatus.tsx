@@ -5,8 +5,10 @@ import { offCampus } from "../store";
 import { UPDATE_STUDENT_STATUS } from "../apis";
 import { Button } from "./button";
 import { useState, useEffect } from "react";
+import { useIsAuth } from "../customhooks/is_authenticated";
 
 export function UpdateStatus() {
+  useIsAuth();
   useOutsideCampus();
   const students = useRecoilValue(offCampus);
   const [searchQuery, setSearchQuery] = useState("");

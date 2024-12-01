@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { useDebounce } from "../customhooks/useDebounce";
 import { SEARCH_STUDENTS } from "../apis";
+import { useIsAuth } from "../customhooks/is_authenticated";
 
 export function SearchStudents() {
+    useIsAuth();
     const [string, setString] = useState("");
     const onchangeHandler = (event: any) => {
         setString(event.target.value);

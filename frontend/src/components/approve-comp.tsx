@@ -5,18 +5,19 @@ import { outings, outpasses } from "../store";
 import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "../apis";
 import { useState } from "react";
 import { Button } from "./button";
+import { useIsAuth } from "../customhooks/is_authenticated";
 
 type ApproveProps = {
     type: "outing" | "outpass",
 }
 
 export function ApproveComp({ type }: ApproveProps) {
+    useIsAuth();
     useGetOutings();
     useGetOutpasses();
     const [loading,setloading] = useState(false);
     const Outings = useRecoilValue(outings);
     const Outpasses = useRecoilValue(outpasses);
-
     const approveouting = async (id: string) => {
         const token = localStorage.getItem('admin_token');
         const bodyData = JSON.stringify({ id });

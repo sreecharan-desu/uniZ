@@ -6,7 +6,6 @@ import { Button } from "./button";
 
 export default function Navbar() {
     const [isAuth, setAuth] = useRecoilState(is_authenticated);
-    // const [studentUsername, setUsername] = useState('');
     const username = useRecoilValue(student);
     useStudentData();
     const logout = () => {
