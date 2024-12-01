@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRecoilState } from "recoil";
+import { useRecoilValue } from "recoil";
 import { useOutsideCampus } from "../customhooks/outsidecampus";
 import { offCampus } from "../store";
-import { STUDENT_OUTSIDE_CAMPUS, UPDATE_STUDENT_STATUS } from "../apis";
+import { UPDATE_STUDENT_STATUS } from "../apis";
 import { Button } from "./button";
 import { useState, useEffect } from "react";
 
 export function UpdateStatus() {
   useOutsideCampus();
-  const [students, setOffCampus] = useRecoilState(offCampus);
+  const students = useRecoilValue(offCampus);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([{_id :'',username : '',name : '',email : '',gender : '',is_in_campus : false,outings_list : [{        from_time: '',
     in_time: "",
