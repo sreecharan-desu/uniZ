@@ -94,7 +94,7 @@ export default function Sidebar({content}:MainContent){
   {isLoading ? (
     <UserProfileSkeleton />
   ) : (
-    <div className="text-white text-left flex items-center gap-2">
+    <div className="text-white text-left flex items-center gap-2 -ml-2">
   <div className={`${username.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-3 font-bold`}>
                     {username.name ? (username.name[0] + username.name.split(' ')[1][0]) : <></>}
     </div>
