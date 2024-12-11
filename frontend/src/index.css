@@ -3,10 +3,9 @@
 @tailwind utilities;
 
 ::-webkit-scrollbar{
-    background-color:transparent;
+    background-color:black;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color:rgba(180, 178, 178,0.9);
-    border-radius:100px;
+    background-color:transparent;
 }

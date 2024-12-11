@@ -8,7 +8,7 @@ import { ApproveComp } from './components/approve-comp';
 import { UpdateStatus } from './components/updatestudentstatus';
 import { SearchStudents } from './components/searchstudents';
 import './index.css'
-import Sidebar from './components/sideBar';
+import Sidebar from './components/sidebar';
 import { useIsAuth } from './customhooks/is_authenticated';
 function App() {
   return (

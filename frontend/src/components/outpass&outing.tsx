@@ -24,7 +24,7 @@ export default function Outpass_Outing({request}:requestProps){
     const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
     return<>
         <div className="justify-center place-content-center w-full">
-            <OutButton request={request}/>
+            {Student.has_pending_requests ? <><p className="text-center text-red-500 text-4xl m-10 mt-0 font-bold">You have pending requests so you cant request outing/outpass</p></>  : <OutButton request={request}/>}
             <div className="m-5">
                 <div className="flex justify-start">
                 <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>

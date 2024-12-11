@@ -1,7 +1,5 @@
 module.exports = {
-  content: [
-    "./src/**/*.{html,js,jsx,ts,tsx}",
-  ],
+  // ... other config
   theme: {
     extend: {
       // ... other extensions
@@ -11,4 +9,4 @@ module.exports = {
     // ... other plugins
     require('tailwind-scrollbar-hide')
   ],
-}
+} 

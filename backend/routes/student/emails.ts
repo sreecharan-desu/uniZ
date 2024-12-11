@@ -357,7 +357,7 @@ export const passwordResetSuccess = `
 </head>
 <body>
     <div class="container">
-        <h1>Your Outpass Request</h1>
+        <h1>Your Password Reset Request</h1>
         <div class="details">
            <p>Your Password has been changed! We processed this on your request through uniZ website</p>
            <p><strong>If this is not you Complaint about this to warden!</strong></p>
@@ -422,7 +422,7 @@ export const passwordResetFailed = `
 </head>
 <body>
     <div class="container">
-        <h1>Your Outpass Request</h1>
+        <h1>Your Password Reset Request</h1>
         <div class="details">
         <p>An attempt to change your password has been notices on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} through uniZ website</p>
         <p><strong>If this is not you Immediately Change your password or Complaint about this to warden!</strong></p>

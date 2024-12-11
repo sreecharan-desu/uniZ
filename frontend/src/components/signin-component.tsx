@@ -33,7 +33,7 @@ export function Signin({ type }: SigninProps) {
             return;
         }
         setLoading(true);
-        const bodyData = JSON.stringify({ username, password });
+        const bodyData = JSON.stringify({ username: username.trim(), password: password.trim()});
         const res = await fetch(`https://uni-z-api.vercel.app/api/v1/${type}/signin`, {
             method: 'POST',
             headers: {
