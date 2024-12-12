@@ -20,15 +20,33 @@ export default function Navbar() {
     const [isAuth, setAuth] = useRecoilState(is_authenticated);
     const username = useRecoilValue(student);
     const [isLoading, setIsLoading] = useState(true);
-    
+    const adminName = localStorage.getItem('username');
+
     useEffect(() => {
-        // Set loading false when username data is available
         if (username?.name || username?.email) {
             setIsLoading(false);
         }
     }, [username]);
 
     useStudentData();
+
+    // Helper function to safely get initials
+    const getInitials = (name: string | null | undefined) => {
+        if (!name) return '';
+        
+        // Special handling for Warden1, Warden2 format
+        if (name.startsWith('Warden')) {
+            return 'W';
+        }
+        
+        // Original logic for other names
+        const nameParts = name.split(' ');
+        if (nameParts.length >= 2) {
+            return `${nameParts[0][0]}${nameParts[1][0]}`;
+        }
+        return name[0] || '';
+    };
+
     const logout = () => {
         localStorage.removeItem('student_token');
         localStorage.removeItem('username');
@@ -45,58 +63,64 @@ export default function Navbar() {
             <div className="flex">
                 <img src="/vite.svg" width="40"/>
                 <a href="/" className="m-3 mt-4">
-                    <h1 className="font-bold text-xl lg:text-3xl  text-white">
+                    <h1 className="font-bold text-xl lg:text-3xl text-white">
                         uniZ
                     </h1>
                 </a>
             </div>
-                {!localStorage.getItem('student_token') && !localStorage.getItem('admin_token') ? <>
-                    <a href="/student/signin">
-                        <Button
-                            onclickFunction={() =>undefined}
-                            value="Signin Now"
-                            loading= {false}
-                        />
-                    </a>
-                </> : <>
-                     </>
-            }
-            {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || (localStorage.getItem('student_token') && username) ? (
+            
+            {!localStorage.getItem('student_token') && !localStorage.getItem('admin_token') ? (
+                <a href="/student/signin">
+                    <Button
+                        onclickFunction={() => undefined}
+                        value="Signin Now"
+                        loading={false}
+                    />
+                </a>
+            ) : null}
+
+            {/* Student Section */}
+            {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || 
+             (localStorage.getItem('student_token') && username) ? (
                 <div className="flex items-center space-x-3">
                     {isLoading ? (
                         <UserSkeleton />
                     ) : (
                         <div className="flex items-center space-x-2">
-                            <div className={`${username.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-3 font-bold`}>
-                                {username.name ? (username.name[0] + username.name.split(' ')[1][0]) : <></>}
+                            <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-3 font-bold`}>
+                                {username?.name ? getInitials(username.name) : ''}
                             </div>
                             <div className="flex-col justify-center">
-                                <p className="text-white text-left text-sm font-semibold">{username.name}</p>
-                                <p className="text-white text-left text-sm font-semibold">{username.email}</p>
+                                <p className="text-white text-left text-sm font-semibold">{username?.name}</p>
+                                <p className="text-white text-left text-sm font-semibold">{username?.email}</p>
                             </div>
                         </div>
                     )}
                 </div>
-            ): (isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || (localStorage.getItem('admin_token') && username) ? (
+            ) : null}
+
+            {/* Admin Section */}
+            {(isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || 
+             (localStorage.getItem('admin_token') && adminName) ? (
                 <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="flex items-center space-x-2">
-                                <div className='bg-white text-black rounded-full p-2 px-3 text-xl font-bold'>
-                                    W
-                                </div>
-                                <div className="flex-col justify-center">
-                                    <p className="text-white text-left text-sm font-semibold">Warden</p>
-                                    <p className="text-white text-left text-sm font-semibold">sreecharan309@gmail.com</p>
-                                </div>
+                    <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
+                            <div className='bg-white text-black rounded-full p-2 px-3 text-xl font-bold'>
+                                W
+                            </div>
+                            <div className="flex-col justify-center">
+                                <p className="text-white text-left text-sm font-semibold">
+                                    {adminName?.slice(1,adminName.length-1).toString() + (adminName == "Warden1" ? " (Campus 3)" : " (Campus 2)")}
+                                </p>
+                                <p className="text-white text-left text-sm font-semibold">sreecharan309@gmail.com</p>
                             </div>
                         </div>
+                    </div>
                     <button onClick={logout} className="bg-white rounded-full px-4 py-2">
                         Logout
                     </button>
                 </div>
-            ) : (
-                <></>
-            )}
+            ) : null}
         </div>
     );
 }

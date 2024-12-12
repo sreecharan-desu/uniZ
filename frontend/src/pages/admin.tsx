@@ -7,6 +7,7 @@ import { useGetOutpasses } from "../customhooks/getoutpassess";
 import { useGetOutings } from "../customhooks/getoutings";
 import { useOutsideCampus } from "../customhooks/outsidecampus";
 import { useState, useEffect } from "react";
+import { calculateDuration } from '../utils/timeUtils';
 
 // Enhanced loading skeletons
 const StatCardSkeleton = () => (
@@ -246,11 +247,10 @@ export function Admin() {
     </div>
     {Outings.slice(0, 3).map(outing => {
         const istTime = convertToIST(outing.requested_time);
+        const duration = calculateDuration(outing.from_time, outing.to_time);
+        
         return (
-            <div 
-                key={outing._id} 
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300"
-            >
+            <div key={outing._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-4">
                     <div className="bg-gray-200 rounded-full p-3">
                         {outing.username.charAt(0).toUpperCase()}
@@ -263,11 +263,10 @@ export function Admin() {
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className="text-sm text-gray-500">
-                        {istTime.date}
-                    </span>
-                    <span className="block text-xs text-gray-400">
-                        {istTime.time}
+                    <span className="text-sm text-gray-500">{istTime.date}</span>
+                    <span className="block text-xs text-gray-400">{istTime.time}</span>
+                    <span className="block text-xs text-blue-600">
+                        Duration: {duration.hours} hours
                     </span>
                 </div>
             </div>

@@ -5,6 +5,7 @@ import { useStudentData } from "../customhooks/student_info";
 import { student } from "../store";
 import RequestCard from "../components/requestCard";
 import { useState, useEffect } from "react";
+import { calculateDuration } from '../utils/timeUtils';
 
 // Helper function to convert to IST
 const convertToIST = (dateTimeString: string) => {
@@ -144,47 +145,47 @@ export function Student() {
                 </div>
             )}
 
-            {/* Active Requests Section */}
-            {(!username.is_in_campus || username.has_pending_requests) && (
-                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                    <h2 className="text-xl font-semibold mb-4">Active Requests</h2>
-                    <div className="space-y-4">
-                        {username.outings_list.map(outing => (
-                            !outing.is_expired && outing.is_approved && !outing.is_rejected && (
-                                <>
-                                    <p className="text-gray-600 italic mb-2">
-                                        *You are outside campus according to your last request listed below.
-                                        Please consult your warden to update your presence on the website.
-                                    </p>
-                                    <RequestCard 
-                                        key={outing._id} 
-                                        request={outing} 
-                                        email={username.email} 
-                                        type="outing" 
-                                    />
-                                </>
-                            )
-                        ))}
-                        {username.outpasses_list.map(outpass => (
-                            !outpass.is_expired && outpass.is_approved && !outpass.is_rejected && (
-                                <>
-                                    <p className="text-gray-600 italic mb-2">
-                                        *You are outside campus according to your last request listed below.
-                                        Please consult your warden to update your presence on the website.
-                                    </p>
-                                    <RequestCard 
-                                        key={outpass._id} 
-                                        request={outpass} 
-                                        type="outpass" 
-                                        email={""} 
-                                    />
-                                </>
-                            )
-                        ))}
-                    </div>
-                </div>
-            )}
+{username.outings_list.map(outing => (
+    !outing.is_expired && outing.is_approved && !outing.is_rejected && (
+        <>
+            <p className="text-gray-600 italic mb-2">
+                *You are outside campus according to your last request listed below.
+                <br />
+                <span className="font-medium">Time:</span> {outing.from_time} - {outing.to_time}
+                <span className="ml-2 text-blue-600">
+                    Duration: {calculateDuration(outing.from_time, outing.to_time).hours} hours
+                </span>
+            </p>
+            <RequestCard 
+                key={outing._id} 
+                request={outing} 
+                email={username.email} 
+                type="outing" 
+            />
+        </>
+    )
+))}
 
+{username.outpasses_list.map(outpass => (
+    !outpass.is_expired && outpass.is_approved && !outpass.is_rejected && (
+        <>
+            <p className="text-gray-600 italic mb-2">
+                *You are outside campus according to your last request listed below.
+                <br />
+                <span className="font-medium">Date:</span> {outpass.from_day} - {outpass.to_day}
+                <span className="ml-2 text-blue-600">
+                    Duration: {calculateDuration(outpass.from_day, outpass.to_day).days} days
+                </span>
+            </p>
+            <RequestCard 
+                key={outpass._id} 
+                request={outpass} 
+                type="outpass" 
+                email={""} 
+            />
+        </>
+    )
+))}
             {/* Welcome Message for In-Campus Students */}
             {username.is_in_campus && !username.has_pending_requests && (
                 <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100 text-center">
@@ -250,6 +251,9 @@ export function Student() {
                                                     <p className="text-sm text-gray-500">
                                                         <span className="font-medium">Time:</span> {outing.from_time} - {outing.to_time}
                                                     </p>
+                                                    <p className="text-sm text-blue-600">
+                                                        Duration: {calculateDuration(outing.from_time, outing.to_time).hours} hours
+                                                    </p>
                                                     <p className="text-sm text-gray-500">
                                                         <span className="font-medium">Requested:</span> {convertToIST(outing.requested_time)}
                                                     </p>
@@ -308,6 +312,9 @@ export function Student() {
                                                 <div className="space-y-1">
                                                     <p className="text-sm text-gray-500">
                                                         <span className="font-medium">Date:</span> {outpass.from_day} - {outpass.to_day}
+                                                    </p>
+                                                    <p className="text-sm text-blue-600">
+                                                        Duration: {calculateDuration(outpass.from_day, outpass.to_day).days} days
                                                     </p>
                                                     <p className="text-sm text-gray-500">
                                                         <span className="font-medium">Requested:</span> {convertToIST(outpass.requested_time)}

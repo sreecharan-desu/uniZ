@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useDebounce } from "../customhooks/useDebounce";
 import { SEARCH_STUDENTS } from "../apis";
 import { useIsAuth } from "../customhooks/is_authenticated";
+import { calculateDuration } from "../utils/timeUtils";
 
 const StatCard = ({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: string }) => (
     <div className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${color} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}>
@@ -63,6 +64,7 @@ const RequestTimeline = ({ request, type }: { request: any, type: 'outing' | 'ou
         });
     };
 
+    
     return (
         <div className="relative pl-8 pb-6 border-l-2 border-gray-200 last:pb-0">
             <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-gray-400"></div>
@@ -100,6 +102,16 @@ const RequestTimeline = ({ request, type }: { request: any, type: 'outing' | 'ou
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
+                        <span>Duration: {
+                            type === 'outing'
+                                ? `${calculateDuration(request.from_time, request.to_time).hours} hours`
+                                : `${calculateDuration(request.from_day, request.to_day).days} days`
+                        }</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                         <span>Requested: {getISTTime(request.requested_time)}</span>
                     </div>
                     {request.message && (
@@ -123,185 +135,147 @@ const RequestTimeline = ({ request, type }: { request: any, type: 'outing' | 'ou
 //     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 // };
 
-const getDateRangeStats = (list: Array<any>, range: 'week' | 'month' | 'year') => {
-    // Create date in IST
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-    const istDate = new Date(now.getTime() + istOffset);
+// const getDateRangeStats = (list: Array<any>, range: 'week' | 'month' | 'year') => {
+//     // Create date in IST
+//     const now = new Date();
+//     const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+//     const istDate = new Date(now.getTime() + istOffset);
     
-    return list.filter(item => {
-        // Parse DD/MM/YYYY HH:mm format
-        const [datePart, timePart] = item.requested_time.split(',');
-        const [day, month, year] = datePart.trim().split('/');
-        const itemDate = new Date(`${year}-${month}-${day}${timePart || ''}`);
-        const istItemDate = new Date(itemDate.getTime() + istOffset);
+//     return list.filter(item => {
+//         // Parse DD/MM/YYYY HH:mm format
+//         const [datePart, timePart] = item.requested_time.split(',');
+//         const [day, month, year] = datePart.trim().split('/');
+//         const itemDate = new Date(`${year}-${month}-${day}${timePart || ''}`);
+//         const istItemDate = new Date(itemDate.getTime() + istOffset);
 
-        // Get start of periods in IST
-        const startOfWeek = new Date(istDate);
-        startOfWeek.setDate(istDate.getDate() - istDate.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
+//         // Get start of periods in IST
+//         const startOfWeek = new Date(istDate);
+//         startOfWeek.setDate(istDate.getDate() - istDate.getDay());
+//         startOfWeek.setHours(0, 0, 0, 0);
 
-        const startOfMonth = new Date(istDate.getFullYear(), istDate.getMonth(), 1);
-        const startOfYear = new Date(istDate.getFullYear(), 0, 1);
+//         const startOfMonth = new Date(istDate.getFullYear(), istDate.getMonth(), 1);
+//         const startOfYear = new Date(istDate.getFullYear(), 0, 1);
 
-        let isInRange = false;
-        switch (range) {
-            case 'week':
-                isInRange = istItemDate >= startOfWeek && istItemDate <= istDate;
-                break;
-            case 'month':
-                isInRange = istItemDate >= startOfMonth && istItemDate <= istDate;
-                break;
-            case 'year':
-                isInRange = istItemDate >= startOfYear && istItemDate <= istDate;
-                break;
-            default:
-                isInRange = false;
-        }
+//         let isInRange = false;
+//         switch (range) {
+//             case 'week':
+//                 isInRange = istItemDate >= startOfWeek && istItemDate <= istDate;
+//                 break;
+//             case 'month':
+//                 isInRange = istItemDate >= startOfMonth && istItemDate <= istDate;
+//                 break;
+//             case 'year':
+//                 isInRange = istItemDate >= startOfYear && istItemDate <= istDate;
+//                 break;
+//             default:
+//                 isInRange = false;
+//         }
 
-        return isInRange;
-    });
+//         return isInRange;
+//     });
+// };
+// Add these helper functions before the DetailedStats component
+const getWeeklyStats = (list: Array<{
+    requested_time: string;
+    is_approved: boolean;
+    is_rejected: boolean;
+}>) => {
+    const now = new Date();
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    return list.filter(item => new Date(item.requested_time) >= weekStart);
 };
-// Add this new component for detailed stats
+
+const getYearlyStats = (list: Array<{
+    requested_time: string;
+    is_approved: boolean;
+    is_rejected: boolean;
+}>) => {
+    const currentYear = new Date().getFullYear();
+    return list.filter(item => new Date(item.requested_time).getFullYear() === currentYear);
+};
+
+// Update the DetailedStats component
 const DetailedStats = ({ student }: { student: { outings_list: any[], outpasses_list: any[] } }) => {
+    // Combine outings and outpasses
     const allRequests = [...student.outings_list, ...student.outpasses_list];
     
-    // Time-based stats with logging
-    const weeklyStats = getDateRangeStats(allRequests, 'week');
-    console.log('Weekly stats count:', weeklyStats.length);
-    
-    const monthlyStats = getDateRangeStats(allRequests, 'month');
-    console.log('Monthly stats count:', monthlyStats.length);
-    
-    const yearlyStats = getDateRangeStats(allRequests, 'year');
-    console.log('Yearly stats count:', yearlyStats.length);
-
-    // Calculate total hours/days out
-    const totalOutingHours = student.outings_list.reduce((acc, curr) => 
-        acc + (curr.is_approved ? curr.no_of_hours : 0), 0);
-    const totalOutpassDays = student.outpasses_list.reduce((acc, curr) => 
-        acc + (curr.is_approved ? curr.no_of_days : 0), 0);
-
-    // Most common reasons
-    const reasonCounts = allRequests.reduce((acc: {[key: string]: number}, curr) => {
-        acc[curr.reason] = (acc[curr.reason] || 0) + 1;
-        return acc;
-    }, {});
-    const mostCommonReason = Object.entries(reasonCounts)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+    // Calculate statistics
+    const weeklyStats = getWeeklyStats(allRequests);
+    const yearlyStats = getYearlyStats(allRequests);
+    const monthlyStats = allRequests.filter(item => {
+        const itemDate = new Date(item.requested_time);
+        const now = new Date();
+        return itemDate.getMonth() === now.getMonth() && 
+               itemDate.getFullYear() === now.getFullYear();
+    });
 
     return (
-        <div className="space-y-8">
-            {/* Time Period Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-800">This Week</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Total Requests</span>
-                            <span className="font-medium">{weeklyStats.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Approved</span>
-                            <span className="text-green-600 font-medium">
-                                {weeklyStats.filter(r => r.is_approved).length}
-                            </span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Rejected</span>
-                            <span className="text-red-600 font-medium">
-                                {weeklyStats.filter(r => r.is_rejected).length}
-                            </span>
-                        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Weekly Stats */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <h4 className="text-lg font-semibold mb-4 text-gray-800">This Week</h4>
+                <div className="space-y-3">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Total Requests</span>
+                        <span className="font-medium">{weeklyStats.length}</span>
                     </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-800">This Month</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Total Requests</span>
-                            <span className="font-medium">{monthlyStats.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Approved</span>
-                            <span className="text-green-600 font-medium">
-                                {monthlyStats.filter(r => r.is_approved).length}
-                            </span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Rejected</span>
-                            <span className="text-red-600 font-medium">
-                                {monthlyStats.filter(r => r.is_rejected).length}
-                            </span>
-                        </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Approved</span>
+                        <span className="text-green-600 font-medium">
+                            {weeklyStats.filter(r => r.is_approved).length}
+                        </span>
                     </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-800">This Year</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Total Requests</span>
-                            <span className="font-medium">{yearlyStats.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Approved</span>
-                            <span className="text-green-600 font-medium">
-                                {yearlyStats.filter(r => r.is_approved).length}
-                            </span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Rejected</span>
-                            <span className="text-red-600 font-medium">
-                                {yearlyStats.filter(r => r.is_rejected).length}
-                            </span>
-                        </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Rejected</span>
+                        <span className="text-red-600 font-medium">
+                            {weeklyStats.filter(r => r.is_rejected).length}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {/* Additional Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-800">Time Analysis</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Total Outing Hours</span>
-                            <span className="font-medium">{totalOutingHours} hours</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Total Outpass Days</span>
-                            <span className="font-medium">{totalOutpassDays} days</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Average Request Duration</span>
-                            <span className="font-medium">
-                                {(totalOutingHours / (student.outings_list.length || 1)).toFixed(1)} hours
-                            </span>
-                        </div>
+            {/* Monthly Stats */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <h4 className="text-lg font-semibold mb-4 text-gray-800">This Month</h4>
+                <div className="space-y-3">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Total Requests</span>
+                        <span className="font-medium">{monthlyStats.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Approved</span>
+                        <span className="text-green-600 font-medium">
+                            {monthlyStats.filter((r: { is_approved: boolean }) => r.is_approved).length}
+                        </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Rejected</span>
+                        <span className="text-red-600 font-medium">
+                            {monthlyStats.filter((r: { is_rejected: boolean }) => r.is_rejected).length}
+                        </span>
                     </div>
                 </div>
+            </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-800">Request Patterns</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Most Common Reason</span>
-                            <span className="font-medium">{mostCommonReason}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Approval Rate</span>
-                            <span className="font-medium">
-                                {((allRequests.filter(r => r.is_approved).length / allRequests.length) * 100).toFixed(1)}%
-                            </span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Recent Activity</span>
-                            <span className="font-medium">
-                                {weeklyStats.length > 0 ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
+            {/* Yearly Stats */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <h4 className="text-lg font-semibold mb-4 text-gray-800">This Year</h4>
+                <div className="space-y-3">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Total Requests</span>
+                        <span className="font-medium">{yearlyStats.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Approved</span>
+                        <span className="text-green-600 font-medium">
+                            {yearlyStats.filter(r => r.is_approved).length}
+                        </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Rejected</span>
+                        <span className="text-red-600 font-medium">
+                            {yearlyStats.filter(r => r.is_rejected).length}
+                        </span>
                     </div>
                 </div>
             </div>

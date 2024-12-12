@@ -1,3 +1,5 @@
+import { calculateDuration, formatDuration } from '../utils/timeUtils';
+
 export default function RequestCard({ request, type, email }: { request: any; type: 'outing' | 'outpass'; email: string }) {
     return (
         <div className="shadow-lg p-6 border border-gray-200 rounded-lg bg-white m-5 transition-transform transform hover:scale-105 hover:shadow-xl">
@@ -19,16 +21,21 @@ export default function RequestCard({ request, type, email }: { request: any; ty
                     <span className="font-semibold">Requested on:</span> {request.requested_time.split(",")[0]}
                 </p>
                 {type === 'outing' ? (
-                    <p>
-                        <span className="font-semibold">Duration:</span> {request.from_time} to {request.to_time}
-                    </p>
+                    <>
+                        <p>
+                            <span className="font-semibold">Time:</span> {request.from_time} to {request.to_time}
+                        </p>
+                        <p className="text-blue-600">
+                            <span className="font-semibold">Duration:</span> {formatDuration(calculateDuration(request.from_time, request.to_time))}
+                        </p>
+                    </>
                 ) : (
                     <>
                         <p>
-                            <span className="font-semibold">No. of days:</span> {request.no_of_days + 1}
+                            <span className="font-semibold">Date:</span> {request.from_day} to {request.to_day}
                         </p>
-                        <p>
-                            <span className="font-semibold">Duration:</span> {request.from_day} to {request.to_day}
+                        <p className="text-purple-600">
+                            <span className="font-semibold">Duration:</span> {formatDuration(calculateDuration(request.from_day, request.to_day))}
                         </p>
                     </>
                 )}

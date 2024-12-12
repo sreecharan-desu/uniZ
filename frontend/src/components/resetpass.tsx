@@ -11,9 +11,13 @@ export function Resetpassword() {
     const [oldPassword, setOldPassword] = useState('');
     const [password, setPassword] = useState('');
     const [repassword, setRePassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const navigateTo = useNavigate();
     useStudentData();
     const Student = useRecoilValue(student);
+    // const [showOldPassword, setShowOldPassword] = useState(false);
+    // const [showNewPassword, setShowNewPassword] = useState(false);
+    // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (event: React.ChangeEvent<HTMLInputElement>) => {
         setter(event.target.value);
@@ -28,6 +32,7 @@ export function Resetpassword() {
             return;
         }
 
+        setIsLoading(true);
         const token = localStorage.getItem('student_token');
         const bodyData = JSON.stringify({
             username: Student.username,
@@ -56,39 +61,107 @@ export function Resetpassword() {
             } catch (error) {
                 console.error('Error resetting password:', error);
                 alert('Error resetting your password, please try again!');
+            } finally {
+                setIsLoading(false);
             }
         } else {
             alert('Missing auth_token. Authorization failed.');
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="flex justify-center py-8 px-10">
-            <div className="flex flex-col items-center w-full max-w-sm p-6 shadow-lg border border-gray-300 bg-white rounded-lg text-left">
-                <label className="block text-gray-700 font-semibold mb-2 text-left ">Current Password</label>
-                <Input 
-                    type="password" 
-                    onchangeFunction={handleInputChange(setOldPassword)} 
-                    placeholder="Current Password" 
-                />
-                <label className="block text-gray-700 font-semibold mt-4 mb-2 text-left">New Password</label>
-                <Input 
-                    type="password" 
-                    onchangeFunction={handleInputChange(setPassword)} 
-                    placeholder="New Password" 
-                />
-                <label className="block text-gray-700 font-semibold mt-4 mb-2 text-left">Re-enter New Password</label>
-                <Input 
-                    type="password" 
-                    onchangeFunction={handleInputChange(setRePassword)} 
-                    placeholder="Re-enter New Password" 
-                />
-                <Button 
-                    value="Reset My Password"
-                    onclickFunction={sendDataToBackend} loading={false}                />
-                <p className="text-center mt-4">
-                    Click <a className="font-bold text-blue-600 underline cursor-pointer" onClick={() => navigateTo('/student')}>here</a> to go back to the dashboard!
-                </p>
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md mx-auto">
+                {/* Header Card */}
+                <div className="bg-white rounded-t-2xl shadow-sm p-6 border border-gray-200">
+                    <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Reset Password</h2>
+                            <p className="text-sm text-gray-500">Change your account password securely</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Form Card */}
+                <div className="bg-white rounded-b-2xl shadow-lg p-6 border border-gray-200 border-t-0 space-y-6">
+                    {/* Current Password */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Current Password
+                        </label>
+                        <Input 
+                            type="password"
+                            onchangeFunction={handleInputChange(setOldPassword)} 
+                            placeholder="Enter your current password"
+                            // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        />
+                    </div>
+
+                    {/* New Password */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            New Password
+                        </label>
+                        <Input 
+                            type="password"
+                            onchangeFunction={handleInputChange(setPassword)} 
+                            placeholder="Enter your new password"
+                            // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        />
+                    </div>
+
+                    {/* Confirm New Password */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Confirm New Password
+                        </label>
+                        <Input 
+                            type="password"
+                            onchangeFunction={handleInputChange(setRePassword)} 
+                            placeholder="Confirm your new password"
+                            // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-4 pt-4">
+                        <Button 
+                            value="Reset Password"
+                            loading={isLoading}
+                            onclickFunction={sendDataToBackend}
+                        />
+                        
+                        <button
+                            onClick={() => navigateTo('/student')}
+                            className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 transition-colors duration-200"
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+
+                {/* Info Card */}
+                <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-100">
+                    <div className="flex items-start space-x-3">
+                        <svg className="h-6 w-6 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="text-sm text-blue-800">
+                            <p className="font-medium mb-1">Password Requirements:</p>
+                            <ul className="list-disc list-inside space-y-1 text-blue-700">
+                                <li>Must be at least 8 characters long</li>
+                                <li>Include at least one number</li>
+                                <li>Include at least one special character</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
