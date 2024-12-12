@@ -1,8 +1,15 @@
 import { calculateDuration, formatDuration } from '../utils/timeUtils';
+import { motion } from 'framer-motion';
 
 export default function RequestCard({ request, type, email }: { request: any; type: 'outing' | 'outpass'; email: string }) {
     return (
-        <div className="shadow-lg p-6 border border-gray-200 rounded-lg bg-white m-5 transition-transform transform hover:scale-105 hover:shadow-xl">
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        >
             <div className="flex justify-between items-center mb-4">
                 <p className="font-semibold text-lg text-gray-800">{request._id}</p>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -58,6 +65,6 @@ export default function RequestCard({ request, type, email }: { request: any; ty
             <p className="mt-4 text-sm text-gray-600">
                 **An email will be sent to your college email-id <b className="font-bold text-black">{email}</b> regarding your {type} confirmation & updates!
             </p>
-        </div>
+        </motion.div>
     );
 }

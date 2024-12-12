@@ -10,28 +10,30 @@ import { SearchStudents } from './components/searchstudents';
 import './index.css'
 import Sidebar from './components/sidebar';
 import { useIsAuth } from './customhooks/is_authenticated';
+import { PageTransition } from './components/Transition';
+
 function App() {
   return (
     <React.StrictMode>
       <BrowserRouter>
         <Routes>
           {/* <Analytics/> */}
-          <Route element={<div className='flex justify-center align-middle place-content-center'><Home /></div>} path='/' />
-          <Route element={<Signin type='student' />} path='/student/signin' />
-          <Route element={<Signin type='admin' />} path='/admin/signin' />
-          <Route element={<Sidebar content='dashboard'/>} path='/student' />
-          <Route element={<Suspense fallback={<div className="text-md text-black">Loading...</div>}><Sidebar content='outpass'/></Suspense>} path='/student/outpass' />
-          <Route element={<Suspense fallback={<div className="text-md text-black">Loading...</div>}><Sidebar content='outing'/></Suspense>} path='/student/outing' />
-          <Route element={<Sidebar content='requestOuting'></Sidebar>} path='/student/outing/requestouting' />
-          <Route element={<Sidebar content='requestOutpass'></Sidebar>} path='/student/outpass/requestoutpass' />
-          <Route element={<Sidebar content='resetpassword'/>} path='/student/resetpassword' />
-          <Route element={<Sidebar content='gradehub'/>} path='/student/gradehub' />
-          <Route element={<Admin />} path='/admin' />
-          <Route element={<ApproveComp type='outing' />} path='/admin/approveouting' />
-          <Route element={<ApproveComp type='outpass' />} path='/admin/approveoutpass' />
-          <Route element={<UpdateStatus />} path='/admin/updatestudentstatus' />
-          <Route element={<SearchStudents />} path='/admin/searchstudents' />
-          <Route element={<Error/>} path='*'/>
+          <Route element={<PageTransition><div className='flex justify-center align-middle place-content-center'><Home /></div></PageTransition>} path='/' />
+          <Route element={<PageTransition><Signin type='student' /></PageTransition>} path='/student/signin' />
+          <Route element={<PageTransition><Signin type='admin' /></PageTransition>} path='/admin/signin' />
+          <Route element={<PageTransition><Sidebar content='dashboard'/></PageTransition>} path='/student' />
+          <Route element={<PageTransition><Suspense fallback={<div className="text-md text-black">Loading...</div>}><Sidebar content='outpass'/></Suspense></PageTransition>} path='/student/outpass' />
+          <Route element={<PageTransition><Suspense fallback={<div className="text-md text-black">Loading...</div>}><Sidebar content='outing'/></Suspense></PageTransition>} path='/student/outing' />
+          <Route element={<PageTransition><Sidebar content='requestOuting'></Sidebar></PageTransition>} path='/student/outing/requestouting' />
+          <Route element={<PageTransition><Sidebar content='requestOutpass'></Sidebar></PageTransition>} path='/student/outpass/requestoutpass' />
+          <Route element={<PageTransition><Sidebar content='resetpassword'/></PageTransition>} path='/student/resetpassword' />
+          <Route element={<PageTransition><Sidebar content='gradehub'/></PageTransition>} path='/student/gradehub' />
+          <Route element={<PageTransition><Admin /></PageTransition>} path='/admin' />
+          <Route element={<PageTransition><ApproveComp type='outing' /></PageTransition>} path='/admin/approveouting' />
+          <Route element={<PageTransition><ApproveComp type='outpass' /></PageTransition>} path='/admin/approveoutpass' />
+          <Route element={<PageTransition><UpdateStatus /></PageTransition>} path='/admin/updatestudentstatus' />
+          <Route element={<PageTransition><SearchStudents /></PageTransition>} path='/admin/searchstudents' />
+          <Route element={<PageTransition><Error/></PageTransition>} path='*'/>
         </Routes>
       </BrowserRouter>
     </React.StrictMode>
