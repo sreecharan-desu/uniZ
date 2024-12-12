@@ -11,6 +11,7 @@ type requestProps = {
 export function OutButton({request}:requestProps){
     const navigateTo = useNavigate();
     return<>
+
     <div className="flex justify-center items-center">
                 {request == "outing" ? <>                <Button onclickFunction={() => navigateTo('/student/outing/requestouting')} value="Request Outing" loading={false} />&nbsp;
                 </> : <>                <Button onclickFunction={() => navigateTo('/student/outpass/requestoutpass')} value="Request Outpass" loading={false} />&nbsp;
@@ -24,7 +25,6 @@ export default function Outpass_Outing({request}:requestProps){
     const pendingRequests = (list: any[]) => list.filter((request: any) => !request.is_approved && !request.is_rejected && !request.is_expired).length;
     return<>
         <div className="justify-center place-content-center w-full">
-            {Student.has_pending_requests ? <><p className="text-center text-red-500 text-4xl m-10 mt-0 font-bold">You have pending requests so you cant request outing/outpass</p></>  : <OutButton request={request}/>}
             <div className="m-5">
                 <div className="flex justify-start">
                 <h4 className="text-xl font-bold">Your have ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length}) requests pending</h4>
@@ -37,9 +37,9 @@ export default function Outpass_Outing({request}:requestProps){
                         {!Student.is_in_campus ? (
                             <>
                                 <h2 className="text-center text-black text-xl m-5 font-bold">You are considered to be Outside the Campus Since your request is approved (Consult your warden to update your presence)</h2>
-                                {Student.outings_list.map(outing => !outing.is_expired && outing.is_approved ? (
+                                {Student.outings_list.map(outing => !outing.is_expired && outing.is_approved ? (<>
                                     <RequestCard request={outing} email = {Student.email} type="outing" key={outing._id} />
-                                ) : null)}
+                                </>) : null)}
                                 {Student.outpasses_list.map(outpass => !outpass.is_expired && outpass.is_approved ? (
                                     <RequestCard request={outpass} type="outpass" key={outpass._id} email={""} />
                                 ) : null)}
@@ -61,6 +61,7 @@ export default function Outpass_Outing({request}:requestProps){
                     </>
                 )}
             </div>
+            {Student.has_pending_requests ? <><p className="text-center text-red-500 text-4xl m-10 mt-0 font-bold">You have pending requests so you cant request outing/outpass</p></>  : <OutButton request={request}/>}
         </div>
     </>
 }
