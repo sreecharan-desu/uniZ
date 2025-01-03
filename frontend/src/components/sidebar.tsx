@@ -49,7 +49,7 @@ export default function Sidebar({content}:MainContent){
     const [_isChanging, setIsChanging] = useState(false);
     const [contentLoading, setContentLoading] = useState(true);
     const [_direction, setDirection] = useState<'left' | 'right'>('left');
-    const [isCollapsed, setIsCollapsed] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     useEffect(() => {
         if (username?.name || username?.username) {
