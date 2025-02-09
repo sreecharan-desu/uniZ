@@ -6,7 +6,7 @@ import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "
 import { useState } from "react";
 import { Button } from "./button";
 import { useIsAuth } from "../customhooks/is_authenticated";
-import { calculateDuration, formatDuration } from '../utils/timeUtils';
+import { calculateDuration, formatDuration, formatRequestTime } from '../utils/timeUtils';
 import { toast } from "react-toastify";
 type ApproveProps = {
     type: "outing" | "outpass",
@@ -246,7 +246,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                                         <div className="bg-gray-50 rounded-lg p-4">
                                             <h4 className="text-sm font-medium text-gray-700 mb-1">Requested On</h4>
                                             <p className="text-sm text-gray-900">
-                                                {(request.requested_time)}
+                                                {(formatRequestTime(request.requested_time))}
                                             </p>
                                         </div>
                                     </div>
