@@ -182,10 +182,16 @@ export default function UpdateStatus() {
                   <div className="mt-6">
                     <h4 className="font-semibold text-gray-700 mb-4">Active Outing</h4>
                     {student.outings_list
-                      .filter(outing => outing.is_approved)
+                      .filter(outing => outing.is_approved && !outing.is_expired)
                       .map(outing => (
                         <div key={outing._id} className="bg-gray-50 rounded-lg p-4 space-y-2">
                           <div className="flex justify-between text-sm">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${outing.is_expired ? 'bg-gray-100 text-gray-800' : 'display-none'
+                                        }`}>
+                                        {
+                                            outing.is_expired ? "Expired" :
+                                                ''}
+                                    </span>
                             <span className="text-gray-600">From</span>
                             <span className="font-medium">{outing.from_time}</span>
                           </div>
@@ -212,6 +218,12 @@ export default function UpdateStatus() {
                       .filter(outpass => !outpass.is_expired && outpass.is_approved)
                       .map(outpass => (
                         <div key={outpass._id} className="bg-gray-50 rounded-lg p-4 space-y-2">
+                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${outpass.is_expired ? 'bg-gray-100 text-gray-800' : 'display-none'
+                                        }`}>
+                                        {
+                                            outpass.is_expired ? "Expired" :
+                                                ''}
+                                    </span>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">From</span>
                             <span className="font-medium">{outpass.from_day}</span>

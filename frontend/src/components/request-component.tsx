@@ -67,6 +67,7 @@ export function RequestComp({ type }: RequestCompProps) {
             const data = await res.json();
             setLoading(false);
             toast(data.msg);
+            navigateTo('/student');
         } catch (error) {
             console.error('Error:', error);
             toast('An error occurred while sending the request.');

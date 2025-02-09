@@ -25,7 +25,7 @@ export default function ApproveComp({ type }: ApproveProps) {
     // Filter function for search
     const filterRequests = (items: any[]) => {
         return items.filter(item =>
-            !item.is_expired &&
+            !item.is_expired && !item.is_approved && !item.is_rejected &&
             (item.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,6 +196,12 @@ export default function ApproveComp({ type }: ApproveProps) {
                                             <p className="text-sm text-gray-500">{request.email}</p>
                                         </div>
                                     </div>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${request.is_expired ? 'bg-gray-100 text-gray-800' : 'display-none'
+                                        }`}>
+                                        {
+                                            request.is_expired ? "Expired" :
+                                                ''}
+                                    </span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${request.is_approved ? 'bg-green-100 text-green-800' :
                                         request.is_rejected ? 'bg-red-100 text-red-800' :
                                             request.is_expired ? 'bg-gray-100 text-gray-800' :
@@ -231,7 +237,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                                             </p>
                                         </div>
                                     </div>
-                            
+
                                     {/* Duration and Request Time */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-gray-50 rounded-lg p-4">

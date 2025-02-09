@@ -31,13 +31,50 @@ export default function Outpass_Outing({ request }: requestProps) {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header Section */}
+
+            {/* Warning Message for Pending Requests */}
+            {Student.has_pending_requests && (
+                <div className="-mt-8 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-sm text-red-700">
+                                You have pending requests. New requests cannot be created until existing ones are processed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {!Student.is_in_campus && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6 ">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-sm text-yellow-700">
+                                You are currently marked as outside campus. Please consult your warden to update your presence.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             <div className="mb-8">
                 <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                     <div className="flex items-center justify-between mb-4">
                         <h4 className="text-2xl font-bold text-gray-800">
-                            Pending Requests ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length})
+                            Pending Requests ({Student.outings_list.filter(outing => (!outing.is_expired && !outing.is_approved && !outing.is_rejected) || (outing.is_approved && !outing.is_expired && !Student.is_in_campus) ).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length})
                         </h4>
-                        {!Student.has_pending_requests && <OutButton request={request} />}
+                        {(!Student.has_pending_requests && Student.is_in_campus) && <OutButton request={request} />}
                     </div>
                     <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                         <div className="flex items-start space-x-3">
@@ -73,43 +110,37 @@ export default function Outpass_Outing({ request }: requestProps) {
                     </div>
                 ) : (
                     <>
-                        {!Student.is_in_campus && (
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-yellow-700">
-                                            You are currently marked as outside campus. Please consult your warden to update your presence.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Active Requests */}
-                        <div className="grid gap-6 md:grid-cols-2">
+                        <div className="flex justify-center place-content-center align-middle ">
                             {/* Outings */}
-                            {Student.outings_list.map(outing => !outing.is_expired && (outing.is_approved || (!outing.is_approved && !outing.is_rejected)) ? (
-                                <div key={outing._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                    <div className="p-4 border-b border-gray-100">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2">
-                                                <svg className="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="font-medium text-gray-900">Outing Request</span>
+                            {Student.outings_list.map(outing => (!outing.is_expired) && ((outing.is_approved || !outing.is_rejected) || (!outing.is_approved && !outing.is_rejected)) ? (
+                                <div >
+                                    <div key={outing._id} className=" bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                        <div className="p-4 border-b border-gray-100">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-2">
+                                                    <svg className="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span className="font-medium text-gray-900">Outing Request
+                                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${outing.is_expired ? 'bg-gray-100 text-gray-800' : 'display-none'
+                                                            }`}>
+                                                            {
+                                                                outing.is_expired ? "Expired" :
+                                                                    ''}
+                                                        </span>
+
+
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-gray-500">{outing.from_time} - {outing.to_time}</span>
                                             </div>
-                                            <span className="text-sm text-gray-500">{outing.from_time} - {outing.to_time}</span>
+                                            <div className="mt-2 text-sm text-blue-600">
+                                                Duration: {formatDuration(calculateDuration(outing.from_time, outing.to_time))}
+                                            </div>
                                         </div>
-                                        <div className="mt-2 text-sm text-blue-600">
-                                            Duration: {formatDuration(calculateDuration(outing.from_time, outing.to_time))}
-                                        </div>
+                                        <RequestCard request={outing} email={Student.email} type="outing" key={outing._id} />
                                     </div>
-                                    <RequestCard request={outing} email={Student.email} type="outing" key={outing._id} />
                                 </div>
                             ) : null)}
 
@@ -122,7 +153,12 @@ export default function Outpass_Outing({ request }: requestProps) {
                                                 <svg className="h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                                 </svg>
-                                                <span className="font-medium text-gray-900">Outpass Request</span>
+                                                <span className="font-medium text-gray-900">Outpass Request    <span className={`px-3 py-1 rounded-full text-xs font-medium ${outpass.is_expired ? 'bg-gray-100 text-gray-800' : 'display-none'
+                                                    }`}>
+                                                    {
+                                                        outpass.is_expired ? "Expired" :
+                                                            ''}
+                                                </span></span>
                                             </div>
                                             <span className="text-sm text-gray-500">{outpass.from_day} - {outpass.to_day}</span>
                                         </div>
@@ -138,23 +174,7 @@ export default function Outpass_Outing({ request }: requestProps) {
                 )}
             </div>
 
-            {/* Warning Message for Pending Requests */}
-            {Student.has_pending_requests && (
-                <div className="mt-8 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-red-700">
-                                You have pending requests. New requests cannot be created until existing ones are processed.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 }

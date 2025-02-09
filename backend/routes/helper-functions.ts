@@ -721,6 +721,7 @@ export const rejectOutpass = async (
         const outpass = await client.outpass.update({
           where: { id },
           data: {
+            isExpired : true,
             issuedTime: new Date(),
             isRejected: true,
             rejectedBy: `${adminName ? adminName : "Warden"}`,
