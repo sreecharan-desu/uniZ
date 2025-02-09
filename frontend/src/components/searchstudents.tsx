@@ -145,21 +145,6 @@ const getWeeklyStats = (list: Array<{ requested_time: string; is_approved: boole
     });
 };
 
-const getMonthlyStats = (list: Array<{ requested_time: string; is_approved: boolean; is_rejected: boolean }>) => {
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1; // JS months are 0-based
-    const currentYear = now.getFullYear();
-
-    return list.filter(item => {
-        const match = item.requested_time.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-        if (!match) return false;
-
-        const [, month, day, year] = match.map(Number);
-        return year === currentYear && month === currentMonth;
-    });
-};
-
-
 const getYearlyStats = (list: Array<{ requested_time: string; is_approved: boolean; is_rejected: boolean }>) => {
     const currentYear = new Date().getFullYear();
     return list.filter(item => {
@@ -179,7 +164,6 @@ const DetailedStats = ({ student }: { student: { outings_list: any[], outpasses_
     // Calculate statistics
     const weeklyStats = getWeeklyStats(allRequests);
     const yearlyStats = getYearlyStats(allRequests);
-    const monthlyStats = getMonthlyStats(allRequests)
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Weekly Stats */}
