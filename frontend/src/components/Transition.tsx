@@ -29,7 +29,7 @@ const variants = {
     }
 };
 
-export const PageTransition = ({ children, type = 'page', delay = 0 }: TransitionProps) => {
+export default function PageTransition({ children, type = 'page', delay = 0 }: TransitionProps) {
     return (
         <AnimatePresence mode="wait">
             <motion.div

@@ -1,7 +1,7 @@
 import { useIsAuth } from "../customhooks/is_authenticated";
 import '../index.css';
 
-export function Home() {
+export default function Home() {
     useIsAuth();    
     return (
         <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 bg-gradient-to-b from-white to-gray-100">

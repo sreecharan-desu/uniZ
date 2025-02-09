@@ -7,7 +7,6 @@ import { useGetOutpasses } from "../customhooks/getoutpassess";
 import { useGetOutings } from "../customhooks/getoutings";
 import { useOutsideCampus } from "../customhooks/outsidecampus";
 import { useState, useEffect } from "react";
-import { calculateDuration } from '../utils/timeUtils';
 
 // Enhanced loading skeletons
 const StatCardSkeleton = () => (
@@ -29,7 +28,7 @@ const ActivityCardSkeleton = () => (
     </div>
 );
 
-export function Admin() {
+export default function Admin() {
     useIsAuth();
     useAdminname();
     const navigateTo = useNavigate();

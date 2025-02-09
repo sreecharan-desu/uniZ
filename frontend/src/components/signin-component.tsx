@@ -5,12 +5,13 @@ import { Button } from "./button";
 import { useSetRecoilState } from "recoil";
 import { Admin, is_authenticated } from "../store";
 import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 type SigninProps = {
     type: "student" | "admin",
 }
 
-export function Signin({ type }: SigninProps) {
+export default function Signin({ type }: SigninProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const setAdmin = useSetRecoilState(Admin);
@@ -26,10 +27,10 @@ export function Signin({ type }: SigninProps) {
     }
     const sendDataToBackend = async () => {
         if (type === "student" && !username.includes("o")) {
-            alert('Your username is your college ID');
+            toast('Your username is your college ID');
             return;
         } else if (username === '' || password === '') {
-            alert('Please enter the data to proceed');
+            toast('Please enter the data to proceed');
             return;
         }
         setLoading(true);
@@ -44,7 +45,7 @@ export function Signin({ type }: SigninProps) {
         const data = await res.json();
         setLoading(false);
         if (data.msg) {
-            alert(data.msg)
+            toast(data.msg)
         } else {
             if (data.student_token) {
                 localStorage.setItem('student_token', JSON.stringify(data.student_token));

@@ -6,6 +6,7 @@ import { UPDATE_STUDENT_STATUS } from "../apis";
 import { Button } from "./button";
 import { useState, useEffect } from "react";
 import { useIsAuth } from "../customhooks/is_authenticated";
+import { toast } from "react-toastify";
 
 // Add a skeleton component at the top
 const StudentCardSkeleton = () => (
@@ -28,7 +29,7 @@ const StudentCardSkeleton = () => (
   </div>
 );
 
-export function UpdateStatus() {
+export default function UpdateStatus() {
   useIsAuth();
   useOutsideCampus();
   const students = useRecoilValue(offCampus);
@@ -102,19 +103,9 @@ export function UpdateStatus() {
         body: bodyData,
       });
       const data = await res.json();
-      alert(data.msg);
+      toast(data.msg);
       setLoading(false);
       location.href = "";
-      // Fetch updated student list
-      // const res2 = await fetch(STUDENT_OUTSIDE_CAMPUS, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${JSON.parse(token)}`,
-      //   },
-      // });
-      // const data2 = await res2.json();
-      // setOffCampus(data2.students);
     }
   };
 

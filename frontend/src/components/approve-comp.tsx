@@ -7,11 +7,12 @@ import { useState } from "react";
 import { Button } from "./button";
 import { useIsAuth } from "../customhooks/is_authenticated";
 import { calculateDuration, formatDuration, formatRequestTime } from '../utils/timeUtils';
+import { toast } from "react-toastify";
 type ApproveProps = {
     type: "outing" | "outpass",
 }
 
-export function ApproveComp({ type }: ApproveProps) {
+export default function ApproveComp({ type }: ApproveProps) {
     useIsAuth();
     useGetOutings();
     useGetOutpasses();
@@ -47,7 +48,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
@@ -67,7 +68,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
@@ -87,7 +88,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
@@ -107,7 +108,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
