@@ -178,11 +178,11 @@ export default function UpdateStatus() {
                 </div>
 
                 {/* Active Requests Section */}
-                {student.outings_list.filter(outing => !outing.is_expired && outing.is_approved).length > 0 && (
+                {student.outings_list.filter(outing => outing.is_approved).length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-semibold text-gray-700 mb-4">Active Outing</h4>
                     {student.outings_list
-                      .filter(outing => !outing.is_expired && outing.is_approved)
+                      .filter(outing => outing.is_approved)
                       .map(outing => (
                         <div key={outing._id} className="bg-gray-50 rounded-lg p-4 space-y-2">
                           <div className="flex justify-between text-sm">
@@ -205,7 +205,7 @@ export default function UpdateStatus() {
                 )}
 
                 {/* Outpass Section */}
-                {student.outpasses_list.filter(outpass => !outpass.is_expired && outpass.is_approved).length > 0 && (
+                {student.outpasses_list.filter(outpass => outpass.is_approved).length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-semibold text-gray-700 mb-4">Active Outpass</h4>
                     {student.outpasses_list

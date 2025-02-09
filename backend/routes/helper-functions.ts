@@ -119,7 +119,7 @@ export const hashPassword = async (password: string) => {
 };
 
 // Add a new student to the database
-export const addStudent = async (username: string, password: string,gender : string,name:string) => {
+export const addStudent = async (username: string, password: string, gender: string, name: string) => {
   const hashedPassword = await hashPassword(password);
   const id = "id_" + (await crypto.randomBytes(4).toString("hex"));
   const isUserPresent = await findUserByUsername(username);
@@ -136,8 +136,8 @@ export const addStudent = async (username: string, password: string,gender : str
           Username: username,
           Password: hashedPassword.password,
           Email: `${username}@rguktong.ac.in`,
-          Gender : gender,
-          Name : name
+          Gender: gender,
+          Name: name
         },
         select: { id: true, Username: true },
       });
@@ -157,8 +157,8 @@ export const getUsers = async () => {
       id: true,
       Username: true,
       Email: true,
-      Name : true,
-      Gender : true,
+      Name: true,
+      Gender: true,
       isApplicationPending: true,
       isPresentInCampus: true,
       Outing: {
@@ -178,7 +178,7 @@ export const getUsers = async () => {
           Message: true,
           rejectedBy: true,
           rejectedTime: true,
-          inTime : true
+          inTime: true
         },
       },
       Outpass: {
@@ -198,7 +198,7 @@ export const getUsers = async () => {
           Message: true,
           rejectedBy: true,
           rejectedTime: true,
-          inTime : true
+          inTime: true
         },
       },
     },
@@ -210,8 +210,8 @@ export const getUsers = async () => {
         _id: user.id,
         username: user.Username,
         email: user.Email,
-        name : user.Name,
-        gender : user.Gender,
+        name: user.Name,
+        gender: user.Gender,
         has_pending_requests: user.isApplicationPending,
         is_in_campus: user.isPresentInCampus,
         outings_list: await Promise.all(
@@ -281,16 +281,14 @@ export const requestOutpass = async (
   ) {
     if (from_date > to_date)
       return {
-        msg: `Invalid input! You cannot request an outpass from ${
-          from_date.toString().split("GMT")[0]
-        } to ${to_date.toString().split("GMT")[0]}`,
+        msg: `Invalid input! You cannot request an outpass from ${from_date.toString().split("GMT")[0]
+          } to ${to_date.toString().split("GMT")[0]}`,
         success: false,
       };
     else if (from_date <= new Date())
       return {
-        msg: `Invalid input! You cannot request an outpass for a completed day (including Today : ${
-          from_date.toString().split("GMT")[0].split("05:30:00")[0]
-        } Since you are in campus) Enter tomorrow's date instead `,
+        msg: `Invalid input! You cannot request an outpass for a completed day (including Today : ${from_date.toString().split("GMT")[0].split("05:30:00")[0]
+          } Since you are in campus) Enter tomorrow's date instead `,
         success: false,
       };
     return;
@@ -355,9 +353,9 @@ export const userDetailsById = async (id: string) => {
     select: {
       id: true,
       Username: true,
-      Name : true,
-      Email : true,
-      Gender : true,
+      Name: true,
+      Email: true,
+      Gender: true,
       Outpass: {
         select: {
           id: true,
@@ -385,105 +383,141 @@ export const userDetailsById = async (id: string) => {
   console.log(user);
 };
 
-// Update expired outpasses
+// Update expired outpasses and outings
 export const updatePasses = async () => {
-  const currentUTCDate = new Date(); // Current UTC date and time
+  try {
+    const currentUTCDate = new Date(); // Current UTC date and time
 
-  // Fetch non-expired outpasses (date-based)
-  const outpasses = await client.outpass.findMany({
-    where: { isExpired: false },
-    select: { id: true, ToDay: true }, // Assuming ToDay is a Date object
-  });
+    // Fetch non-expired outpasses and outings with required data
+    const [outpasses, outings] = await Promise.all([
+      client.outpass.findMany({
+        where: { isExpired: false },
+        select: { id: true, ToDay: true, StudentId: true },
+      }),
+      client.outing.findMany({
+        where: { isExpired: false },
+        select: { id: true, ToTime: true, StudentId: true },
+      }),
+    ]);
 
-  // Fetch non-expired outings (time-based)
-  const outings = await client.outing.findMany({
-    where: { isExpired: false },
-    select: { id: true, ToTime: true }, // Assuming ToTime is stored as a Date
-  });
+    // Process expired outpasses based on date
+    const expiredOutpassIds = outpasses
+      .filter((outpass) => outpass.ToDay < currentUTCDate)
+      .map((outpass) => outpass.id);
 
-  // Find expired outpasses based on the current UTC date
-  const expiredOutpassIds = outpasses
-    .filter((outpass) => outpass.ToDay < currentUTCDate) // Compare using UTC date
-    .map((outpass) => outpass.id);
+    // Process expired outings based on time
+    const expiredOutingsIds = outings
+      .filter((outing) => {
+        const currentDateString = new Date().toISOString().split("T")[0];
+        const outingTime = outing.ToTime.toLocaleString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
 
-  // Since ToTime is already a Date object, directly compare it
-  const expiredOutingsIds = outings
-    .filter((outing) => {
-      let isExpired = false;
-      const currentDateString = new Date().toISOString().split("T")[0];
-      const [h, m, s] = outing.ToTime.toLocaleString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
+        const [outingHours, outingMinutes, outingSeconds] = outingTime
+          .split(":")
+          .map((num) => parseInt(num));
+
+        const [c_hours, c_mins, c_secs] = [
+          new Date().getHours(),
+          new Date().getMinutes(),
+          new Date().getSeconds(),
+        ];
+
+        return (
+          c_hours > outingHours ||
+          (c_hours === outingHours &&
+            (c_mins > outingMinutes || (c_mins === outingMinutes && c_secs > outingSeconds)))
+        );
       })
-        .split(":")
-        .map((num) => parseInt(num));
+      .map((outing) => outing.id);
 
-      // Get current hours, minutes, and seconds
-      const [c_hours, c_mins, c_secs] = [
-        new Date().getHours(),
-        new Date().getMinutes(),
-        new Date().getSeconds(),
-      ];
+    // Fetch students who have expired outings or outpasses
+    const studentIds = [
+      ...outpasses.filter((outpass) => expiredOutpassIds.includes(outpass.id)).map((outpass) => outpass.StudentId),
+      ...outings.filter((outing) => expiredOutingsIds.includes(outing.id)).map((outing) => outing.StudentId),
+    ];
 
-      // Time comparison logic
-      if (
-        c_hours > h ||
-        (c_hours === h && (c_mins > m || (c_mins === m && c_secs > s)))
-      ) {
-        isExpired = true;
-      }
+    const students = await client.student.findMany({
+      where: { id: { in: studentIds } },
+      select: { id: true, Email: true, isApplicationPending: true, isPresentInCampus: true },
+    });
 
-      return isExpired; // Compare ToTime (Date) with current UTC date
-    })
-    .map((outing) => outing.id);
-
-  // Update expired outings
-  const expiredOutings = await Promise.all(
-    expiredOutingsIds.map(async (outing_id) => {
-      return await client.outing.update({
-        where: { id: outing_id },
-        data: { isExpired: true }, // Mark outing as expired
-      });
-    })
-  );
-
-  // Update expired outpasses
-  const expiredPasses = await Promise.all(
-    expiredOutpassIds.map(async (outpass_id) => {
-      return await client.outpass.update({
-        where: { id: outpass_id },
-        data: { isExpired: true }, // Mark outpass as expired
-      });
-    })
-  );
-
-  // Logging the results
-  if (expiredPasses.length) {
-    console.log(
-      `Outpasses with IDs: ${expiredPasses.map(
-        (pass) => pass.id
-      )} have expired at ${new Date().toLocaleTimeString("en-IN")}`
+    // Process expired outings and update their status
+    const expiredOutings = await Promise.all(
+      expiredOutingsIds.map(async (outingId) => {
+        const student = students.find((s) => s.id === outings.find((outing) => outing.id === outingId)?.StudentId);
+        if (student && student.Email) {
+          sendEmail(
+            student.Email,
+            "Your outing has expired",
+            "Your outing has expired, and your application status has been updated accordingly."
+          );
+        }
+        if (student && student.isPresentInCampus && student.isApplicationPending) {
+          await client.student.update({
+            where: { id: student.id },
+            data: { isApplicationPending: false, isPresentInCampus: true },
+          });
+        }
+        // Mark the outing as expired
+        return client.outing.update({
+          where: { id: outingId },
+          data: { isExpired: true },
+        });
+      })
     );
-  } else {
-    console.log(
-      `No outpasses were expired at ${new Date().toLocaleTimeString("en-IN")}`
-    );
-  }
 
-  if (expiredOutings.length) {
-    console.log(
-      `Outings with IDs: ${expiredOutings.map(
-        (pass) => pass.id
-      )} have expired at ${new Date().toLocaleTimeString("en-IN")}`
+    // Process expired outpasses and update their status
+    const expiredPasses = await Promise.all(
+      expiredOutpassIds.map(async (outpassId) => {
+        const student = students.find((s) => s.id === outpasses.find((outpass) => outpass.id === outpassId)?.StudentId);
+
+        if (student && student.isPresentInCampus && student.isApplicationPending) {
+          if (student.Email) {
+            sendEmail(
+              student.Email,
+              "Your outpass has expired",
+              "Your outpass has expired, and your application status has been updated accordingly."
+            );
+          }
+
+          // Update the student's application status
+          await client.student.update({
+            where: { id: student.id },
+            data: { isApplicationPending: false, isPresentInCampus: true },
+          });
+        }
+
+        // Mark the outpass as expired
+        return client.outpass.update({
+          where: { id: outpassId },
+          data: { isExpired: true },
+        });
+      })
     );
-  } else {
-    console.log(
-      `No outings were expired at ${new Date().toLocaleTimeString("en-IN")}`
-    );
+
+    // Log final results
+    if (expiredPasses.length || expiredOutings.length) {
+      console.log(
+        `Outpasses and outings with IDs: ${[
+          ...expiredPasses.map((pass) => pass.id),
+          ...expiredOutings.map((outing) => outing.id),
+        ].join(", ")} have expired at ${new Date().toLocaleTimeString("en-IN")}`
+      );
+    } else {
+      console.log(`No outpasses or outings were expired at ${new Date().toLocaleTimeString("en-IN")}`);
+    }
+
+  } catch (error) {
+    console.error("Error updating passes:", error);
   }
 };
+
+
+
 
 // Request an outing for a student
 export const requestOuting = async (
@@ -634,9 +668,8 @@ export const approveOutpass = async (
     if (pass && !pass.isApproved) {
       if (pass.isRejected) {
         return {
-          msg: `You cannot approve a Rejected OutpassRequestThe outpass with id ${id} is already rejected on ${
-            pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
-          } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
+          msg: `You cannot approve a Rejected OutpassRequestThe outpass with id ${id} is already rejected on ${pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
+            } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
           success: false,
         };
       } else {
@@ -662,9 +695,8 @@ export const approveOutpass = async (
       }
     } else {
       return {
-        msg: `The outpassRequest with id ${id} is already approved on ${
-          pass ? pass.issuedTime : ""
-        } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
+        msg: `The outpassRequest with id ${id} is already approved on ${pass ? pass.issuedTime : ""
+          } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
         success: false,
       };
     }
@@ -692,9 +724,8 @@ export const rejectOutpass = async (
             issuedTime: new Date(),
             isRejected: true,
             rejectedBy: `${adminName ? adminName : "Warden"}`,
-            Message: `${
-              message ? message : "Rejected by Warden for not valid reason"
-            }`,
+            Message: `${message ? message : "Rejected by Warden for not valid reason"
+              }`,
             rejectedTime: new Date(),
             Student: {
               update: {
@@ -709,17 +740,15 @@ export const rejectOutpass = async (
         };
       } else {
         return {
-          msg: `You cannot reject an approved OutpassRequest The outpass with id ${id} is already approved on ${
-            pass ? pass.issuedTime.toString().split("GMT")[0] + "IST" : ""
-          } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
+          msg: `You cannot reject an approved OutpassRequest The outpass with id ${id} is already approved on ${pass ? pass.issuedTime.toString().split("GMT")[0] + "IST" : ""
+            } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
           success: false,
         };
       }
     } else {
       return {
-        msg: `The OutpassRequest with id ${id} is already rejected on ${
-          pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
-        } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
+        msg: `The OutpassRequest with id ${id} is already rejected on ${pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
+          } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
         success: false,
       };
     }
@@ -764,9 +793,8 @@ export const approveOuting = async (
     if (pass && !pass.isApproved) {
       if (pass.isRejected) {
         return {
-          msg: `You cannot approve a Rejected Outing RequestThe outpass with id ${id} is already rejected on ${
-            pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
-          } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
+          msg: `You cannot approve a Rejected Outing RequestThe outpass with id ${id} is already rejected on ${pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
+            } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
           success: false,
         };
       } else {
@@ -792,9 +820,8 @@ export const approveOuting = async (
       }
     } else {
       return {
-        msg: `The outingRequest with id ${id} is already approved on ${
-          pass ? pass.issuedTime.toString().split("GMT")[0] + "IST" : ""
-        } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
+        msg: `The outingRequest with id ${id} is already approved on ${pass ? pass.issuedTime.toString().split("GMT")[0] + "IST" : ""
+          } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
         success: false,
       };
     }
@@ -822,9 +849,8 @@ export const rejectOuting = async (
             issuedTime: new Date(),
             isRejected: true,
             rejectedBy: `${adminName ? adminName : "Warden"}`,
-            Message: `${
-              message ? message : "Rejected by Warden for not valid reason"
-            }`,
+            Message: `${message ? message : "Rejected by Warden for not valid reason"
+              }`,
             rejectedTime: new Date(),
             Student: {
               update: {
@@ -839,17 +865,15 @@ export const rejectOuting = async (
         };
       } else {
         return {
-          msg: `You cannot reject an approved OutingRequest The outingRequest with id ${id} is already approved on ${
-            pass ? pass.issuedTime.toString().split("GMT")[0] + "IST" : ""
-          } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
+          msg: `You cannot reject an approved OutingRequest The outingRequest with id ${id} is already approved on ${pass ? pass.issuedTime.toString().split("GMT")[0] + "IST" : ""
+            } by ${pass ? pass.issuedBy || pass.Message : ""}  `,
           success: false,
         };
       }
     } else {
       return {
-        msg: `The outingRequest with id ${id} is already rejected on ${
-          pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
-        } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
+        msg: `The outingRequest with id ${id} is already rejected on ${pass ? pass.rejectedTime.toString().split("GMT")[0] + "IST" : ""
+          } by ${pass ? pass.rejectedBy || pass.Message : ""}  `,
         success: false,
       };
     }
@@ -963,7 +987,7 @@ export const getOutPassRequests = async () => {
       RequestedTime: true,
       isExpired: true,
       isApproved: true,
-      Student : true
+      Student: true
     },
   });
   const updatedRequests = await Promise.all(
@@ -978,8 +1002,8 @@ export const getOutPassRequests = async () => {
         requested_time: outpass.RequestedTime.toLocaleString("en-IN").split("GMT")[0],
         is_expired: outpass.isExpired,
         is_approved: outpass.isApproved,
-        username : outpass.Student.Username,
-        email : outpass.Student.Email
+        username: outpass.Student.Username,
+        email: outpass.Student.Email
       };
     })
   );
@@ -1003,7 +1027,7 @@ export const getOutingRequests = async () => {
       RequestedTime: true,
       isExpired: true,
       isApproved: true,
-      Student : true
+      Student: true
     },
   });
   const updatedRequests = await Promise.all(
@@ -1017,8 +1041,8 @@ export const getOutingRequests = async () => {
         requested_time: outing.RequestedTime.toLocaleString("en-IN").split("GMT")[0],
         is_expired: outing.isExpired,
         is_approved: outing.isApproved,
-        username : outing.Student.Username,
-        email : outing.Student.Email
+        username: outing.Student.Username,
+        email: outing.Student.Email
       };
     })
   );
@@ -1035,8 +1059,8 @@ export const getStudentsOutsideCampus = async () => {
       id: true,
       Username: true,
       Email: true,
-      Name : true,
-      Gender : true,
+      Name: true,
+      Gender: true,
       isApplicationPending: true,
       isPresentInCampus: true,
       Outing: {
@@ -1056,7 +1080,7 @@ export const getStudentsOutsideCampus = async () => {
           Message: true,
           rejectedBy: true,
           rejectedTime: true,
-          inTime : true
+          inTime: true
         },
       },
       Outpass: {
@@ -1076,7 +1100,7 @@ export const getStudentsOutsideCampus = async () => {
           Message: true,
           rejectedBy: true,
           rejectedTime: true,
-          inTime : true
+          inTime: true
         },
       },
     },
@@ -1087,8 +1111,8 @@ export const getStudentsOutsideCampus = async () => {
       return {
         _id: user.id,
         username: user.Username,
-        name : user.Name,
-        gender : user.Gender,
+        name: user.Name,
+        gender: user.Gender,
         email: user.Email,
         has_pending_requests: user.isApplicationPending,
         is_in_campus: user.isPresentInCampus,
@@ -1146,33 +1170,33 @@ export const getStudentsOutsideCampus = async () => {
 };
 
 
-export const updateUserPrescence = async (userId: string,id:string) => {
+export const updateUserPrescence = async (userId: string, id: string) => {
   try {
-      const student = await client.student.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          isPresentInCampus: true,
-        },
-      });
-      
-    try{
+    const student = await client.student.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        isPresentInCampus: true,
+      },
+    });
+
+    try {
       await client.outing.update({
         where: {
-          id : id
-        },data : {
-          inTime : new Date(),
-          isExpired : true
+          id: id
+        }, data: {
+          inTime: new Date(),
+          isExpired: true
         }
       })
-    }catch(e){
+    } catch (e) {
       await client.outpass.update({
         where: {
-          id : id
-        },data : {
-          inTime : new Date(),
-          isExpired : true
+          id: id
+        }, data: {
+          inTime: new Date(),
+          isExpired: true
         }
       })
     }
@@ -1180,7 +1204,7 @@ export const updateUserPrescence = async (userId: string,id:string) => {
       msg: `Successfully updated student prescence with ID Number : ${student.Username}`,
       success: true,
     };
-    
+
   } catch (e) {
     console.log(e);
     return {
@@ -1191,10 +1215,10 @@ export const updateUserPrescence = async (userId: string,id:string) => {
 
 }
 
-export const getStudentDetails = async (username:string) => {
+export const getStudentDetails = async (username: string) => {
   const user = await client.student.findFirst({
-    where : {
-      Username : username.toLowerCase()
+    where: {
+      Username: username.toLowerCase()
     },
     select: {
       id: true,
@@ -1202,8 +1226,8 @@ export const getStudentDetails = async (username:string) => {
       Email: true,
       isApplicationPending: true,
       isPresentInCampus: true,
-      Name : true,
-      Gender : true,
+      Name: true,
+      Gender: true,
       Outing: {
         select: {
           id: true,
@@ -1221,7 +1245,7 @@ export const getStudentDetails = async (username:string) => {
           Message: true,
           rejectedBy: true,
           rejectedTime: true,
-          inTime : true
+          inTime: true
         },
       },
       Outpass: {
@@ -1241,72 +1265,72 @@ export const getStudentDetails = async (username:string) => {
           Message: true,
           rejectedBy: true,
           rejectedTime: true,
-          inTime : true,
+          inTime: true,
         },
       },
     },
   });
 
-  if(user){
-    const updatedUserListAcctoLocaleTimeZone =  {
-          _id: user.id,
-          username: user.Username,
-          name : user.Name,
-          gender : user.Gender,
-          email: user.Email,
-          has_pending_requests: user.isApplicationPending,
-          is_in_campus: user.isPresentInCampus,
-          outings_list: await Promise.all(
-          user.Outing.map(async (outing) => {
-              return {
-                _id: outing.id,
-                student_id: outing.StudentId,
-                reason: outing.reason,
-                from_time: new Date(outing.FromTime)
-                  .toLocaleString("en-IN")
-                  .split(",")[1],
-                to_time: new Date(outing.ToTime).toLocaleString("en-IN").split(",")[1],
-                no_of_hours: outing.Hours,
-                requested_time: new Date(outing.RequestedTime).toLocaleString("en-IN"),
-                is_expired: outing.isExpired,
-                is_approved: outing.isApproved,
-                issued_by: outing.issuedBy,
-                issued_time: new Date(outing.issuedTime).toLocaleString("en-IN"),
-                message: outing.Message,
-                is_rejected: outing.isRejected,
-                rejected_by: outing.rejectedBy,
-                rejected_time: new Date(outing.rejectedTime).toLocaleString("en-IN"),
-                in_time: new Date(outing.inTime).toLocaleString("en-IN").split(",")[1],
-              };
-            })
-          ),
-          outpasses_list: await Promise.all(
-            user.Outpass.map(async (outpass) => {
-              return {
-                _id: outpass.id,
-                student_id: outpass.StudentId,
-                reason: outpass.Reason,
-                from_day: outpass.FromDay.toLocaleDateString("en-IN"),
-                to_day: outpass.ToDay.toLocaleDateString("en-IN"),
-                no_of_days: outpass.Days,
-                requested_time: outpass.RequestedTime.toLocaleString("en-IN"),
-                is_expired: outpass.isExpired,
-                is_approved: outpass.isApproved,
-                issued_by: outpass.issuedBy,
-                issued_time: outpass.issuedTime.toLocaleTimeString("en-IN"),
-                message: outpass.Message,
-                is_rejected: outpass.isRejected,
-                rejected_by: outpass.rejectedBy,
-                rejected_time: outpass.rejectedTime.toLocaleTimeString("en-IN"),
-                in_time: outpass.inTime.toLocaleString("en-IN"),
-              };
-            })
-          ),
-        };
+  if (user) {
+    const updatedUserListAcctoLocaleTimeZone = {
+      _id: user.id,
+      username: user.Username,
+      name: user.Name,
+      gender: user.Gender,
+      email: user.Email,
+      has_pending_requests: user.isApplicationPending,
+      is_in_campus: user.isPresentInCampus,
+      outings_list: await Promise.all(
+        user.Outing.map(async (outing) => {
+          return {
+            _id: outing.id,
+            student_id: outing.StudentId,
+            reason: outing.reason,
+            from_time: new Date(outing.FromTime)
+              .toLocaleString("en-IN")
+              .split(",")[1],
+            to_time: new Date(outing.ToTime).toLocaleString("en-IN").split(",")[1],
+            no_of_hours: outing.Hours,
+            requested_time: new Date(outing.RequestedTime).toLocaleString("en-IN"),
+            is_expired: outing.isExpired,
+            is_approved: outing.isApproved,
+            issued_by: outing.issuedBy,
+            issued_time: new Date(outing.issuedTime).toLocaleString("en-IN"),
+            message: outing.Message,
+            is_rejected: outing.isRejected,
+            rejected_by: outing.rejectedBy,
+            rejected_time: new Date(outing.rejectedTime).toLocaleString("en-IN"),
+            in_time: new Date(outing.inTime).toLocaleString("en-IN").split(",")[1],
+          };
+        })
+      ),
+      outpasses_list: await Promise.all(
+        user.Outpass.map(async (outpass) => {
+          return {
+            _id: outpass.id,
+            student_id: outpass.StudentId,
+            reason: outpass.Reason,
+            from_day: outpass.FromDay.toLocaleDateString("en-IN"),
+            to_day: outpass.ToDay.toLocaleDateString("en-IN"),
+            no_of_days: outpass.Days,
+            requested_time: outpass.RequestedTime.toLocaleString("en-IN"),
+            is_expired: outpass.isExpired,
+            is_approved: outpass.isApproved,
+            issued_by: outpass.issuedBy,
+            issued_time: outpass.issuedTime.toLocaleTimeString("en-IN"),
+            message: outpass.Message,
+            is_rejected: outpass.isRejected,
+            rejected_by: outpass.rejectedBy,
+            rejected_time: outpass.rejectedTime.toLocaleTimeString("en-IN"),
+            in_time: outpass.inTime.toLocaleString("en-IN"),
+          };
+        })
+      ),
+    };
     return updatedUserListAcctoLocaleTimeZone;
-  }else{
+  } else {
     return null;
   }
-  
+
 };
 

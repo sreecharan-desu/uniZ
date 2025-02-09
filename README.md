@@ -31,3 +31,8 @@ UniZ is a scalable college management system, currently featuring an advanced **
 Contributions are welcome! Feel free to fork this repository, raise issues, or submit a pull request.
 
 
+
+
+
+# Todo : 
+- send a signin email

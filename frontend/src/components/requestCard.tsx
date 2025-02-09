@@ -16,7 +16,7 @@ export default function RequestCard({ request, type, email }: { request: any; ty
                     request.is_rejected ? 'bg-red-100 text-red-800' :
                         'bg-yellow-100 text-yellow-800'
                     }`}>
-                    {request.is_approved ? "Approved ✅" : request.is_rejected ? "Rejected ❌" : "Pending ⏳"}
+                    {request.is_approved ? "Approved ✅" : request.is_rejected ? "Rejected ❌" :  request.is_expired ? "Expired ⛔" : "Pending ⏳" }
                 </span>
             </div>
             <div className="space-y-2">

@@ -203,7 +203,7 @@ export function Student() {
                         <div className="bg-yellow-50 p-4 rounded-lg">
                             <p className="text-sm text-yellow-600">Approved Requests</p>
                             <p className="text-2xl font-bold">
-                                {username.outings_list.filter(o => o.is_approved).length + 
+                                {username.outings_list.filter(o => o.is_approved ).length + 
                                  username.outpasses_list.filter(o => o.is_approved).length}
                             </p>
                         </div>

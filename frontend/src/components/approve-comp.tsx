@@ -231,7 +231,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                                             </p>
                                         </div>
                                     </div>
-
+                            
                                     {/* Duration and Request Time */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-gray-50 rounded-lg p-4">
@@ -246,7 +246,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                                         <div className="bg-gray-50 rounded-lg p-4">
                                             <h4 className="text-sm font-medium text-gray-700 mb-1">Requested On</h4>
                                             <p className="text-sm text-gray-900">
-                                                {formatRequestTime(request.requested_time)}
+                                                {(request.requested_time)}
                                             </p>
                                         </div>
                                     </div>
