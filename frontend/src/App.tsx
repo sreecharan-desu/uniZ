@@ -103,6 +103,7 @@ export function Error() {
     </div>
   );
 }
+// 🔵 Funny Loading Fallback Component with Pikachu GIF
 export function Loading() {
   return (
     <div className="flex flex-col justify-center items-center min-h-screen space-y-6">

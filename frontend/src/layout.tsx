@@ -14,6 +14,7 @@ export function Layout({ children }: LayoutProps) {
         <Navbar />
       </Suspense>
       <main className="flex-grow m-10">{children}
+
       </main>
       <Footer />
     </div>
