@@ -55,25 +55,6 @@ export default function Admin() {
         }).length;
     };
 
-    const convertToIST = (dateTimeString: string) => {
-        const date = new Date(dateTimeString);
-        // Add 5 hours and 30 minutes for IST
-        date.setHours(date.getHours() + 5);
-        date.setMinutes(date.getMinutes() + 30);
-        return {
-            date: date.toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            }),
-            time: date.toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            })
-        };
-    };
-
     if (isLoading) {
         return (
             <div className="p-6 bg-gray-50 min-h-screen mt-16">
