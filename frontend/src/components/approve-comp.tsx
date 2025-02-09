@@ -6,7 +6,7 @@ import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "
 import { useState } from "react";
 import { Button } from "./button";
 import { useIsAuth } from "../customhooks/is_authenticated";
-import { calculateDuration, formatDuration, formatRequestTime } from '../utils/timeUtils';
+import { calculateDuration, formatDuration } from '../utils/timeUtils';
 import { toast } from "react-toastify";
 type ApproveProps = {
     type: "outing" | "outpass",
