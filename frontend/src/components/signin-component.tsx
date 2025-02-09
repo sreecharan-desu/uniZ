@@ -16,7 +16,7 @@ export function Signin({ type }: SigninProps) {
     const setAdmin = useSetRecoilState(Admin);
     const navigateTo = useNavigate();
     const setAuth = useSetRecoilState(is_authenticated);
-    const [isloading,setLoading] = useState(false)
+    const [isloading, setLoading] = useState(false)
 
     const usernameHandler = (event: any) => {
         setUsername(event.target.value);
@@ -33,7 +33,7 @@ export function Signin({ type }: SigninProps) {
             return;
         }
         setLoading(true);
-        const bodyData = JSON.stringify({ username: username.trim(), password: password.trim()});
+        const bodyData = JSON.stringify({ username: username.trim(), password: password.trim() });
         const res = await fetch(`https://uni-z-api.vercel.app/api/v1/${type}/signin`, {
             method: 'POST',
             headers: {
@@ -88,7 +88,7 @@ export function Signin({ type }: SigninProps) {
                     <Button
                         value="Sign In"
                         onclickFunction={sendDataToBackend}
-                        loading = {isloading}
+                        loading={isloading}
                     />
                     <p className="text-center">
                         Click <a

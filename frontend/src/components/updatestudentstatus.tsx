@@ -33,38 +33,43 @@ export function UpdateStatus() {
   useOutsideCampus();
   const students = useRecoilValue(offCampus);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredStudents, setFilteredStudents] = useState([{_id :'',username : '',name : '',email : '',gender : '',is_in_campus : false,outings_list : [{        from_time: '',
-    in_time: "",
-    is_approved: true,
-    is_expired:true,
-    is_rejected: false,
-    issued_by: "",
-    issued_time: "",
-    message: "",
-    no_of_days : 0,
-    reason:"",
-    rejected_by : "",
-    rejected_time:"",
-    requested_time : "",
-    student_id : "",
-    to_time:"",
-    _id: ""}],outpasses_list : [{  
-      from_day: '',
+  const [filteredStudents, setFilteredStudents] = useState([{
+    _id: '', username: '', name: '', email: '', gender: '', is_in_campus: false, outings_list: [{
+      from_time: '',
       in_time: "",
       is_approved: true,
-      is_expired:true,
+      is_expired: true,
       is_rejected: false,
       issued_by: "",
       issued_time: "",
       message: "",
-      no_of_days : 0,
-      reason:"",
-      rejected_by : "",
-      rejected_time:"",
-      requested_time : "",
-      student_id : "",
-      to_day:"",
-      _id: ""}]}]);
+      no_of_days: 0,
+      reason: "",
+      rejected_by: "",
+      rejected_time: "",
+      requested_time: "",
+      student_id: "",
+      to_time: "",
+      _id: ""
+    }], outpasses_list: [{
+      from_day: '',
+      in_time: "",
+      is_approved: true,
+      is_expired: true,
+      is_rejected: false,
+      issued_by: "",
+      issued_time: "",
+      message: "",
+      no_of_days: 0,
+      reason: "",
+      rejected_by: "",
+      rejected_time: "",
+      requested_time: "",
+      student_id: "",
+      to_day: "",
+      _id: ""
+    }]
+  }]);
   const [loading, setLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
 
@@ -87,7 +92,7 @@ export function UpdateStatus() {
     if (token) {
       setLoading(true);
       const bodyData = JSON.stringify({ userId, id });
-      
+
       const res = await fetch(UPDATE_STUDENT_STATUS, {
         method: "POST",
         headers: {
@@ -99,7 +104,7 @@ export function UpdateStatus() {
       const data = await res.json();
       alert(data.msg);
       setLoading(false);
-      location.href="";
+      location.href = "";
       // Fetch updated student list
       // const res2 = await fetch(STUDENT_OUTSIDE_CAMPUS, {
       //   method: 'GET',
@@ -149,8 +154,8 @@ export function UpdateStatus() {
           ))
         ) : filteredStudents.length > 0 ? (
           filteredStudents.map((student) => (
-            <div 
-              key={student.username} 
+            <div
+              key={student.username}
               className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden
                 ${selectedStudent === student._id ? 'ring-2 ring-gray-500 transform scale-[1.02]' : ''}`}
               onClick={() => setSelectedStudent(student._id)}
@@ -204,7 +209,7 @@ export function UpdateStatus() {
                             loading={loading}
                           />
                         </div>
-                    ))}
+                      ))}
                   </div>
                 )}
 
@@ -231,7 +236,7 @@ export function UpdateStatus() {
                             loading={loading}
                           />
                         </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </div>
@@ -241,21 +246,21 @@ export function UpdateStatus() {
           <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-500">
             <div className="w-48 h-48 mb-8">
               <svg className="w-full h-full text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 21L16.65 16.65M11 6C13.7614 6 16 8.23858 16 11M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
+                <path d="M21 21L16.65 16.65M11 6C13.7614 6 16 8.23858 16 11M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <path d="M12 8V14M9 11H15" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
+                <path d="M12 8V14M9 11H15"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
             </div>
-            
+
             <div className="text-center space-y-3">
               <h3 className="text-2xl font-bold text-gray-700">No Students Found</h3>
               <p className="text-lg text-gray-500 max-w-md">

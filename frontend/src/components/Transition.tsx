@@ -36,10 +36,10 @@ export const PageTransition = ({ children, type = 'page', delay = 0 }: Transitio
                 initial={variants[type].initial}
                 animate={variants[type].animate}
                 exit={variants[type].exit}
-                transition={{ 
-                    duration: 0.3, 
+                transition={{
+                    duration: 0.3,
                     ease: "easeInOut",
-                    delay: delay 
+                    delay: delay
                 }}
             >
                 {children}
@@ -55,7 +55,7 @@ export const ListItemTransition = ({ children, index = 0 }: { children: React.Re
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            transition={{ 
+            transition={{
                 duration: 0.2,
                 delay: index * 0.05, // Stagger effect
             }}

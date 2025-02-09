@@ -33,12 +33,12 @@ export default function Navbar() {
     // Helper function to safely get initials
     const getInitials = (name: string | null | undefined) => {
         if (!name) return '';
-        
+
         // Special handling for Warden1, Warden2 format
         if (name.startsWith('Warden')) {
             return 'W';
         }
-        
+
         // Original logic for other names
         const nameParts = name.split(' ');
         if (nameParts.length >= 2) {
@@ -61,14 +61,14 @@ export default function Navbar() {
     return (
         <div className="flex justify-between items-center p-1 bg-black border-gray-300">
             <div className="flex">
-                <img src="/vite.svg" width="40"/>
+                <img src="/vite.svg" width="40" />
                 <a href="/" className="m-3 mt-4">
                     <h1 className="font-bold text-xl lg:text-3xl text-white">
                         uniZ
                     </h1>
                 </a>
             </div>
-            
+
             {!localStorage.getItem('student_token') && !localStorage.getItem('admin_token') ? (
                 <a href="/student/signin">
                     <Button
@@ -80,8 +80,8 @@ export default function Navbar() {
             ) : null}
 
             {/* Student Section */}
-            {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || 
-             (localStorage.getItem('student_token') && username) ? (
+            {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) ||
+                (localStorage.getItem('student_token') && username) ? (
                 <div className="flex items-center space-x-3">
                     {isLoading ? (
                         <UserSkeleton />
@@ -100,8 +100,8 @@ export default function Navbar() {
             ) : null}
 
             {/* Admin Section */}
-            {(isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || 
-             (localStorage.getItem('admin_token') && adminName) ? (
+            {(isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) ||
+                (localStorage.getItem('admin_token') && adminName) ? (
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-2">
@@ -110,7 +110,7 @@ export default function Navbar() {
                             </div>
                             <div className="flex-col justify-center">
                                 <p className="text-white text-left text-sm font-semibold">
-                                    {adminName?.slice(1,adminName.length-1).toString() + (adminName == "Warden1" ? " (Campus 3)" : " (Campus 2)")}
+                                    {adminName?.slice(1, adminName.length - 1).toString() + (adminName == "Warden1" ? " (Campus 3)" : " (Campus 2)")}
                                 </p>
                                 <p className="text-white text-left text-sm font-semibold">sreecharan309@gmail.com</p>
                             </div>

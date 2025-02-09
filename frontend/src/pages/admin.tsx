@@ -52,7 +52,7 @@ export function Admin() {
         const now = new Date();
         return Outings.filter(outing => {
             const requestDate = new Date(outing.requested_time);
-            return now.getTime() - requestDate.getTime() > 24 * 60 * 60 * 1000;
+            return now.getTime() - requestDate.getTime() < 24 * 60 * 60 * 1000;
         }).length;
     };
 
@@ -240,7 +240,7 @@ export function Admin() {
                 </div>
             </div>
 
-<div className="space-y-4">
+{/* <div className="space-y-4">
     <div className="flex items-center space-x-2 mb-4">
         <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
         <h3 className="text-lg font-semibold text-gray-800">Recent Activities</h3>
@@ -272,7 +272,7 @@ export function Admin() {
             </div>
         );
     })}
-</div>
+</div> */}
         </div>
     );
 }

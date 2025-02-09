@@ -18,7 +18,7 @@ export function OutButton({ request }: requestProps) {
                 onclickFunction={() => navigateTo(`/student/${request}/request${request}`)}
                 value={`Request ${request.charAt(0).toUpperCase() + request.slice(1)}`}
                 loading={false}
-                // className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+            // className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
             />
         </div>
     );

@@ -15,9 +15,6 @@ export function Resetpassword() {
     const navigateTo = useNavigate();
     useStudentData();
     const Student = useRecoilValue(student);
-    // const [showOldPassword, setShowOldPassword] = useState(false);
-    // const [showNewPassword, setShowNewPassword] = useState(false);
-    // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (event: React.ChangeEvent<HTMLInputElement>) => {
         setter(event.target.value);
@@ -95,11 +92,11 @@ export function Resetpassword() {
                         <label className="block text-sm font-medium text-gray-700">
                             Current Password
                         </label>
-                        <Input 
+                        <Input
                             type="password"
-                            onchangeFunction={handleInputChange(setOldPassword)} 
+                            onchangeFunction={handleInputChange(setOldPassword)}
                             placeholder="Enter your current password"
-                            // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
                         />
                     </div>
 
@@ -108,11 +105,11 @@ export function Resetpassword() {
                         <label className="block text-sm font-medium text-gray-700">
                             New Password
                         </label>
-                        <Input 
+                        <Input
                             type="password"
-                            onchangeFunction={handleInputChange(setPassword)} 
+                            onchangeFunction={handleInputChange(setPassword)}
                             placeholder="Enter your new password"
-                            // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
                         />
                     </div>
 
@@ -121,22 +118,22 @@ export function Resetpassword() {
                         <label className="block text-sm font-medium text-gray-700">
                             Confirm New Password
                         </label>
-                        <Input 
+                        <Input
                             type="password"
-                            onchangeFunction={handleInputChange(setRePassword)} 
+                            onchangeFunction={handleInputChange(setRePassword)}
                             placeholder="Confirm your new password"
-                            // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        // className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
                         />
                     </div>
 
                     {/* Action Buttons */}
                     <div className="space-y-4 pt-4">
-                        <Button 
+                        <Button
                             value="Reset Password"
                             loading={isLoading}
                             onclickFunction={sendDataToBackend}
                         />
-                        
+
                         <button
                             onClick={() => navigateTo('/student')}
                             className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 transition-colors duration-200"

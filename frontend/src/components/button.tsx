@@ -1,11 +1,11 @@
 type ButtonProps = {
     value: string,
     onclickFunction: () => void,
-    loading : boolean
+    loading: boolean
 }
 
-export function Button({ value,loading, onclickFunction }: ButtonProps) {
-    if(loading){
+export function Button({ value, loading, onclickFunction }: ButtonProps) {
+    if (loading) {
         return (
             <button
                 onClick={onclickFunction}
@@ -15,7 +15,7 @@ export function Button({ value,loading, onclickFunction }: ButtonProps) {
                 Loading...
             </button>
         );
-    }else{
+    } else {
         return (
             <button
                 onClick={onclickFunction}

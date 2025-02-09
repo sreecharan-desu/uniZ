@@ -23,12 +23,12 @@ export function ApproveComp({ type }: ApproveProps) {
 
     // Filter function for search
     const filterRequests = (items: any[]) => {
-        return items.filter(item => 
-            !item.is_expired && 
+        return items.filter(item =>
+            !item.is_expired &&
             (item.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             item._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             item.reason.toLowerCase().includes(searchQuery.toLowerCase()))
+                item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.reason.toLowerCase().includes(searchQuery.toLowerCase()))
         );
     };
 
@@ -67,7 +67,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-                alert(data.msg);
+            alert(data.msg);
             location.reload();
         }
     }
@@ -88,7 +88,7 @@ export function ApproveComp({ type }: ApproveProps) {
             const data = await res.json();
             setloading(false);
             alert(data.msg);
-            location.reload();  
+            location.reload();
         }
     }
 
@@ -109,7 +109,7 @@ export function ApproveComp({ type }: ApproveProps) {
             setloading(false);
             alert(data.msg);
             location.reload();
-    }
+        }
     }
 
     const filteredRequests = filterRequests(type === "outing" ? Outings : Outpasses);
@@ -131,7 +131,7 @@ export function ApproveComp({ type }: ApproveProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    
+
                     <div className="flex gap-4">
                         <div className="px-4 py-2 bg-blue-50 rounded-lg">
                             <span className="text-blue-700 font-medium">Total Requests</span>
@@ -169,19 +169,18 @@ export function ApproveComp({ type }: ApproveProps) {
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No requests found</h3>
                         <p className="text-gray-500">
-                            {searchQuery 
-                                ? "Try adjusting your search terms" 
+                            {searchQuery
+                                ? "Try adjusting your search terms"
                                 : `No ${type} requests pending approval`}
                         </p>
                     </div>
                 ) : (
                     filteredRequests.map((request) => (
-                        <div key={request._id} 
-                            className={`bg-white rounded-xl shadow-sm border-2 hover:shadow-md transition-all duration-200 ${
-                                selectedRequest === request._id 
-                                    ? 'border-blue-500 ring-2 ring-blue-200' 
-                                    : 'border-gray-100 hover:border-gray-200'
-                            }`}
+                        <div key={request._id}
+                            className={`bg-white rounded-xl shadow-sm border-2 hover:shadow-md transition-all duration-200 ${selectedRequest === request._id
+                                ? 'border-blue-500 ring-2 ring-blue-200'
+                                : 'border-gray-100 hover:border-gray-200'
+                                }`}
                             onClick={() => setSelectedRequest(request._id)}
                         >
                             <div className="p-6">
@@ -196,16 +195,15 @@ export function ApproveComp({ type }: ApproveProps) {
                                             <p className="text-sm text-gray-500">{request.email}</p>
                                         </div>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                        request.is_approved ? 'bg-green-100 text-green-800' :
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${request.is_approved ? 'bg-green-100 text-green-800' :
                                         request.is_rejected ? 'bg-red-100 text-red-800' :
-                                        request.is_expired ? 'bg-gray-100 text-gray-800' :
-                                        'bg-yellow-100 text-yellow-800'
-                                    }`}>
+                                            request.is_expired ? 'bg-gray-100 text-gray-800' :
+                                                'bg-yellow-100 text-yellow-800'
+                                        }`}>
                                         {request.is_approved ? "Approved" :
-                                         request.is_rejected ? "Rejected" :
-                                         request.is_expired ? "Expired" :
-                                         "Pending"}
+                                            request.is_rejected ? "Rejected" :
+                                                request.is_expired ? "Expired" :
+                                                    "Pending"}
                                     </span>
                                 </div>
 
@@ -238,7 +236,7 @@ export function ApproveComp({ type }: ApproveProps) {
                                         <div className="bg-gray-50 rounded-lg p-4">
                                             <h4 className="text-sm font-medium text-gray-700 mb-1">Duration</h4>
                                             <p className="text-sm text-blue-600">
-                                                {type === "outing" 
+                                                {type === "outing"
                                                     ? formatDuration(calculateDuration(request.from_time, request.to_time))
                                                     : formatDuration(calculateDuration(request.from_day, request.to_day))
                                                 }
@@ -256,15 +254,15 @@ export function ApproveComp({ type }: ApproveProps) {
                                     {!request.is_approved && !request.is_rejected && !request.is_expired && (
                                         <div className="flex gap-3 mt-4">
                                             <Button
-                                                onclickFunction={() => type === "outing" 
-                                                    ? approveouting(request._id) 
+                                                onclickFunction={() => type === "outing"
+                                                    ? approveouting(request._id)
                                                     : approveoutpass(request._id)
                                                 }
                                                 value="Approve"
                                                 loading={loading}
                                             />
                                             <Button
-                                                onclickFunction={() => type === "outing" 
+                                                onclickFunction={() => type === "outing"
                                                     ? rejectouting(request._id)
                                                     : rejectoutpass(request._id)
                                                 }

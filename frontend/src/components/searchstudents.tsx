@@ -57,31 +57,29 @@ const RequestTimeline = ({ request, type }: { request: any, type: 'outing' | 'ou
         const date = new Date(`${month}/${day}/${year}${time}`);
         const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
         const istDate = new Date(date.getTime() + istOffset);
-        return istDate.toLocaleString('en-IN', { 
+        return istDate.toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
             dateStyle: 'medium',
             timeStyle: 'short'
         });
     };
 
-    
+
     return (
         <div className="relative pl-8 pb-6 border-l-2 border-gray-200 last:pb-0">
             <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-gray-400"></div>
             <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                        type === 'outing' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs rounded-full ${type === 'outing' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
                         {type === 'outing' ? 'Outing' : 'Outpass'}
                     </span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                        request.is_approved 
-                            ? 'bg-green-100 text-green-800' 
+                    <span className={`px-2 py-1 text-xs rounded-full ${request.is_approved
+                            ? 'bg-green-100 text-green-800'
                             : request.is_rejected
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {request.is_approved ? "Approved" : request.is_rejected ? "Rejected" : "Pending"}
                     </span>
                 </div>
@@ -92,7 +90,7 @@ const RequestTimeline = ({ request, type }: { request: any, type: 'outing' | 'ou
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>
-                            {type === 'outing' 
+                            {type === 'outing'
                                 ? `${request.from_time} - ${request.to_time}`
                                 : `${request.from_day} - ${request.to_day}`
                             }
@@ -127,88 +125,61 @@ const RequestTimeline = ({ request, type }: { request: any, type: 'outing' | 'ou
         </div>
     );
 };
+const parseDate = (dateStr: string) => {
+    const parts = dateStr.split(", ");
+    if (parts.length !== 2) return new Date(NaN); // Invalid date
 
-// Add these utility functions at the top of your file
-// const getWeekNumber = (date: Date): number => {
-//     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-//     const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-//     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-// };
+    const [datePart, timePart] = parts;
+    return new Date(`${datePart} ${timePart}`);
+};
 
-// const getDateRangeStats = (list: Array<any>, range: 'week' | 'month' | 'year') => {
-//     // Create date in IST
-//     const now = new Date();
-//     const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-//     const istDate = new Date(now.getTime() + istOffset);
-    
-//     return list.filter(item => {
-//         // Parse DD/MM/YYYY HH:mm format
-//         const [datePart, timePart] = item.requested_time.split(',');
-//         const [day, month, year] = datePart.trim().split('/');
-//         const itemDate = new Date(`${year}-${month}-${day}${timePart || ''}`);
-//         const istItemDate = new Date(itemDate.getTime() + istOffset);
-
-//         // Get start of periods in IST
-//         const startOfWeek = new Date(istDate);
-//         startOfWeek.setDate(istDate.getDate() - istDate.getDay());
-//         startOfWeek.setHours(0, 0, 0, 0);
-
-//         const startOfMonth = new Date(istDate.getFullYear(), istDate.getMonth(), 1);
-//         const startOfYear = new Date(istDate.getFullYear(), 0, 1);
-
-//         let isInRange = false;
-//         switch (range) {
-//             case 'week':
-//                 isInRange = istItemDate >= startOfWeek && istItemDate <= istDate;
-//                 break;
-//             case 'month':
-//                 isInRange = istItemDate >= startOfMonth && istItemDate <= istDate;
-//                 break;
-//             case 'year':
-//                 isInRange = istItemDate >= startOfYear && istItemDate <= istDate;
-//                 break;
-//             default:
-//                 isInRange = false;
-//         }
-
-//         return isInRange;
-//     });
-// };
-// Add these helper functions before the DetailedStats component
-const getWeeklyStats = (list: Array<{
-    requested_time: string;
-    is_approved: boolean;
-    is_rejected: boolean;
-}>) => {
+const getWeeklyStats = (list: Array<{ requested_time: string; is_approved: boolean; is_rejected: boolean }>) => {
     const now = new Date();
-    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
-    return list.filter(item => new Date(item.requested_time) >= weekStart);
+    const weekStart = new Date(now);
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(now.getDate() - now.getDay());
+
+    return list.filter(item => {
+        const itemDate = parseDate(item.requested_time);
+        return !isNaN(itemDate.getTime()) && itemDate >= weekStart;
+    });
 };
 
-const getYearlyStats = (list: Array<{
-    requested_time: string;
-    is_approved: boolean;
-    is_rejected: boolean;
-}>) => {
-    const currentYear = new Date().getFullYear();
-    return list.filter(item => new Date(item.requested_time).getFullYear() === currentYear);
+const getMonthlyStats = (list: Array<{ requested_time: string; is_approved: boolean; is_rejected: boolean }>) => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // JS months are 0-based
+    const currentYear = now.getFullYear();
+
+    return list.filter(item => {
+        const match = item.requested_time.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (!match) return false;
+
+        const [, month, day, year] = match.map(Number);
+        return year === currentYear && month === currentMonth;
+    });
 };
+
+
+const getYearlyStats = (list: Array<{ requested_time: string; is_approved: boolean; is_rejected: boolean }>) => {
+    const currentYear = new Date().getFullYear();
+    return list.filter(item => {
+        const itemDate = parseDate(item.requested_time);
+        return !isNaN(itemDate.getTime()) && itemDate.getFullYear() === currentYear;
+    });
+};
+
+
 
 // Update the DetailedStats component
 const DetailedStats = ({ student }: { student: { outings_list: any[], outpasses_list: any[] } }) => {
     // Combine outings and outpasses
     const allRequests = [...student.outings_list, ...student.outpasses_list];
-    
+
+    console.log(allRequests);
     // Calculate statistics
     const weeklyStats = getWeeklyStats(allRequests);
     const yearlyStats = getYearlyStats(allRequests);
-    const monthlyStats = allRequests.filter(item => {
-        const itemDate = new Date(item.requested_time);
-        const now = new Date();
-        return itemDate.getMonth() === now.getMonth() && 
-               itemDate.getFullYear() === now.getFullYear();
-    });
-
+    const monthlyStats = getMonthlyStats(allRequests)
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Weekly Stats */}
@@ -240,18 +211,18 @@ const DetailedStats = ({ student }: { student: { outings_list: any[], outpasses_
                 <div className="space-y-3">
                     <div className="flex justify-between">
                         <span className="text-gray-600">Total Requests</span>
-                        <span className="font-medium">{monthlyStats.length}</span>
+                        <span className="font-medium">{(weeklyStats.length != 0 && yearlyStats.length !=0) ? weeklyStats.length : 0}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">Approved</span>
                         <span className="text-green-600 font-medium">
-                            {monthlyStats.filter((r: { is_approved: boolean }) => r.is_approved).length}
+                            {((weeklyStats.length != 0 && yearlyStats.length !=0) ? weeklyStats : []).filter((r: { is_approved: boolean }) => r.is_approved).length}
                         </span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">Rejected</span>
                         <span className="text-red-600 font-medium">
-                            {monthlyStats.filter((r: { is_rejected: boolean }) => r.is_rejected).length}
+                            {((weeklyStats.length != 0 && yearlyStats.length !=0) ? weeklyStats : []).filter((r: { is_rejected: boolean }) => r.is_rejected).length}
                         </span>
                     </div>
                 </div>
@@ -343,7 +314,7 @@ export function SearchStudents() {
         setIsLoading(true);
         setError("");
         const token = localStorage.getItem('admin_token');
-        
+
         // Check if input is empty
         if (!debouncedValue) {
             setError("Please enter a student ID");
@@ -368,7 +339,7 @@ export function SearchStudents() {
         try {
             // Remove any quotes from token if present
             const cleanToken = token.replace(/^["'](.+(?=["']$))["']$/, '$1');
-            
+
             const bodyData = JSON.stringify({ username: debouncedValue.toLowerCase() });
             const res = await fetch(SEARCH_STUDENTS, {
                 method: 'POST',
@@ -384,7 +355,7 @@ export function SearchStudents() {
             }
 
             const data = await res.json();
-            
+
             if (!data.success) {
                 setError(data.message || "Failed to fetch student details");
                 setStudent(null);
@@ -497,7 +468,7 @@ export function SearchStudents() {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
@@ -513,11 +484,10 @@ export function SearchStudents() {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="text-sm text-gray-500">Campus Status</label>
-                                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                                            student.is_in_campus 
-                                                ? 'bg-green-100 text-green-800' 
+                                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${student.is_in_campus
+                                                ? 'bg-green-100 text-green-800'
                                                 : 'bg-red-100 text-red-800'
-                                        }`}>
+                                            }`}>
                                             {student.is_in_campus ? "In Campus" : "Out of Campus"}
                                         </div>
                                     </div>
@@ -602,10 +572,10 @@ export function SearchStudents() {
                             className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
                         >
                             <span>{showHistory ? "Hide" : "Show"} Enitre Request History</span>
-                            <svg 
+                            <svg
                                 className={`w-5 h-5 transform transition-transform ${showHistory ? 'rotate-180' : ''}`}
-                                fill="none" 
-                                stroke="currentColor" 
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />

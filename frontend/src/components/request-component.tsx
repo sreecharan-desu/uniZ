@@ -37,7 +37,7 @@ export function RequestComp({ type }: RequestCompProps) {
             localStorage.removeItem('username');
             location.href = "";
             return;
-        }else if((type == "outpass" && (from_date == null || to_date == null || reason == null)) || (type=="outing" && (from_time == null || to_time == null || reason == null))){
+        } else if ((type == "outpass" && (from_date == null || to_date == null || reason == null)) || (type == "outing" && (from_time == null || to_time == null || reason == null))) {
             alert("Please fill all the details!");
             return;
         }
@@ -46,7 +46,7 @@ export function RequestComp({ type }: RequestCompProps) {
         const bodyData = JSON.stringify({
             reason,
             userId,
-            ...(type === "outing" ? {from_time, to_time } : { from_date, to_date })
+            ...(type === "outing" ? { from_time, to_time } : { from_date, to_date })
         });
 
         try {
@@ -122,20 +122,20 @@ export function RequestComp({ type }: RequestCompProps) {
                                 <>
                                     <div>
                                         <label className="block text-xs text-gray-500 mb-1">From Date</label>
-                                        <Input 
-                                            type="date" 
-                                            placeholder="" 
+                                        <Input
+                                            type="date"
+                                            placeholder=""
                                             onchangeFunction={handleInputChange(setFromDate)}
-                                            // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                        // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-xs text-gray-500 mb-1">To Date</label>
-                                        <Input 
-                                            type="date" 
-                                            placeholder="" 
+                                        <Input
+                                            type="date"
+                                            placeholder=""
                                             onchangeFunction={handleInputChange(setToDate)}
-                                            // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                        // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
                                         />
                                     </div>
                                 </>
@@ -143,20 +143,20 @@ export function RequestComp({ type }: RequestCompProps) {
                                 <>
                                     <div>
                                         <label className="block text-xs text-gray-500 mb-1">From Time</label>
-                                        <Input 
-                                            type="time" 
-                                            placeholder="" 
+                                        <Input
+                                            type="time"
+                                            placeholder=""
                                             onchangeFunction={handleInputChange(setFromTime)}
-                                            // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                        // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-xs text-gray-500 mb-1">To Time</label>
-                                        <Input 
-                                            type="time" 
-                                            placeholder="" 
+                                        <Input
+                                            type="time"
+                                            placeholder=""
                                             onchangeFunction={handleInputChange(setToTime)}
-                                            // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                        // className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
                                         />
                                     </div>
                                 </>
@@ -166,12 +166,12 @@ export function RequestComp({ type }: RequestCompProps) {
 
                     {/* Action Buttons */}
                     <div className="space-y-4">
-                        <Button 
+                        <Button
                             value={`Submit ${type} Request`}
                             loading={isLoading}
                             onclickFunction={sendDataToBackend}
                         />
-                        
+
                         <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                             <button
                                 onClick={() => navigateTo(`/student/${type === "outing" ? "outpass" : "outing"}/request${type === "outing" ? "outpass" : "outing"}`)}

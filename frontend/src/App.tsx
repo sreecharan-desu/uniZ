@@ -27,7 +27,7 @@ function App() {
           <Route element={<PageTransition><Sidebar content='requestOuting'></Sidebar></PageTransition>} path='/student/outing/requestouting' />
           <Route element={<PageTransition><Sidebar content='requestOutpass'></Sidebar></PageTransition>} path='/student/outpass/requestoutpass' />
           <Route element={<PageTransition><Sidebar content='resetpassword'/></PageTransition>} path='/student/resetpassword' />
-          <Route element={<PageTransition><Sidebar content='gradehub'/></PageTransition>} path='/student/gradehub' />
+          {/* <Route element={<PageTransition><Sidebar content='gradehub'/></PageTransition>} path='/student/gradehub' /> */}
           <Route element={<PageTransition><Admin /></PageTransition>} path='/admin' />
           <Route element={<PageTransition><ApproveComp type='outing' /></PageTransition>} path='/admin/approveouting' />
           <Route element={<PageTransition><ApproveComp type='outpass' /></PageTransition>} path='/admin/approveoutpass' />
