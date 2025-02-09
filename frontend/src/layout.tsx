@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
 
 function NavbarSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="flex justify-around place-content-center space-x-4 m-5">
       <div className="w-40 h-6 bg-gray-300 rounded-lg animate-pulse"></div> {/* Simulating Navbar title */}
       <div className="w-32 h-4 bg-gray-300 rounded-lg animate-pulse"></div> {/* Simulating a smaller Navbar item */}
       <div className="w-24 h-4 bg-gray-300 rounded-lg animate-pulse"></div> {/* Another item */}
