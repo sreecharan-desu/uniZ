@@ -383,7 +383,6 @@ export const userDetailsById = async (id: string) => {
   console.log(user);
 };
 
-// Update expired outpasses and outings
 export const updatePasses = async () => {
   try {
     const currentUTCDate = new Date(); // Current UTC date and time
@@ -402,43 +401,21 @@ export const updatePasses = async () => {
 
     // Process expired outpasses based on date
     const expiredOutpassIds = outpasses
-      .filter((outpass) => outpass.ToDay < currentUTCDate)
+      .filter((outpass) => new Date(outpass.ToDay) < currentUTCDate)
       .map((outpass) => outpass.id);
 
     // Process expired outings based on time
     const expiredOutingsIds = outings
-      .filter((outing) => {
-        const currentDateString = new Date().toISOString().split("T")[0];
-        const outingTime = outing.ToTime.toLocaleString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        });
-
-        const [outingHours, outingMinutes, outingSeconds] = outingTime
-          .split(":")
-          .map((num) => parseInt(num));
-
-        const [c_hours, c_mins, c_secs] = [
-          new Date().getHours(),
-          new Date().getMinutes(),
-          new Date().getSeconds(),
-        ];
-
-        return (
-          c_hours > outingHours ||
-          (c_hours === outingHours &&
-            (c_mins > outingMinutes || (c_mins === outingMinutes && c_secs > outingSeconds)))
-        );
-      })
+      .filter((outing) => new Date(outing.ToTime) < currentUTCDate)
       .map((outing) => outing.id);
 
     // Fetch students who have expired outings or outpasses
-    const studentIds = [
-      ...outpasses.filter((outpass) => expiredOutpassIds.includes(outpass.id)).map((outpass) => outpass.StudentId),
-      ...outings.filter((outing) => expiredOutingsIds.includes(outing.id)).map((outing) => outing.StudentId),
-    ];
+    const studentIds = Array.from(
+      new Set([
+        ...outpasses.filter((outpass) => expiredOutpassIds.includes(outpass.id)).map((outpass) => outpass.StudentId),
+        ...outings.filter((outing) => expiredOutingsIds.includes(outing.id)).map((outing) => outing.StudentId),
+      ])
+    );
 
     const students = await client.student.findMany({
       where: { id: { in: studentIds } },
@@ -446,36 +423,38 @@ export const updatePasses = async () => {
     });
 
     // Process expired outings and update their status
-    const expiredOutings = await Promise.all(
+    await Promise.all(
       expiredOutingsIds.map(async (outingId) => {
-        const student = students.find((s) => s.id === outings.find((outing) => outing.id === outingId)?.StudentId);
-        if (student && student.Email) {
-          sendEmail(
-            student.Email,
-            "Your outing has expired",
-            "Your outing has expired, and your application status has been updated accordingly."
-          );
+        const outing = outings.find((o) => o.id === outingId);
+        const student = students.find((s) => s.id === outing?.StudentId);
+
+        if (student) {
+          if (student.Email) {
+            sendEmail(
+              student.Email,
+              "Your outing has expired",
+              "Your outing has expired, and your application status has been updated accordingly."
+            );
+          }
+          if (student.isPresentInCampus && student.isApplicationPending) {
+            await client.student.update({
+              where: { id: student.id },
+              data: { isApplicationPending: false, isPresentInCampus: true },
+            });
+          }
         }
-        if (student && student.isPresentInCampus && student.isApplicationPending) {
-          await client.student.update({
-            where: { id: student.id },
-            data: { isApplicationPending: false, isPresentInCampus: true },
-          });
-        }
-        // Mark the outing as expired
-        return client.outing.update({
-          where: { id: outingId },
-          data: { isExpired: true },
-        });
+
+        return client.outing.update({ where: { id: outingId }, data: { isExpired: true } });
       })
     );
 
     // Process expired outpasses and update their status
-    const expiredPasses = await Promise.all(
+    await Promise.all(
       expiredOutpassIds.map(async (outpassId) => {
-        const student = students.find((s) => s.id === outpasses.find((outpass) => outpass.id === outpassId)?.StudentId);
+        const outpass = outpasses.find((o) => o.id === outpassId);
+        const student = students.find((s) => s.id === outpass?.StudentId);
 
-        if (student && student.isPresentInCampus && student.isApplicationPending) {
+        if (student) {
           if (student.Email) {
             sendEmail(
               student.Email,
@@ -483,34 +462,21 @@ export const updatePasses = async () => {
               "Your outpass has expired, and your application status has been updated accordingly."
             );
           }
-
-          // Update the student's application status
-          await client.student.update({
-            where: { id: student.id },
-            data: { isApplicationPending: false, isPresentInCampus: true },
-          });
+          if (student.isPresentInCampus && student.isApplicationPending) {
+            await client.student.update({
+              where: { id: student.id },
+              data: { isApplicationPending: false, isPresentInCampus: true },
+            });
+          }
         }
 
-        // Mark the outpass as expired
-        return client.outpass.update({
-          where: { id: outpassId },
-          data: { isExpired: true },
-        });
+        return client.outpass.update({ where: { id: outpassId }, data: { isExpired: true } });
       })
     );
 
-    // Log final results
-    if (expiredPasses.length || expiredOutings.length) {
-      console.log(
-        `Outpasses and outings with IDs: ${[
-          ...expiredPasses.map((pass) => pass.id),
-          ...expiredOutings.map((outing) => outing.id),
-        ].join(", ")} have expired at ${new Date().toLocaleTimeString("en-IN")}`
-      );
-    } else {
-      console.log(`No outpasses or outings were expired at ${new Date().toLocaleTimeString("en-IN")}`);
-    }
-
+    console.log(
+      `Expired outpasses: ${expiredOutpassIds.length}, Expired outings: ${expiredOutingsIds.length} at ${new Date().toLocaleTimeString("en-IN")}`
+    );
   } catch (error) {
     console.error("Error updating passes:", error);
   }
