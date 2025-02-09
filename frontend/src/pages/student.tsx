@@ -5,23 +5,8 @@ import { useStudentData } from "../customhooks/student_info";
 import { student } from "../store";
 import { useState, useEffect } from "react";
 import RequestCard from "../components/requestCard";
-import { PageTransition, ListItemTransition } from '../components/Transition';
-// Helper function to convert to IST
-// const convertToIST = (dateTimeString: string) => {
-//     const date = new Date(dateTimeString);
-//     // Add 5 hours and 30 minutes for IST
-//     date.setHours(date.getHours() + 5);
-//     date.setMinutes(date.getMinutes() + 30);
-//     return date.toLocaleString('en-IN', { 
-//         timeZone: 'Asia/Kolkata',
-//         day: '2-digit',
-//         month: '2-digit',
-//         year: 'numeric',
-//         hour: '2-digit',
-//         minute: '2-digit',
-//         hour12: true
-//     });
-// };
+import { ListItemTransition } from '../components/Transition';
+import PageTransition from "../components/Transition";
 
 export function Student() {
     useIsAuth();

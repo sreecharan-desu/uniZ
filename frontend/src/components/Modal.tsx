@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import { motion } from 'framer-motion';
-import { PageTransition } from './Transition';
+import PageTransition  from './Transition';
 
 export function Modal({ children, isOpen, onClose }: { children: React.ReactNode; isOpen: boolean; onClose: () => void }) {
     return (
