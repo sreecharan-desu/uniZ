@@ -23,65 +23,65 @@ function App() {
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
-        <Route 
-          path="/" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Home /></PageTransition></Suspense>} 
+        <Route
+          path="/"
+          element={<Suspense fallback={<Loading />}><PageTransition><Home /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student/signin" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Signin type="student" /></PageTransition></Suspense>} 
+        <Route
+          path="/student/signin"
+          element={<Suspense fallback={<Loading />}><PageTransition><Signin type="student" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/admin/signin" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Signin type="admin" /></PageTransition></Suspense>} 
+        <Route
+          path="/admin/signin"
+          element={<Suspense fallback={<Loading />}><PageTransition><Signin type="admin" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="dashboard" /></PageTransition></Suspense>} 
+        <Route
+          path="/student"
+          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="dashboard" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student/outpass" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="outpass" /></PageTransition></Suspense>} 
+        <Route
+          path="/student/outpass"
+          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="outpass" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student/outing" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="outing" /></PageTransition></Suspense>} 
+        <Route
+          path="/student/outing"
+          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="outing" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student/outing/requestouting" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="requestOuting" /></PageTransition></Suspense>} 
+        <Route
+          path="/student/outing/requestouting"
+          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="requestOuting" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student/outpass/requestoutpass" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="requestOutpass" /></PageTransition></Suspense>} 
+        <Route
+          path="/student/outpass/requestoutpass"
+          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="requestOutpass" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/student/resetpassword" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="resetpassword" /></PageTransition></Suspense>} 
+        <Route
+          path="/student/resetpassword"
+          element={<Suspense fallback={<Loading />}><PageTransition><Sidebar content="resetpassword" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/admin" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Admin /></PageTransition></Suspense>} 
+        <Route
+          path="/admin"
+          element={<Suspense fallback={<Loading />}><PageTransition><Admin /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/admin/approveouting" 
-          element={<Suspense fallback={<Loading />}><PageTransition><ApproveComp type="outing" /></PageTransition></Suspense>} 
+        <Route
+          path="/admin/approveouting"
+          element={<Suspense fallback={<Loading />}><PageTransition><ApproveComp type="outing" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/admin/approveoutpass" 
-          element={<Suspense fallback={<Loading />}><PageTransition><ApproveComp type="outpass" /></PageTransition></Suspense>} 
+        <Route
+          path="/admin/approveoutpass"
+          element={<Suspense fallback={<Loading />}><PageTransition><ApproveComp type="outpass" /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/admin/updatestudentstatus" 
-          element={<Suspense fallback={<Loading />}><PageTransition><UpdateStatus /></PageTransition></Suspense>} 
+        <Route
+          path="/admin/updatestudentstatus"
+          element={<Suspense fallback={<Loading />}><PageTransition><UpdateStatus /></PageTransition></Suspense>}
         />
-        <Route 
-          path="/admin/searchstudents" 
-          element={<Suspense fallback={<Loading />}><PageTransition><SearchStudents /></PageTransition></Suspense>} 
+        <Route
+          path="/admin/searchstudents"
+          element={<Suspense fallback={<Loading />}><PageTransition><SearchStudents /></PageTransition></Suspense>}
         />
-        <Route 
-          path="*" 
-          element={<Suspense fallback={<Loading />}><PageTransition><Error /></PageTransition></Suspense>} 
+        <Route
+          path="*"
+          element={<Suspense fallback={<Loading />}><PageTransition><Error /></PageTransition></Suspense>}
         />
       </Routes>
     </BrowserRouter>
@@ -103,10 +103,31 @@ export function Error() {
     </div>
   );
 }
+export function Loading() {
+  return (
+    <div className="flex flex-col justify-center items-center min-h-screen space-y-6">
+      {/* Spinner with fun, interactive animation */}
+      <div className="relative animate-spin-slow w-16 h-16 border-4 border-t-4 border-transparent border-solid rounded-full">
+        {/* Pikachu GIF inside the spinner */}
+        <div className="absolute inset-0 flex justify-center items-center">
+          <img
+            src="/pikachubby.gif"  // Path to your Pikachu GIF in the public directory
+            alt="Pikachu"
+            className="w-12 h-12 animate-bounce" // Adjust size as needed
+          />
+        </div>
+      </div>
 
-// 🔵 Loading Fallback Component
-function Loading() {
-  return <div className="text-md text-black">Loading...</div>;
+      {/* Fun and short message */}
+      <div className="text-md text-black font-bold text-center px-6">
+        <span className="animate-pulse">
+          ⚡ SreeCharan sent Pikachu to power up and load faster! ⚡
+        </span>
+      </div>
+    </div>
+  );
 }
+
+
 
 export default App;
