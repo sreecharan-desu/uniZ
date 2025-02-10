@@ -1,6 +1,6 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
-import xlsx from "xlsx";import fs from "fs";
+import xlsx from "xlsx"; 
 import { PrismaClient } from "@prisma/client";
 import { fetchAdmin, validateSigninInputs } from "./middlewares/middlewares";
 import { authMiddleware, validateResetPassInputs } from "../student/middlewares/middlewares";
@@ -27,14 +27,14 @@ adminRouter.post(
   validateSigninInputs,
   fetchAdmin,
   async (req, res) => {
-    try{
+    try {
       const { username } = req.body;
-        const token = await jwt.sign(username, 'a74d9ff8f6c0638b05c21de570d57805');
-        res.json({
-          admin_token: token,
-          success: true,
-        });
-    }catch(e){
+      const token = await jwt.sign(username, 'a74d9ff8f6c0638b05c21de570d57805');
+      res.json({
+        admin_token: token,
+        success: true,
+      });
+    } catch (e) {
       res.json({
         msg: "Internal Server Error Please Try again!",
         success: false,
@@ -47,23 +47,23 @@ adminRouter.post(
 adminRouter.put("/resetpass", validateResetPassInputs, fetchAdmin, authMiddleware, async (req, res) => {
   const { username, new_password } = req.body;
   try {
-      const isUpdated = await updateAdminPassword(username, new_password);
-      if (isUpdated) {
-          res.json({
-              msg: "Password updated successfully! Signin again with your new Password for authentication!",
-              success: true,
-          });
-      } else {
-          res.json({
-              msg: "Error updating password Please try again!",
-              success: false,
-          });
-      }
-  } catch (e) {
+    const isUpdated = await updateAdminPassword(username, new_password);
+    if (isUpdated) {
       res.json({
-          msg: "Error updating password Please try again!",
-          success: false,
+        msg: "Password updated successfully! Signin again with your new Password for authentication!",
+        success: true,
       });
+    } else {
+      res.json({
+        msg: "Error updating password Please try again!",
+        success: false,
+      });
+    }
+  } catch (e) {
+    res.json({
+      msg: "Error updating password Please try again!",
+      success: false,
+    });
   }
 });
 
@@ -86,7 +86,7 @@ adminRouter.get("/getoutingrequests", authMiddleware, async (req, res) => {
   try {
     const requests = await getOutingRequests();
     res.json({
-      outings : requests,
+      outings: requests,
       success: true,
     });
   } catch (e) {
@@ -102,7 +102,7 @@ adminRouter.get("/getstudents", authMiddleware, async (req, res) => {
     const students = await getUsers();
     res.json({
       students,
-      msg : `Successfully Fetched ${students.length} students`,
+      msg: `Successfully Fetched ${students.length} students`,
       success: true,
     });
   } catch (e) {
@@ -188,13 +188,13 @@ adminRouter.post("/approveoutpass", authMiddleware, async (req, res) => {
                 </body>
                 </html>
                 `;
-          await sendEmail(
-            email,
-            "Regarding your OutpassRequest",
-            outPassEmailBody
-          );
+        await sendEmail(
+          email,
+          "Regarding your OutpassRequest",
+          outPassEmailBody
+        );
       }
-    }     res.json({
+    } res.json({
       msg: outpass.msg,
       success: outpass.success,
     });
@@ -287,7 +287,7 @@ adminRouter.post("/approveouting", authMiddleware, async (req, res) => {
           outPassEmailBody
         );
       }
-    }     res.json({
+    } res.json({
       msg: outing.msg,
       success: outing.success,
     });
@@ -306,7 +306,7 @@ adminRouter.post("/rejectouting", authMiddleware, async (req, res) => {
     if (outing?.success) {
       const outing = await client.outing.findFirst({
         where: { id: id },
-        select: { Student: { select: { Email: true } },Message : true,rejectedBy : true,rejectedTime : true},
+        select: { Student: { select: { Email: true } }, Message: true, rejectedBy: true, rejectedTime: true },
       });
       const email = outing?.Student.Email;
       if (email) {
@@ -525,7 +525,7 @@ interface Student {
   GENDER: string;
 }
 
-adminRouter.post("/updatestudents", authMiddleware,async (req,res) => {
+adminRouter.post("/updatestudents", authMiddleware, async (req, res) => {
   try {
     console.log("Adding data please hold on...");
     const filePath = "./data.xlsx";
@@ -535,9 +535,9 @@ adminRouter.post("/updatestudents", authMiddleware,async (req,res) => {
     let records = 0;
     const students: Student[] = xlsx.utils.sheet_to_json<Student>(sheet);
     for (const student of students) {
-      await addStudent(student.IDNO.toLowerCase(),student.Password.toLowerCase(),student.GENDER,student.NAME);
+      await addStudent(student.IDNO.toLowerCase(), student.Password.toLowerCase(), student.GENDER, student.NAME);
       records++;
-      if(records%100){
+      if (records % 100) {
         console.log(`Completed ${records} records until ${new Date().toLocaleString()}`)
       }
     }
@@ -576,8 +576,8 @@ adminRouter.get(
 
 adminRouter.post("/updatestudentstatus", authMiddleware, async (req, res) => {
   try {
-    const { userId,id } = req.body;
-    const student = await updateUserPrescence(userId,id);
+    const { userId, id } = req.body;
+    const student = await updateUserPrescence(userId, id);
     res.json({
       msg: student.msg,
       success: student.success,
@@ -591,17 +591,17 @@ adminRouter.post("/updatestudentstatus", authMiddleware, async (req, res) => {
 });
 
 
-adminRouter.post('/searchstudent',authMiddleware,async(req,res)=>{
+adminRouter.post('/searchstudent', authMiddleware, async (req, res) => {
   try {
     const { username } = req.body;
     const student = await getStudentDetails(username);
-    if(student==null){
+    if (student == null) {
       res.json({
-        msg : "No student found with idnumber : " + username,success:false,
+        msg: "No student found with idnumber : " + username, success: false,
       });
-    }else{
+    } else {
       res.json({
-        student,success:true,
+        student, success: true,
       });
     }
   } catch (e) {
