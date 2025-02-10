@@ -442,6 +442,32 @@ export const updatePasses = async () => {
   // Update expired outings
   const expiredOutings = await Promise.all(
     expiredOutingsIds.map(async (outing_id) => {
+
+      const outing = await client.outing.findFirst({
+        where : {
+          id : outing_id
+        },select : {
+          Student : {
+            select : {
+              Username : true,
+              Email : true,
+              isApplicationPending : true,
+              isPresentInCampus : true
+            }
+          }
+        }
+      })
+
+      if(outing){
+        if(outing.Student){
+          if(outing.Student.isApplicationPending && outing.Student.isPresentInCampus){
+            await sendEmail(outing?.Student.Email,"Outing expired","Your outing has been expired,you can apply a new one (if needed).")
+          }else if(outing.Student.isApplicationPending && !outing.Student.isPresentInCampus){
+            await sendEmail(outing?.Student.Email,"Outing expired","Your outing has been  please return to cmapus ASAP!")
+          }
+        }
+      }
+
       return await client.outing.update({
         where: { id: outing_id },
         data: { isExpired: true }, // Mark outing as expired
@@ -451,7 +477,35 @@ export const updatePasses = async () => {
 
   // Update expired outpasses
   const expiredPasses = await Promise.all(
+
     expiredOutpassIds.map(async (outpass_id) => {
+
+
+      const outpass = await client.outpass.findFirst({
+        where : {
+          id : outpass_id
+        },select : {
+          Student : {
+            select : {
+              Username : true,
+              Email : true,
+              isApplicationPending : true,
+              isPresentInCampus : true
+            }
+          }
+        }
+      })
+
+      if(outpass){
+        if(outpass.Student){
+          if(outpass.Student.isApplicationPending && outpass.Student.isPresentInCampus){
+            await sendEmail(outpass?.Student.Email,"outpass expired","Your outpass has been expired,you can apply a new one (if needed).")
+          }else if(outpass.Student.isApplicationPending && !outpass.Student.isPresentInCampus){
+            await sendEmail(outpass?.Student.Email,"outpass expired","Your outpass has been  please return to cmapus ASAP!")
+          }
+        }
+      }
+
       return await client.outpass.update({
         where: { id: outpass_id },
         data: { isExpired: true }, // Mark outpass as expired
