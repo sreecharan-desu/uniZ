@@ -449,6 +449,7 @@ export const updatePasses = async () => {
         },select : {
           Student : {
             select : {
+              id : true,
               Username : true,
               Email : true,
               isApplicationPending : true,
@@ -461,6 +462,13 @@ export const updatePasses = async () => {
       if(outing){
         if(outing.Student){
           if(outing.Student.isApplicationPending && outing.Student.isPresentInCampus){
+            await client.student.update({
+              where : {
+                id : outing.Student.id
+              },data :{
+                isApplicationPending : false
+              }
+            })
             await sendEmail(outing?.Student.Email,"Outing expired","Your outing has been expired,you can apply a new one (if needed).")
           }else if(outing.Student.isApplicationPending && !outing.Student.isPresentInCampus){
             await sendEmail(outing?.Student.Email,"Outing expired","Your outing has been  please return to cmapus ASAP!")
