@@ -18,8 +18,6 @@ import {
   rejectOutpass,
   sendEmail,
   updateAdminPassword,
-  updateDB,
-  updateStudentPassword,
   updateUserPrescence,
 } from "../helper-functions";
 export const adminRouter = Router();
@@ -30,7 +28,6 @@ adminRouter.post(
   fetchAdmin,
   async (req, res) => {
     try{
-      updateDB();
       const { username } = req.body;
         const token = await jwt.sign(username, 'a74d9ff8f6c0638b05c21de570d57805');
         res.json({
