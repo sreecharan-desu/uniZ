@@ -1,10 +1,7 @@
 import express from "express";
 import { studentRouter } from "./student/student";
 import { adminRouter } from "./admin/admin";
-import { addAdmin, updateDB } from "./helper-functions";
 // import xlsx from "xlsx"
-
-updateDB();
 
 export const mainRoute = express.Router();
 
