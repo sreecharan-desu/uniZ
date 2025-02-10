@@ -447,6 +447,7 @@ export const updatePasses = async () => {
         where : {
           id : outing_id
         },select : {
+          id : true,
           Student : {
             select : {
               id : true,
@@ -469,6 +470,21 @@ export const updatePasses = async () => {
                 isApplicationPending : false
               }
             })
+            const existingOuting = await client.outing.findUnique({
+              where: { id: outing.id },
+              select: { reason: true }
+            });
+            
+            if (existingOuting) {
+              const updatedReason = existingOuting.reason?.includes("Expired")
+                ? existingOuting.reason
+                : (existingOuting.reason ?? "") + " Expired";
+            
+              await client.outing.update({
+                where: { id: outing.id },
+                data: { reason: updatedReason.trim() } // Trim to remove extra spaces
+              });
+            }
             await sendEmail(outing?.Student.Email,"Outing expired","Your outing has been expired,you can apply a new one (if needed).")
           }else if(outing.Student.isApplicationPending && !outing.Student.isPresentInCampus){
             await sendEmail(outing?.Student.Email,"Outing expired","Your outing has been  please return to cmapus ASAP!")
