@@ -478,7 +478,7 @@ export const updatePasses = async () => {
             if (existingOuting) {
               const updatedReason = existingOuting.reason?.includes("Expired")
                 ? existingOuting.reason
-                : (existingOuting.reason ?? "") + " Expired";
+                : (existingOuting.reason ?? "") + "  (Expired)";
             
               await client.outing.update({
                 where: { id: outing.id },
