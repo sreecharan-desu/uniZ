@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express"; import zod from "zod";
-import { addAdmin, currentAdminByUsername, currentUserByUsername, findAdminByUsername, findUserByUsername, updateDB } from "../../helper-functions";
+import { addAdmin, currentAdminByUsername, findAdminByUsername } from "../../helper-functions";
 import bcrypt from "bcrypt";
 
 export const validateSigninInputs = async (
