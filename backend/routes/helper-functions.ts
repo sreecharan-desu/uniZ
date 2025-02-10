@@ -392,7 +392,7 @@ export const updatePasses = async () => {
     where: { isExpired: false },
     select: { 
       id: true,
-      ToTime: true,
+      ToDay :  true, 
       StudentId: true
     }
   });
@@ -418,7 +418,7 @@ export const updatePasses = async () => {
   // Find expired outpasses based on ToTime
   const expiredOutpassIds = outpasses
     .filter((outpass) => {
-      const toDateTime = parseTimeToDate(outpass.ToTime);
+      const toDateTime = parseTimeToDate(outpass.ToDay);
       return currentUTCDate > toDateTime;
     })
     .map((outpass) => outpass.id);
