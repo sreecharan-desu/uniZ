@@ -12,12 +12,21 @@ export default function RequestCard({ request, type, email }: { request: any; ty
         >
             <div className="flex justify-between items-center mb-4">
                 <p className="font-semibold text-lg text-gray-800">{request._id}</p>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${request.is_approved ? 'bg-green-100 text-green-800' :
-                    request.is_rejected ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                    }`}>
-                    {request.is_approved ? "Approved ✅" : request.is_rejected ? "Rejected ❌" : "Pending ⏳"}
-                </span>
+                {
+                    request.is_expired ? <>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${request.is_expired ? 'bg-red-500 text-black' : 'bg-transparent'
+                            }`}>
+                            Expired
+                        </span>
+                    </> : <>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${request.is_approved ? 'bg-green-100 text-green-800' :
+                            request.is_rejected ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                            }`}>
+                            {request.is_approved ? "Approved ✅" : request.is_rejected ? "Rejected ❌" : "Pending ⏳"}
+                        </span>
+                    </>
+                }
             </div>
             <div className="space-y-2">
                 <p>

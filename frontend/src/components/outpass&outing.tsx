@@ -33,6 +33,42 @@ export default function Outpass_Outing({ request }: requestProps) {
             {/* Header Section */}
             <div className="mb-8">
                 <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+
+                    {!Student.is_in_campus && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-yellow-700">
+                                        You are currently marked as outside campus. Please consult your warden to update your presence.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* Warning Message for Pending Requests */}
+                    {Student.has_pending_requests && (
+                        <div className="-mt-8 mb-4 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-red-700">
+                                        You have pending requests. New requests cannot be created until existing ones are processed.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="flex items-center justify-between mb-4">
                         <h4 className="text-2xl font-bold text-gray-800">
                             Pending Requests ({Student.outings_list.filter(outing => !outing.is_expired && !outing.is_approved && !outing.is_rejected).length + Student.outpasses_list.filter(outpass => !outpass.is_expired && !outpass.is_approved && !outpass.is_rejected).length})
@@ -73,22 +109,7 @@ export default function Outpass_Outing({ request }: requestProps) {
                     </div>
                 ) : (
                     <>
-                        {!Student.is_in_campus && (
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-yellow-700">
-                                            You are currently marked as outside campus. Please consult your warden to update your presence.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+
 
                         {/* Active Requests */}
                         <div className="grid gap-6 md:grid-cols-2">
@@ -137,24 +158,6 @@ export default function Outpass_Outing({ request }: requestProps) {
                     </>
                 )}
             </div>
-
-            {/* Warning Message for Pending Requests */}
-            {Student.has_pending_requests && (
-                <div className="mt-8 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-red-700">
-                                You have pending requests. New requests cannot be created until existing ones are processed.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
