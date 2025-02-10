@@ -941,12 +941,12 @@ export const rejectOuting = async (
 
 //Function that runs every 1 minute to update the Expired Passes
 
-export const updateDB = () => {
-  updatePasses();
-  setInterval(() => {
-    updatePasses();
-  }, 5 * 1000);
-};
+// export const updateDB = () => {
+//   updatePasses();
+//   setInterval(() => {
+//     updatePasses();
+//   }, 5 * 1000);
+// };
 
 export const sendEmail = async (
   email: string,
