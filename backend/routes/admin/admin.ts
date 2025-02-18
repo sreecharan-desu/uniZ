@@ -520,7 +520,7 @@ adminRouter.post("/rejectoutpass", authMiddleware, async (req, res) => {
 });
 
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-interface Student {
+export interface Student {
   IDNO: string;
   Email: string;
   Password: string;

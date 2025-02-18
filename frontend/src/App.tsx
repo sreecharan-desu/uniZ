@@ -2,7 +2,7 @@ import { Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import './index.css';
-import { Home } from './pages/home';
+// import { Home } from './pages/home';
 import { Signin } from './components/signin-component';
 import { Admin } from './pages/admin';
 import { ApproveComp } from './components/approve-comp';
@@ -38,7 +38,7 @@ function App() {
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
-        <Route element={<PageTransition><div className='flex justify-center align-middle place-content-center'><Home /></div></PageTransition>} path='/' />
+        <Route element={<PageTransition><div className='flex justify-center align-middle place-content-center'><Maintenance /></div></PageTransition>} path='/' />
         <Route element={<PageTransition><Signin type='student' /></PageTransition>} path='/student/signin' />
         <Route element={<PageTransition><Signin type='admin' /></PageTransition>} path='/admin/signin' />
         <Route element={<PageTransition><Sidebar content='dashboard' /></PageTransition>} path='/student' />
@@ -67,6 +67,18 @@ export function Error() {
         The page you are trying to search doesn't exist! or will be available soon . . . <br />
         Click <a href="/" style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}>here</a> to go to HomePage
       </h2>
+    </div>
+  );
+}
+
+
+function Maintenance() {
+  return (
+    <div className="flex w-full rounded-md flex-col items-center justify-center h-screen bg-gray-100">
+      <h1 className="text-4xl font-bold text-gray-800">🚧 Under Maintenance 🚧</h1>
+      <p className="text-lg text-gray-600 mt-2">
+        SreeCharan is currently working on some improvements. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
+      </p>
     </div>
   );
 }
