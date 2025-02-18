@@ -66,7 +66,7 @@ export function Error() {
       <h2>
         The page you are trying to search doesn't exist! or will be available soon . . . <br />
         <p className="text-lg text-gray-600 mt-2">
-          SreeCharan is currently working on some improvements. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
+          I'm currently working on some improvements. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
         </p>      
       </h2>
     </div>
