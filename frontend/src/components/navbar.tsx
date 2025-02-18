@@ -110,7 +110,7 @@ export default function Navbar() {
                             </div>
                             <div className="flex-col justify-center">
                                 <p className="text-white text-left text-sm font-semibold">
-                                    {adminName?.slice(1,adminName.length-1).toString() + (adminName == "Warden1" ? " (Campus 3)" : " (Campus 2)")}
+                                    {adminName?.slice(1,adminName.length-1).toString()}
                                 </p>
                                 <p className="text-white text-left text-sm font-semibold">sreecharan309@gmail.com</p>
                             </div>
