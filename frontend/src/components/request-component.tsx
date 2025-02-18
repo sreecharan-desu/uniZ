@@ -32,13 +32,13 @@ export function RequestComp({ type }: RequestCompProps) {
     const sendDataToBackend = async () => {
         const token = localStorage.getItem('student_token');
         if (!token) {
-            alert('Missing auth_token. Authorization failed!');
+            toast('Missing auth_token. Authorization failed!');
             localStorage.removeItem('student_token');
             localStorage.removeItem('username');
             location.href = "";
             return;
         }else if((type == "outpass" && (from_date == null || to_date == null || reason == null)) || (type=="outing" && (from_time == null || to_time == null || reason == null))){
-            alert("Please fill all the details!");
+            toast("Please fill all the details!");
             return;
         }
 
@@ -65,10 +65,10 @@ export function RequestComp({ type }: RequestCompProps) {
 
             const data = await res.json();
             setLoading(false);
-            alert(data.msg);
+            toast(data.msg);
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while sending the request.');
+            toast('An error occurred while sending the request.');
         }
     };
 

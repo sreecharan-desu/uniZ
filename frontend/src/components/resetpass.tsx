@@ -25,10 +25,10 @@ export function Resetpassword() {
 
     const sendDataToBackend = async () => {
         if (!oldPassword || !password || !repassword) {
-            alert('Please enter all fields.');
+            toast('Please enter all fields.');
             return;
         } else if (password !== repassword) {
-            alert('Passwords do not match.');
+            toast('Passwords do not match.');
             return;
         }
 
@@ -51,7 +51,7 @@ export function Resetpassword() {
                     body: bodyData
                 });
                 const data = await res.json();
-                alert(data.msg);
+                toast(data.msg);
                 if (data.success) {
                     localStorage.removeItem('student_token');
                     localStorage.removeItem('username');
@@ -60,12 +60,12 @@ export function Resetpassword() {
                 }
             } catch (error) {
                 console.error('Error resetting password:', error);
-                alert('Error resetting your password, please try again!');
+                toast('Error resetting your password, please try again!');
             } finally {
                 setIsLoading(false);
             }
         } else {
-            alert('Missing auth_token. Authorization failed.');
+            toast('Missing auth_token. Authorization failed.');
             setIsLoading(false);
         }
     };

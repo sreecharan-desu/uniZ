@@ -97,7 +97,7 @@ export function UpdateStatus() {
         body: bodyData,
       });
       const data = await res.json();
-      alert(data.msg);
+      toast(data.msg);
       setLoading(false);
       location.href="";
       // Fetch updated student list

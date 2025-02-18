@@ -24,7 +24,7 @@ export function useStudentData(){
               if(data.student){
                   setstudent(data.student)
               }else{
-                  alert(data.msg)
+                  toast(data.msg)
               }
           }
           getDetails();  

@@ -47,7 +47,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
@@ -67,7 +67,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
@@ -87,7 +87,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }
@@ -107,7 +107,7 @@ export function ApproveComp({ type }: ApproveProps) {
             });
             const data = await res.json();
             setloading(false);
-            alert(data.msg);
+            toast(data.msg);
             location.reload();
         }
     }

@@ -26,10 +26,10 @@ export function Signin({ type }: SigninProps) {
     }
     const sendDataToBackend = async () => {
         if (type === "student" && !username.includes("o")) {
-            alert('Your username is your college ID');
+            toast('Your username is your college ID');
             return;
         } else if (username === '' || password === '') {
-            alert('Please enter the data to proceed');
+            toast('Please enter the data to proceed');
             return;
         }
         setLoading(true);
@@ -44,7 +44,7 @@ export function Signin({ type }: SigninProps) {
         const data = await res.json();
         setLoading(false);
         if (data.msg) {
-            alert(data.msg)
+            toast(data.msg)
         } else {
             if (data.student_token) {
                 localStorage.setItem('student_token', JSON.stringify(data.student_token));
