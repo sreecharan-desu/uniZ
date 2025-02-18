@@ -195,16 +195,21 @@ export const formatDuration = (duration: Duration): string => {
     return parts.join(', ');
 };
 
+
+{/* dateTimeString in :  In the format             "requested_time": "18/2/2025, 3:41:23 am", */}
 export const formatRequestTime = (dateTimeString: string) => {
     try {
-        const date = new Date(dateTimeString);
-        
-        // Add 5 hours and 30 minutes for IST
-        date.setHours(date.getHours() + 5);
-        date.setMinutes(date.getMinutes() + 30);
-        
+        // Manually parse DD/MM/YYYY format
+        const [datePart, timePart] = dateTimeString.split(', ');
+        const [day, month, year] = datePart.split('/').map(Number);
+
+        // Create Date object (JS months are 0-based)
+        const date = new Date(year, month - 1, day, ...parseTime(timePart));
+
+        // Add 5 hours 30 minutes for IST
+        date.setMinutes(date.getMinutes() + 330);
+
         return date.toLocaleString('en-IN', { 
-            timeZone: 'Asia/Kolkata',
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -216,4 +221,15 @@ export const formatRequestTime = (dateTimeString: string) => {
         console.error('Error formatting time:', error);
         return dateTimeString; // Return original string if parsing fails
     }
+};
+
+// Function to convert "h:mm:ss am/pm" to [hour, minute, second]
+const parseTime = (timeString: string): number[] => {
+    const [time, modifier] = timeString.split(' ');
+    let [hour, minute, second] = time.split(':').map(Number);
+    
+    if (modifier.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+    if (modifier.toLowerCase() === 'am' && hour === 12) hour = 0;
+    
+    return [hour, minute, second];
 };
