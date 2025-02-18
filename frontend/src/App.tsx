@@ -66,23 +66,31 @@ export function Error() {
       <h2>
         The page you are trying to search doesn't exist! or will be available soon . . . <br />
         <p className="text-lg text-gray-600 mt-2">
-          I'm currently working on some improvements. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
+          I'm currently working on some improvements along with Pikachu. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
         </p>      
       </h2>
     </div>
   );
 }
 
-
 function Maintenance() {
   return (
-    <div className="flex w-full rounded-md flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-gray-800">🚧 Under Maintenance 🚧</h1>
-      <p className="text-lg text-gray-600 mt-2">
-        I'm currently working on some improvements. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
+    <div className="flex w-full h-screen flex-col items-center justify-center bg-gray-100 p-4">
+      <img 
+        src="/pikachu.png" 
+        alt="Pikachu fixing things" 
+        width={200} 
+        height={200} 
+        className="mb-4"
+      />
+      <h1 className="text-4xl font-bold text-gray-800 animate-bounce">🚧 Under Maintenance 🚧</h1>
+      <p className="text-lg text-gray-600 mt-2 text-center">
+        I'm currently working on some improvements along with <b>Pikachu.</b> Check back soon! - 
+        <a href="https://sr3x0r.vercel.app" className="text-blue-500 hover:underline"> Sr3X0r</a>
       </p>
     </div>
   );
 }
+
 
 export default App;
