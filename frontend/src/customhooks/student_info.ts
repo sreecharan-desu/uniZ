@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import {useSetRecoilState } from "recoil";
 import {student } from "../store";
 import { STUDENT_INFO } from "../apis";
+import { toast } from "react-toastify";
 
 export function useStudentData(){
     const setstudent = useSetRecoilState(student);

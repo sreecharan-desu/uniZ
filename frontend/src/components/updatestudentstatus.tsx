@@ -6,6 +6,7 @@ import { UPDATE_STUDENT_STATUS } from "../apis";
 import { Button } from "./button";
 import { useState, useEffect } from "react";
 import { useIsAuth } from "../customhooks/is_authenticated";
+import { toast } from "react-toastify";
 
 // Add a skeleton component at the top
 const StudentCardSkeleton = () => (

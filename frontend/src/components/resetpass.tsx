@@ -6,6 +6,7 @@ import { useRecoilValue } from "recoil";
 import { student } from "../store";
 import { useStudentData } from "../customhooks/student_info";
 import { RESET_PASS } from "../apis";
+import { toast } from "react-toastify";
 
 export function Resetpassword() {
     const [oldPassword, setOldPassword] = useState('');
