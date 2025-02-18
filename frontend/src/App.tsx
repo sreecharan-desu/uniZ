@@ -1,16 +1,16 @@
-import { Suspense, useEffect } from 'react';
+import {  useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import './index.css';
 // import { Home } from './pages/home';
-import { Signin } from './components/signin-component';
-import { Admin } from './pages/admin';
-import { ApproveComp } from './components/approve-comp';
-import { UpdateStatus } from './components/updatestudentstatus';
+// import { Signin } from './components/signin-component';
+// import { Admin } from './pages/admin';
+// import { ApproveComp } from './components/approve-comp';
+// import { UpdateStatus } from './components/updatestudentstatus';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { SearchStudents } from './components/searchstudents';
-import Sidebar from './components/sidebar';
+// import { SearchStudents } from './components/searchstudents';
+// import Sidebar from './components/sidebar';
 import { useIsAuth } from './customhooks/is_authenticated';
 import { PageTransition } from './components/Transition';
 
@@ -39,7 +39,7 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
         <Route element={<PageTransition><div className='flex justify-center align-middle place-content-center'><Maintenance /></div></PageTransition>} path='/' />
-        <Route element={<PageTransition><Signin type='student' /></PageTransition>} path='/student/signin' />
+        {/* <Route element={<PageTransition><Signin type='student' /></PageTransition>} path='/student/signin' />
         <Route element={<PageTransition><Signin type='admin' /></PageTransition>} path='/admin/signin' />
         <Route element={<PageTransition><Sidebar content='dashboard' /></PageTransition>} path='/student' />
         <Route element={<PageTransition><Suspense fallback={<div className="text-md text-black">Loading...</div>}><Sidebar content='outpass' /></Suspense></PageTransition>} path='/student/outpass' />
@@ -52,7 +52,7 @@ function App() {
         <Route element={<PageTransition><ApproveComp type='outing' /></PageTransition>} path='/admin/approveouting' />
         <Route element={<PageTransition><ApproveComp type='outpass' /></PageTransition>} path='/admin/approveoutpass' />
         <Route element={<PageTransition><UpdateStatus /></PageTransition>} path='/admin/updatestudentstatus' />
-        <Route element={<PageTransition><SearchStudents /></PageTransition>} path='/admin/searchstudents' />
+        <Route element={<PageTransition><SearchStudents /></PageTransition>} path='/admin/searchstudents' /> */}
         <Route element={<PageTransition><Error /></PageTransition>} path='*' />
       </Routes>
     </BrowserRouter>
@@ -65,7 +65,9 @@ export function Error() {
     <div style={{ textAlign: 'center' }}>
       <h2>
         The page you are trying to search doesn't exist! or will be available soon . . . <br />
-        Click <a href="/" style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}>here</a> to go to HomePage
+        <p className="text-lg text-gray-600 mt-2">
+          SreeCharan is currently working on some improvements. Check back soon! - <a href='https://sr3x0r.vercel.app' className='text-decoration-none text-blue-400' >Sr3X0r</a>
+        </p>      
       </h2>
     </div>
   );
