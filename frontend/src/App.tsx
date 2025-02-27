@@ -1,16 +1,16 @@
-import {  useEffect } from 'react';
+import {  Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import './index.css';
-// import { Home } from './pages/home';
-// import { Signin } from './components/signin-component';
-// import { Admin } from './pages/admin';
-// import { ApproveComp } from './components/approve-comp';
-// import { UpdateStatus } from './components/updatestudentstatus';
+import { Home } from './pages/home';
+import { Signin } from './components/signin-component';
+import { Admin } from './pages/admin';
+import { ApproveComp } from './components/approve-comp';
+import { UpdateStatus } from './components/updatestudentstatus';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// import { SearchStudents } from './components/searchstudents';
-// import Sidebar from './components/sidebar';
+import { SearchStudents } from './components/searchstudents';
+import Sidebar from './components/sidebar';
 import { useIsAuth } from './customhooks/is_authenticated';
 import { PageTransition } from './components/Transition';
 
@@ -38,8 +38,8 @@ function App() {
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
-        <Route element={<PageTransition><div className='flex justify-center align-middle place-content-center'><Maintenance /></div></PageTransition>} path='/' />
-        {/* <Route element={<PageTransition><Signin type='student' /></PageTransition>} path='/student/signin' />
+        <Route element={<PageTransition><div className='flex justify-center align-middle place-content-center'><Home /></div></PageTransition>} path='/' />
+        <Route element={<PageTransition><Signin type='student' /></PageTransition>} path='/student/signin' />
         <Route element={<PageTransition><Signin type='admin' /></PageTransition>} path='/admin/signin' />
         <Route element={<PageTransition><Sidebar content='dashboard' /></PageTransition>} path='/student' />
         <Route element={<PageTransition><Suspense fallback={<div className="text-md text-black">Loading...</div>}><Sidebar content='outpass' /></Suspense></PageTransition>} path='/student/outpass' />
@@ -52,7 +52,7 @@ function App() {
         <Route element={<PageTransition><ApproveComp type='outing' /></PageTransition>} path='/admin/approveouting' />
         <Route element={<PageTransition><ApproveComp type='outpass' /></PageTransition>} path='/admin/approveoutpass' />
         <Route element={<PageTransition><UpdateStatus /></PageTransition>} path='/admin/updatestudentstatus' />
-        <Route element={<PageTransition><SearchStudents /></PageTransition>} path='/admin/searchstudents' /> */}
+        <Route element={<PageTransition><SearchStudents /></PageTransition>} path='/admin/searchstudents' /> 
         <Route element={<PageTransition><Error /></PageTransition>} path='*' />
       </Routes>
     </BrowserRouter>
@@ -73,24 +73,24 @@ export function Error() {
   );
 }
 
-function Maintenance() {
-  return (
-    <div className="flex w-full h-screen flex-col items-center justify-center bg-gray-100 p-4">
-      <img 
-        src="/pikachu.png" 
-        alt="Pikachu fixing things" 
-        width={200} 
-        height={200} 
-        className="mb-4"
-      />
-      <h1 className="text-4xl font-bold text-gray-800 animate-bounce">🚧 Under Maintenance 🚧</h1>
-      <p className="text-lg text-gray-600 mt-2 text-center">
-        I'm currently working on some improvements along with <b>Pikachu.</b> Check back soon! - 
-        <a href="https://sr3x0r.vercel.app" className="text-blue-500 hover:underline"> Sr3X0r</a>
-      </p>
-    </div>
-  );
-}
+// function Maintenance() {
+//   return (
+//     <div className="flex w-full h-screen flex-col items-center justify-center bg-gray-100 p-4">
+//       <img 
+//         src="/pikachu.png" 
+//         alt="Pikachu fixing things" 
+//         width={200} 
+//         height={200} 
+//         className="mb-4"
+//       />
+//       <h1 className="text-4xl font-bold text-gray-800 animate-bounce">🚧 Under Maintenance 🚧</h1>
+//       <p className="text-lg text-gray-600 mt-2 text-center">
+//         I'm currently working on some improvements along with <b>Pikachu.</b> Check back soon! - 
+//         <a href="https://sr3x0r.vercel.app" className="text-blue-500 hover:underline"> Sr3X0r</a>
+//       </p>
+//     </div>
+//   );
+// }
 
 
 export default App;
