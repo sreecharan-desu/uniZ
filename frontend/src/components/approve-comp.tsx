@@ -12,7 +12,7 @@ type ApproveProps = {
     type: "outing" | "outpass",
 }
 
-export function ApproveComp({ type }: ApproveProps) {
+export default function ApproveComp({ type }: ApproveProps) {
     useIsAuth();
     useGetOutings();
     useGetOutpasses();

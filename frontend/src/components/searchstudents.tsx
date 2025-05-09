@@ -283,7 +283,7 @@ const DetailedStats = ({ student }: { student: { outings_list: any[], outpasses_
     );
 };
 
-export function SearchStudents() {
+export default function SearchStudents() {
     useIsAuth();
     const [string, setString] = useState("");
     const [isLoading, setIsLoading] = useState(false);

@@ -13,7 +13,7 @@ type RequestCompProps = {
     type: "outpass" | "outing";
 };
 
-export function RequestComp({ type }: RequestCompProps) {
+export default function RequestComp({ type }: RequestCompProps) {
     useIsAuth();
     useStudentData();
     const [reason, setReason] = useState(null);

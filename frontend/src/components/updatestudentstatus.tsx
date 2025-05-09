@@ -29,7 +29,7 @@ const StudentCardSkeleton = () => (
   </div>
 );
 
-export function UpdateStatus() {
+export default function UpdateStatus() {
   useIsAuth();
   useOutsideCampus();
   const students = useRecoilValue(offCampus);

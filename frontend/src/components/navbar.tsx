@@ -4,6 +4,7 @@ import { useEffect} from "react";
 import { useStudentData } from "../customhooks/student_info";
 import { Button } from "./button";
 import { useState } from "react";
+import { isMaintenance } from "../App";
 
 // Add new Skeleton components
 const UserSkeleton = () => (
@@ -67,7 +68,10 @@ export default function Navbar() {
                         uniZ
                     </h1>
                 </a>
-            </div>             
+            </div> 
+            {isMaintenance ? <>
+           
+            </> : <>
             {!localStorage.getItem('student_token') && !localStorage.getItem('admin_token') ? (
                 <a href="/student/signin">
                     <Button
@@ -77,6 +81,8 @@ export default function Navbar() {
                     />
                 </a>
             ) : null}
+            </>}            
+
 
             {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || 
              (localStorage.getItem('student_token') && username) ? (

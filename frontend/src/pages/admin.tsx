@@ -29,7 +29,7 @@ const ActivityCardSkeleton = () => (
     </div>
 );
 
-export function Admin() {
+export default function Admin() {
     useIsAuth();
     useAdminname();
     const navigateTo = useNavigate();
