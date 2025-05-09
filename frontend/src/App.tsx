@@ -11,6 +11,7 @@ import { useIsAuth } from "./customhooks/is_authenticated";
 const Home = lazy(() => import("./pages/home"));
 const Signin = lazy(() => import("./pages/StudentSignin"));
 const Admin = lazy(() => import("./pages/admin"));
+
 const ApproveComp = lazy(() => import("./components/approve-comp"));
 const UpdateStatus = lazy(() => import("./components/updatestudentstatus"));
 const SearchStudents = lazy(() => import("./components/searchstudents"));
@@ -170,6 +171,29 @@ function App() {
                 </PageTransition>
               }
             />
+                        <Route
+              path="/studyspace"
+              element={
+                <PageTransition>
+                  <Sidebar content="studyspace" />
+                </PageTransition>
+              }
+            />
+                        <Route
+              path="/campushub"
+              element={
+                <PageTransition>
+                  <Sidebar content="campushub" />
+                </PageTransition>
+              }
+            />            <Route
+            path="/student/attendance"
+            element={
+              <PageTransition>
+                <Sidebar content="attendance" />
+              </PageTransition>
+            }
+          />
             <Route
               path="/student/gradehub"
               element={

@@ -18,7 +18,7 @@ export function Footer() {
           {/* Logo and Copyright */}
           <div className="flex items-center space-x-2">
             <span className="font-bold text-white text-xl sm:text-2xl">uniZ</span>
-            <span className="text-gray-400 text-sm">© {year}</span>
+            <span className="text-gray-400 text-sm mt-1">© {year}</span>
           </div>
 
           {/* Creator Credit and Social Links */}

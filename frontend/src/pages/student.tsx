@@ -121,21 +121,26 @@ export default function Student() {
 
   return (
     <PageTransition>
-      <div className="min-w-full mx-auto p-6 space-y-6">
+      <div className="min-w-full">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-gray-600 to-black rounded-xl p-8 text-white shadow-xl">
-          <div className="flex items-center gap-6">
-            <div className="h-20 w-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border-2 border-white/50">
-              <span className="text-3xl font-bold">{username.name?.[0]}</span>
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                {username.name}
-              </h1>
-              <p className="text-gray-100">{username.email}</p>
-            </div>
-          </div>
+        <div className="bg-gradient-to-r from-gray-700 to-black rounded-xl p-8 text-white shadow-xl border border-white/10">
+      <div className="flex items-center gap-6">
+        <div className="h-20 w-20 rounded-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center border-2 border-white/30 shadow-inner">
+          <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">{username.name?.[0]}</span>
         </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+            {username.name}
+          </h1>
+          {/* <p className="text-gray-200">{username.email.split("@")[0]}</p> */}
+          <p className="text-gray-300 flex items-center gap-2">
+            {username.email}
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+            </svg>
+          </p>        </div>
+      </div>
+    </div>
 
 
         {

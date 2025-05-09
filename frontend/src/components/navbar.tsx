@@ -60,7 +60,7 @@ export default function Navbar() {
     };
 
     return (
-        <div className="flex justify-between items-center p-1 bg-black border-gray-300 sticky top-0 z-50">
+        <div className="flex justify-between pl-5 pr-2 items-center p-1 bg-black border-gray-300 sticky top-0 z-50">
             <div className="flex">
                 <img src="/vite.svg" width="36"/>
                 <a href="/" className="m-3 mt-4">
