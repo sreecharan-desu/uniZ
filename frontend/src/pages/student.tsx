@@ -3,7 +3,6 @@ import { useIsAuth } from "../customhooks/is_authenticated";
 import { useStudentData } from "../customhooks/student_info";
 import { student } from "../store";
 import { useState, useEffect, lazy } from "react";
-import { motion } from "framer-motion";
 
 // Lazy-loaded components
 const RequestCard = lazy(() => import("../components/requestCard"));
