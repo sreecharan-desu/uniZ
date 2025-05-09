@@ -458,20 +458,7 @@ export default function Student() {
             </PageTransition>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="bg-white rounded-xl p-8 shadow-lg border border-gray-200 text-center"
-          >
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Outings & Outpasses Unavailable
-            </h2>
-            <p className="text-gray-600">
-              The Outings and Outpasses features are currently disabled. Please
-              check back later or contact support for assistance.
-            </p>
-          </motion.div>
+<></>
         )}
       </div>
     </PageTransition>

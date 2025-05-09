@@ -2,7 +2,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { is_authenticated, student } from "../store";
 import { useNavigate } from "react-router";
 import { useIsAuth } from "../customhooks/is_authenticated";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { motion } from "framer-motion";
 import { enableOutingsAndOutpasses } from "../pages/student";
 
@@ -62,6 +62,8 @@ export default function Sidebar({ content }: MainContent) {
   const [contentLoading, setContentLoading] = useState(true);
   const [_direction, setDirection] = useState<"left" | "right">("left");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const mainContentRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (username?.name || username?.username) {
@@ -79,10 +81,7 @@ export default function Sidebar({ content }: MainContent) {
       }
     };
 
-    // Initial check
     handleResize();
-
-    // Add event listener
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -105,6 +104,31 @@ export default function Sidebar({ content }: MainContent) {
       return () => clearTimeout(timer);
     }
   }, [content]);
+
+  // Handle scrolling behavior
+  useEffect(() => {
+    const mainContent = mainContentRef.current;
+    const sidebar = sidebarRef.current;
+
+    if (!mainContent || !sidebar) return;
+
+    const handleScroll = () => {
+      const isAtBottom =
+        mainContent.scrollHeight - mainContent.scrollTop <=
+        mainContent.clientHeight + 1; // Small buffer for precision
+
+      if (isAtBottom) {
+        sidebar.style.position = "relative";
+        sidebar.style.top = "0";
+      } else {
+        sidebar.style.position = "fixed";
+        sidebar.style.top = "0";
+      }
+    };
+
+    mainContent.addEventListener("scroll", handleScroll);
+    return () => mainContent.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const logout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
@@ -132,17 +156,18 @@ export default function Sidebar({ content }: MainContent) {
   };
 
   return (
-    <div className="flex -m-10 min-h-screen w-full">
+    <div className="flex min-h-screen w-full -ml-10">
       <aside
+        ref={sidebarRef}
         className={`${
-          isCollapsed ? "w-16" : "w-64"
-        } bg-black text-white transition-all duration-300 ease-in-out relative`}
+          isCollapsed ? "w-16" : "w-56"
+        } bg-black text-white transition-all duration-300 ease-in-out fixed top-0 h-screen z-10`}
       >
         <div className="p-4 text-center font-bold text-lg border-b border-gray-700">
           {isLoading ? (
             <UserProfileSkeleton />
           ) : (
-            <div className="text-white text-left flex items-center gap-2 -ml-2">
+            <div className="text-white text-left flex items-center gap-2 mt-20 -ml-2">
               <div
                 className={`${
                   username.name ? "bg-white" : "transparent"
@@ -163,10 +188,11 @@ export default function Sidebar({ content }: MainContent) {
           )}
         </div>
         <nav className="mt-4 space-y-2">
+          {/* Navigation items (unchanged) */}
           <motion.div
             whileHover={{ x: 5 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer mx-2"
+            className={`flex items-center gap-2 hover:bg-gray-700 ${content == 'dashboard' ? 'bg-gray-700' : ''} p-2 rounded-md cursor-pointer mx-2`}
             onClick={() => navigateTo("/student")}
             title={isCollapsed ? "Dashboard" : ""}
           >
@@ -196,7 +222,7 @@ export default function Sidebar({ content }: MainContent) {
               <motion.div
                 whileHover={{ x: 5 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer mx-2"
+                className={`flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md ${content == 'outing' ? 'bg-gray-700' : ''} cursor-pointer mx-2`}
                 onClick={() => navigateTo("/student/outing")}
                 title={isCollapsed ? "Outing" : ""}
               >
@@ -255,7 +281,7 @@ export default function Sidebar({ content }: MainContent) {
           <motion.div
             whileHover={{ x: 5 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer mx-2"
+            className={`flex items-center gap-2 ${content == 'gradehub' ? 'bg-gray-700' : ''} hover:bg-gray-700 p-2 rounded-md cursor-pointer mx-2`}
             onClick={() => navigateTo("/student/gradehub")}
             title={isCollapsed ? "GradeHub" : ""}
           >
@@ -274,10 +300,7 @@ export default function Sidebar({ content }: MainContent) {
             >
               {!isCollapsed && (
                 <>
-                  GradeHub{" "}
-                  <sup>
-                    <b className="bg-gray-700 rounded-full px-3 -pt-2">Lite</b>
-                  </sup>
+                  GradeHub
                 </>
               )}
             </span>
@@ -286,7 +309,7 @@ export default function Sidebar({ content }: MainContent) {
           <motion.div
             whileHover={{ x: 5 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer mx-2"
+            className={`flex items-center gap-2 hover:bg-gray-700 ${content == 'resetpassword' ? 'bg-gray-700' : ''} p-2 rounded-md cursor-pointer mx-2`}
             onClick={() => navigateTo("/student/resetpassword")}
             title={isCollapsed ? "Reset Password" : ""}
           >
@@ -338,7 +361,7 @@ export default function Sidebar({ content }: MainContent) {
                 <g id="XMLID_2_">
                   <path
                     id="XMLID_4_"
-                    d="M51.213,180h173.785c8.284,0,15-6.716,15-15s-6.716-15-15-15H51.213l19.394-19.393 c5.858-5.857,5.858-15.355,0-21.213c-5.856-5.858-15.354-5.858-21.213,0L4.397,154.391c-0.348,0.347-0.676,0.71-0.988,1.09 c-0.076,0.093-0.141,0.193-0.215,0.288c-0.229,0.291-0.454,0.583-0.66,0.891c-0.06,0.09-0.109,0.185-0.168,0.276 c-0.206,0.322-0.408,0.647-0.59,0.986c-0.035,0.067-0.064,0.138-0.099,0.205c-0.189,0.367-0.371,0.739-0.53,1.123 c-0.02,0.047-0.034,0.097-0.053,0.145c-0.163,0.404-0.314,0.813-0.442,1.234c-0.017,0.053-0.026,0.108-0.041,0.162 c-0.121,0.413-0.232,0.83-0.317,1.257c-0.025,0.127-0.036,0.258-0.059,0.386c-0.062,0.354-0.124,0.708-0.159,1.069 C0.025,163.998,0,164.498,0,165s0.025,1.002,0.076,1.498c0.035,0.366,0.099,0.723,0.16,1.08c0.022,0.124,0.033,0.251,0.058,0.374 c0.086,0.431,0.196,0.852,0.318,1.269c0.015,0.049,0.024,0.101,0.039,0.15c0.129,0.423,0.28,0.836,0.445,1.244 c0.018,0.044,0.031,0.091,0.05,0.135c0.16,0.387,0.343,0.761,0.534,1.13c0.033,0.065,0.061,0.133,0.095,0.198 c0.184,0.341,0.387,0.669,0.596,0.994c0.056,0.088,0.104,0.181,0.162,0.267c0.207,0.309,0.434,0.603,0.662,0.895 c0.073,0.094,0.138,0.193,0.213,0.285c0.313,0.379,0.641,0.743,0.988,1.09l44.997,44.997C52.322,223.536,56.161,225,60,225 s7.678-1.464,10.606-4.394c5.858-5.858,5.858-15.355,0-21.213L51.213,180z"
+                    d="M51.213,180h173.785c8.284,0,15-6.716,15-15s-6.716-15-15-15H51.213l19.394-19.393 c5.858-5.857,5.858-15.355,0-21.213c-5.856-5.858-15.354-5.858-21.213,0L4.397,154.391c-0.348,0.347-0.676,0.71-0.988,1.09 c-0.076,0.093-0.141,0.193-0.215,0.288c-0.229,0.291-0.454,0.583-0.66,0.891c-0.06,0.09-0.109,0.185-0.168,0.276 c-0.206,0.322-0.408,0.647-0.59,0.986c-0.035,0.067-0.064,0.138-0.099,0.205c-0.189,0.367-0.371,0.739-0.53,1.123 c-0.02,0.047-0.034,0.097-0.053,0.145c-0.163,0.404-0.314,0.813-0.442,1.234c-0.017,0.053-0.026,0.108-0.041,0.162 c-0.121,0.413-0.232,0.83-0.317,1.257c-0.025,0.127-0.036,0.258-0.059,0.386c-0.062,0.354-0.124,0.708-0.159,1.069 C0.025,163.998,0,164.498,0,165s0.025,1.002,0.076,1.498c0.035,0.366,0.099,0.723,0.16,1.08c0.022,0.124,0.033,0.251,0.058,0.374 c0.086,0.431,0.196,0.852,0.318,1.269c0.015,0.049,0.024,0.101,0.039,0.15c0.129,0.423,0.28,0.836,0.445,1.244 c0.018,0.044,0.031,0.091,0.050,0.135c0.16,0.387,0.343,0.761,0.534,1.13c0.033,0.065,0.061,0.133,0.095,0.198 c0.184,0.341,0.387,0.669,0.596,0.994c0.056,0.088,0.104,0.181,0.162,0.267c0.207,0.309,0.434,0.603,0.662,0.895 c0.073,0.094,0.138,0.193,0.213,0.285c0.313,0.379,0.641,0.743,0.988,1.09l44.997,44.997C52.322,223.536,56.161,225,60,225 s7.678-1.464,10.606-4.394c5.858-5.858,5.858-15.355,0-21.213L51.213,180z"
                   />
                   <path
                     id="XMLID_5_"
@@ -381,27 +404,30 @@ export default function Sidebar({ content }: MainContent) {
         </nav>
       </aside>
       <div
-        className={`transition-all duration-300 ease-in-out ${
-          isCollapsed ? "w-[calc(100%-4rem)]" : "w-[calc(100%-16rem)]"
-        } p-10 overflow-auto`}
-      >
-        {contentLoading ? (
-          <ContentSkeleton />
+  className={`${
+    isCollapsed ? "ml-16" : "ml-64"
+  } w-full overflow-y-auto min-h-screen transition-all duration-300 ease-in-out flex justify-center mr-0`}
+  ref={mainContentRef}
+>
+  <div className="w-full mr-0">
+    {contentLoading ? (
+      <ContentSkeleton />
+    ) : (
+      <Suspense fallback={<ContentSkeleton />}>
+        {enableOutingsAndOutpasses ? (
+          <>{contentMap[content]}</>
         ) : (
-          <Suspense fallback={<ContentSkeleton />}>
-            {enableOutingsAndOutpasses ? (
-              <>{contentMap[content]}</>
-            ) : (
-              <>
-                {content === "resetpassword" && contentMap.resetpassword}
-                {content === "dashboard" && contentMap.dashboard}
-                {content === "gradehub" && contentMap.gradehub}
-                {content === "error" && contentMap.error}
-              </>
-            )}
-          </Suspense>
+          <>
+            {content === "resetpassword" && contentMap.resetpassword}
+            {content === "dashboard" && contentMap.dashboard}
+            {content === "gradehub" && contentMap.gradehub}
+            {content === "error" && contentMap.error}
+          </>
         )}
-      </div>
+      </Suspense>
+    )}
+  </div>
+</div>
     </div>
   );
 }

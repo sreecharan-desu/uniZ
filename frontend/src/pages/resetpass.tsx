@@ -51,11 +51,11 @@ export default function Resetpassword() {
     switch (score) {
       case 0:
       case 1:
-        return { score, label: "Weak", color: "bg-red-500" };
+        return { score, label: "Weak", color: "bg-gray-300" };
       case 2:
-        return { score, label: "Moderate", color: "bg-yellow-500" };
+        return { score, label: "Moderate", color: "bg-gray-600" };
       case 3:
-        return { score, label: "Strong", color: "bg-green-500" };
+        return { score, label: "Strong", color: "bg-black" };
       default:
         return { score: 0, label: "", color: "" };
     }
@@ -126,12 +126,10 @@ export default function Resetpassword() {
         toast.success(data.msg || "Password reset successfully!");
         localStorage.removeItem("student_token");
         localStorage.removeItem("username");
-        // navigateTo("/student/signin");
 
         setTimeout(() => {
-            location.href = "/student/signin";
-        }
-        , 2000);
+          location.href = "/student/signin";
+        }, 2000);
       } else {
         switch (res.status) {
           case 401:
@@ -159,163 +157,224 @@ export default function Resetpassword() {
     }
   };
 
-
   return (
-
-<div className="min-h-screen bg-white px-4 py-6">
-  <div className="max-w-md mx-auto">
-    {/* Header Card */}
-    <div className="bg-white rounded-md border border-gray-200 p-6">
-      <div className="flex items-center space-x-4">
-        <div className="h-12 w-12 bg-black rounded-md flex items-center justify-center">
-          <svg
-            className="h-6 w-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 11c0-1.104-.896-2-2-2s-2 .896-2 2v2h4v-2zm2 0c0-2.209-1.791-4-4-4s-4 1.791-4 4v2H5v5h10v-5h-1v-2zm-5 8h2v2H9v-2z"
-            />
-          </svg>
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-black">Reset Password</h2>
-          <p className="text-sm text-gray-700">
-            Change your account password securely
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <div className="max-w-4xl w-full space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 bg-black rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <svg
+              className="h-8 w-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-extrabold text-gray-900">Reset Password</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Secure your account with a strong new password
           </p>
         </div>
-      </div>
-    </div>
 
-    {/* Form Card */}
-    <div className="bg-white rounded-md border border-gray-200 border-t-0 p-6 space-y-6">
-      {/* Current Password */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Current Password
-        </label>
-        <div className="relative">
-          <Input
-            type={showOldPassword ? "text" : "password"}
-            onchangeFunction={handleInputChange(setOldPassword)}
-            placeholder="Enter your current password"
-            // className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-black"
-          />
-          <button
-            type="button"
-            onClick={() => setShowOldPassword(!showOldPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            aria-label={showOldPassword ? "Hide password" : "Show password"}
-          >
-      
-          </button>
-        </div>
-      </div>
+        {/* Main Content */}
+        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden">
+          <div className="md:flex">
+            {/* Form Section */}
+            <div className="md:w-2/3 p-8">
+              <div className="space-y-6">
+                {/* Current Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Current Password
+                  </label>
+                  <div className="relative group">
+                    <Input
+                      type={showOldPassword ? "text" : "password"}
+                      onchangeFunction={handleInputChange(setOldPassword)}
+                      placeholder="Enter your current password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPassword(!showOldPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                      aria-label={showOldPassword ? "Hide password" : "Show password"}
+                    >
+             
+                    </button>
+                  </div>
+                </div>
 
-      {/* New Password */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          New Password
-        </label>
-        <div className="relative">
-          <Input
-            type={showNewPassword ? "text" : "password"}
-            onchangeFunction={handleInputChange(setPassword)}
-            placeholder="Enter your new password"
-            // className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-black"
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewPassword(!showNewPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            aria-label={showNewPassword ? "Hide password" : "Show password"}
-          >
- 
-          </button>
-        </div>
-        {password && (
-          <div className="flex items-center space-x-2">
-            <div className="h-2 w-20 rounded bg-gray-700"></div>
-            <span className="text-sm text-gray-700">
-              {passwordStrength.label}
-            </span>
+                {/* New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <div className="relative group">
+                    <Input
+                      type={showNewPassword ? "text" : "password"}
+                      onchangeFunction={handleInputChange(setPassword)}
+                      placeholder="Enter your new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                      aria-label={showNewPassword ? "Hide password" : "Show password"}
+                    >
+         
+                    </button>
+                  </div>
+                  {password && (
+                    <div className="mt-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${passwordStrength.color}`}
+                            style={{ width: `${(passwordStrength.score / 3) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className={`text-xs font-medium ${
+                          passwordStrength.score === 3 ? 'text-black' : 
+                          passwordStrength.score === 2 ? 'text-gray-700' : 'text-gray-500'
+                        }`}>
+                          {passwordStrength.label}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm New Password
+                  </label>
+                  <div className="relative group">
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      onchangeFunction={handleInputChange(setRePassword)}
+                      placeholder="Confirm your new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+            
+                    </button>
+                  </div>
+                  {password && repassword && (
+                    <div className="mt-1">
+                      {password === repassword ? (
+                        <p className="text-xs text-black flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Passwords match
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-700 flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Passwords do not match
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-6 space-y-4">
+                  <Button
+                    value={isLoading ? "Processing..." : "Reset Password"}
+                    loading={isLoading}
+                    onclickFunction={sendDataToBackend}
+                  />
+                  <button
+                    onClick={() => navigateTo("/student")}
+                    className="w-full text-gray-700 border border-gray-300 hover:bg-gray-50 font-medium py-3 rounded-lg transition-colors duration-300 disabled:text-gray-400 flex items-center justify-center"
+                    disabled={isLoading}
+                  >
+                    <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="md:w-1/3 bg-gray-50 p-8 border-l border-gray-200">
+              <div className="h-full flex flex-col">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <svg
+                    className="h-5 w-5 mr-2 text-black"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Password Requirements
+                </h3>
+                
+                <div className="space-y-4 flex-grow">
+                  <div className={`flex items-start ${password.length >= 8 ? 'text-black' : 'text-gray-500'}`}>
+                    <svg className={`h-5 w-5 mr-3 ${password.length >= 8 ? 'text-black' : 'text-gray-300'}`} 
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                        d={password.length >= 8 ? "M5 13l4 4L19 7" : "M20 12H4"} />
+                    </svg>
+                    <p>At least 8 characters long</p>
+                  </div>
+                  
+                  <div className={`flex items-start ${/[0-9]/.test(password) ? 'text-black' : 'text-gray-500'}`}>
+                    <svg className={`h-5 w-5 mr-3 ${/[0-9]/.test(password) ? 'text-black' : 'text-gray-300'}`} 
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                        d={/[0-9]/.test(password) ? "M5 13l4 4L19 7" : "M20 12H4"} />
+                    </svg>
+                    <p>Include at least one number</p>
+                  </div>
+                  
+                  <div className={`flex items-start ${/[^A-Za-z0-9]/.test(password) ? 'text-black' : 'text-gray-500'}`}>
+                    <svg className={`h-5 w-5 mr-3 ${/[^A-Za-z0-9]/.test(password) ? 'text-black' : 'text-gray-300'}`} 
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                        d={/[^A-Za-z0-9]/.test(password) ? "M5 13l4 4L19 7" : "M20 12H4"} />
+                    </svg>
+                    <p>Include at least one special character</p>
+                  </div>
+                </div>
+                
+                <div className="pt-6 border-t border-gray-200 mt-auto">
+                  <div className="flex items-start text-sm text-gray-600">
+                    <svg className="h-5 w-5 mr-3 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <p>For security reasons, you'll be logged out after changing your password.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* Confirm New Password */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Confirm New Password
-        </label>
-        <div className="relative">
-          <Input
-            type={showConfirmPassword ? "text" : "password"}
-            onchangeFunction={handleInputChange(setRePassword)}
-            placeholder="Confirm your new password"
-            // className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-black"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-          >
-     
-          </button>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="space-y-4 pt-4">
-        <Button
-          value={isLoading ? "Resetting..." : "Reset Password"}
-          loading={isLoading}
-          onclickFunction={sendDataToBackend}
-          // className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-500"
-        />
-        <button
-          onClick={() => navigateTo("/student")}
-          className="w-full text-gray-700 hover:text-black font-medium py-2 transition-colors duration-200 disabled:text-gray-400"
-          disabled={isLoading}
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    </div>
-
-    {/* Info Card */}
-    <div className="mt-6 bg-white rounded-md p-4 border border-gray-200">
-      <div className="flex items-start space-x-3">
-        <svg
-          className="h-6 w-6 text-gray-700 mt-0.5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <div className="text-sm text-gray-700">
-          <p className="font-medium mb-1">Password Requirements:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Must be at least 8 characters long</li>
-            <li>Include at least one number</li>
-            <li>Include at least one special character</li>
-          </ul>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
   );
 }
