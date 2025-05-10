@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Calendar, Users, MapPin, Search, Bell, ArrowRight, Star, Clock, Tag, Bookmark, MessageCircle, Share2, Megaphone, Sparkles } from "lucide-react";
+import { Calendar, Users, MapPin, Search, Bell, ArrowRight, Star, Clock, Tag, Bookmark, MessageCircle, Share2, Megaphone } from "lucide-react";
 
 // Framer Motion is available in this environment
 import { motion } from "framer-motion";
 
 export default function CampusHub() {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [_isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
     setIsLoaded(true);

@@ -1,11 +1,8 @@
 import { motion } from "framer-motion";
-import { Award, ArrowRight, Zap } from "lucide-react";
-import { useState } from "react";
+import { Zap } from "lucide-react";
 
 export default function GradeHubComingSoon() {
-  // State for newsletter signup
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+
 
   // Animation variants
   const containerVariants = {
@@ -50,14 +47,6 @@ export default function GradeHubComingSoon() {
     },
   };
 
-  const handleSubmit = (e:any) => {
-    e.preventDefault();
-    // Simulate newsletter signup (replace with actual API call)
-    setTimeout(() => {
-      setSubmitted(true);
-      setEmail("");
-    }, 500);
-  };
 
   return (
     <div className="min-h-screen bg-white font-sans text-black flex flex-col">

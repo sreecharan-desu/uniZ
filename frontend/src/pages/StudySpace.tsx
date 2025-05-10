@@ -5,7 +5,7 @@ import { Users, Book, Map, Calendar, Search, ArrowRight, Bookmark, Star, Coffee,
 import { motion } from "framer-motion";
 
 export default function StudySpace() {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [_isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
     setIsLoaded(true);
