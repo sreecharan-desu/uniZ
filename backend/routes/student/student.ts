@@ -25,7 +25,6 @@ studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, re
     const { username } = req.body;
     if (!process.env.JWT_SECURITY_KEY) throw new Error('JWT_SECURITY_KEY is not defined');
     const token = jwt.sign(username, process.env.JWT_SECURITY_KEY);
-    console.log("genrating token for user:", username);
     res.json({ student_token: token, success: true });
 });
 
