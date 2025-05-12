@@ -71,7 +71,7 @@ export default function Attendance() {
         setAttendanceData(null);
       }
       setIsLoading(false);
-      setIsVisible(true); // Trigger animations after data fetch
+      setIsVisible(true);
     };
 
     fetchAttendance();
@@ -101,6 +101,37 @@ export default function Attendance() {
   // Skeleton Loader Component
   const SkeletonLoader = ({ width = 'w-full', height = 'h-4' }: { width?: string; height?: string }) => (
     <div className={`bg-gray-300 rounded ${width} ${height} animate-pulse`}></div>
+  );
+
+  // Pikachu Loader Component
+  const PikachuLoader = () => (
+    <motion.div
+      className="flex flex-col items-center justify-center space-y-4"
+      variants={itemVariants}
+    >
+      <motion.div
+        animate={{
+          y: [-10, 10, -10],
+          rotate: [0, 5, -5, 0],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 1.5,
+          ease: 'easeInOut',
+        }}
+      >
+        <img
+          src="/pikachu.png"
+          alt="Pikachu fetching attendance"
+          width={150}
+          height={150}
+          className="object-contain"
+        />
+      </motion.div>
+      <p className="text-lg font-semibold text-gray-600">
+        Pikachu is fetching your attendance!
+      </p>
+    </motion.div>
   );
 
   return (
@@ -136,6 +167,7 @@ export default function Attendance() {
         {/* Loading State */}
         {isLoading ? (
           <motion.div className="space-y-8" variants={itemVariants}>
+            <PikachuLoader />
             {['E1', 'E2'].map((_year, yearIndex) => (
               <div key={yearIndex}>
                 <SkeletonLoader width="w-1/4" height="h-6" />
@@ -198,12 +230,20 @@ export default function Attendance() {
                           </thead>
                           <tbody>
                             {Object.entries(data.subjects).map(([subject, attendance], index) => (
-                              <tr key={index} className="border-b border-gray-400 last:border-b-0">
-                                <td className="p-4">{subject}</td>
-                                <td className="p-4">{attendance.totalClasses}</td>
-                                <td className="p-4">{attendance.classesAttended}</td>
-                                <td className="p-4">{attendance.attendancePercentage}%</td>
-                              </tr>
+                              attendance.classesAttended === 0 ? (
+                                <tr key={index} className="border-b border-gray-400 last:border-b-0">
+                                  <td className="p-4" colSpan={4}>
+                                    Attendance data not yet available for {subject}.
+                                  </td>
+                                </tr>
+                              ) : (
+                                <tr key={index} className="border-b border-gray-400 last:border-b-0">
+                                  <td className="p-4">{subject}</td>
+                                  <td className="p-4">{attendance.totalClasses}</td>
+                                  <td className="p-4">{attendance.classesAttended}</td>
+                                  <td className="p-4">{attendance.attendancePercentage}%</td>
+                                </tr>
+                              )
                             ))}
                           </tbody>
                         </table>
