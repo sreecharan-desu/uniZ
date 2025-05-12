@@ -100,7 +100,7 @@ export function useStudentData() {
       getDetails();
     } else {
       console.log("Missing username or token, skipping API call.");
-      toast.warn("Please sign in to access student data.");
+      // toast.warn("Please sign in to access student data.");
     }
   }, [setStudent, currentStudent]);
 }
