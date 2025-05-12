@@ -21,6 +21,7 @@ export const validateSigninInputs = async (req: Request, res: Response, next: Ne
         : isUsernameValidated.error?.issues[0].message || isPasswordValidated.error?.issues[0].message, 
       success: false 
     });
+    console.log("Validated Signin Inputs");
   next();
 };
 
