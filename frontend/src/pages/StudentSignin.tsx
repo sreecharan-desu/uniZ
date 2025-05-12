@@ -63,6 +63,7 @@ const passwordHandler = (event: any) => {
     setIsLoading(true);
 
     try {
+      console.log(type)
       const response = await fetch(`https://uni-z-api.vercel.app/api/v1/${type}/signin`, {
         method: "POST",
         headers: {

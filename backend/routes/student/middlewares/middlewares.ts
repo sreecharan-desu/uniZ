@@ -47,6 +47,7 @@ export const validateResetPassInputs = async (req: Request, res: Response, next:
 export const fetchStudent = async (req: Request, res: Response, next: NextFunction) => {
   const { username, password } = req.body;
   const isUserPresent = await findUserByUsername(username);
+
   if (!isUserPresent) return res.json({ msg: "Seems like you dont have an account yet! Consult your Warden!", success: false });
 
   const userResult = await currentUserByUsername(username);

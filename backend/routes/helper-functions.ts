@@ -44,6 +44,7 @@ export const findUserByUsername = async (username: string) => {
     console.log(username);
     return (await client.student.findFirst({ where: { Username: username } })) ? true : false;
   } catch (e) {
+    console.log(e)
     console.log("Error finding user");
   }
 };
