@@ -12,8 +12,6 @@ interface StudentData {
   gender: string;
   is_in_campus: boolean;
   has_pending_requests: boolean;
-  outings_list: Array<{ _id: string; reason: string; requested_time: string }>;
-  outpasses_list: Array<{ _id: string; reason: string; requested_time: string }>;
 }
 
 interface StudentInfoResponse {
@@ -31,14 +29,6 @@ export function useStudentData() {
       const localStorageUsername = localStorage.getItem("username");
       const token = localStorage.getItem("student_token");
 
-      // Clear sessionStorage if no credentials or different user
-      const cachedUsername = sessionStorage.getItem("currentUsername");
-      if (!localStorageUsername || !token || cachedUsername !== localStorageUsername) {
-        sessionStorage.removeItem("studentData");
-        sessionStorage.removeItem("studentDataFetched");
-        sessionStorage.removeItem("currentUsername");
-      }
-
       // Check Recoil state first
       if (
         currentStudent?.name &&
@@ -48,31 +38,6 @@ export function useStudentData() {
       ) {
         console.log("Student data already available in Recoil, skipping API call.");
         return;
-      }
-
-      // Check sessionStorage cache
-      const cachedData = sessionStorage.getItem("studentData");
-      const hasFetched = sessionStorage.getItem("studentDataFetched");
-      if (cachedData && hasFetched === "true" && cachedUsername === localStorageUsername) {
-        try {
-          const parsedData: StudentData = JSON.parse(cachedData);
-          if (
-            parsedData.name &&
-            parsedData.email &&
-            parsedData.username &&
-            parsedData.username === JSON.parse(localStorageUsername || '""')
-          ) {
-            //@ts-ignore
-            setStudent(parsedData);
-            console.log("Loaded student data from sessionStorage.");
-            return;
-          }
-        } catch (error) {
-          console.error("Failed to parse cached student data:", error);
-          sessionStorage.removeItem("studentData");
-          sessionStorage.removeItem("studentDataFetched");
-          sessionStorage.removeItem("currentUsername");
-        }
       }
 
       // Fetch from API if no valid data
@@ -99,10 +64,7 @@ export function useStudentData() {
         if (res.ok && data.success && data.student) {
           //@ts-ignore
           setStudent(data.student);
-          sessionStorage.setItem("studentData", JSON.stringify(data.student));
-          sessionStorage.setItem("studentDataFetched", "true");
-          sessionStorage.setItem("currentUsername", localStorageUsername);
-          console.log("Fetched and cached student data.");
+          console.log("Fetched student data.");
         } else {
           throw new Error(data.msg || "Failed to fetch student data.");
         }
