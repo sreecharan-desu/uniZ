@@ -4,31 +4,45 @@ generator client {
 
 datasource db {
   provider = "postgres"
-  url      = "postgresql://uniZ_owner:FHBT9qp2LhiM@ep-broad-surf-a5632yl2.us-east-2.aws.neon.tech/uniZ"
+  url      = env("DATABASE_URL")
 }
 
+// Existing Schema (Unchanged, Repeated for Context)
 model Student {
-  id                  String    @id
-  Username            String    @unique
-  Name                String    @default("")
-  Gender              String    @default("Male")
-  Password            String
-  Email               String    @default("")
-  Outpass             Outpass[]
-  Outing              Outing[]
-  OTP                 String    @default("")
-  PhoneNumber         String    @default("")
-  FatherPhoneNumber   String    @default("")
-  MotherPhoneNumber   String    @default("")
-  Address             String    @default("")
-  Year                String    @default("E2")
-  Branch              String    @default("")
-  Section             String    @default("")
-  Roomno              String    @default("")
-  isPresentInCampus   Boolean   @default(true)
-  isApplicationPending Boolean   @default(false)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                   String       @id
+  Username             String       @unique
+  Name                 String       @default("")
+  Gender               String       @default("")
+  FatherName           String       @default("")
+  MotherName           String       @default("")
+  FatherOccupation     String       @default("")
+  MotherOccupation     String       @default("")
+  FatherEmail          String       @default("")
+  MotherEmail          String       @default("")
+  FatherAddress        String       @default("")
+  MotherAddress        String       @default("")
+  BloodGroup           String       @default("")
+  DateOfBirth          DateTime     @default(now())
+  isDisabled           Boolean      @default(false)
+  Password             String
+  Email                String       @default("")
+  Outpass              Outpass[]
+  Outing               Outing[]
+  OTP                  String       @default("")
+  PhoneNumber          String       @default("")
+  FatherPhoneNumber    String       @default("")
+  MotherPhoneNumber    String       @default("")
+  Address              String       @default("")
+  Year                 String       @default("")
+  Branch               String       @default("")
+  Section              String       @default("")
+  Roomno               String       @default("")
+  isPresentInCampus    Boolean      @default(true)
+  isApplicationPending Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  grades               Grade[] // New relation to Grade
+  attendance           Attendance[] // New relation to Attendance
 }
 
 model Admin {
@@ -40,41 +54,113 @@ model Admin {
 }
 
 model Outpass {
-  id             String    @id
-  StudentId      String
-  Reason         String
-  FromDay        DateTime  // Use DateTime for consistency, including UTC time
-  ToDay          DateTime  // Use DateTime for consistency, including UTC time
-  Days           Int       @default(0)
-  RequestedTime  DateTime  @default(now()) // Defaults to current timestamp in UTC
-  isExpired      Boolean   @default(false)
-  isApproved     Boolean   @default(false)
-  issuedBy       String    @default("none")
-  issuedTime     DateTime  @default(now()) // Defaults to current timestamp in UTC
-  Message        String?
-  isRejected     Boolean   @default(false)
-  rejectedBy     String    @default("none")
-  rejectedTime   DateTime  @default(now()) // Defaults to current timestamp in UTC
-  inTime         DateTime  @default(now()) // Defaults to current timestamp in UTC
-  Student        Student   @relation(fields: [StudentId], references: [id])
+  id            String   @id
+  StudentId     String
+  Reason        String
+  FromDay       DateTime
+  ToDay         DateTime
+  Days          Int      @default(0)
+  RequestedTime DateTime @default(now())
+  isExpired     Boolean  @default(false)
+  isApproved    Boolean  @default(false)
+  issuedBy      String   @default("none")
+  issuedTime    DateTime @default(now())
+  Message       String?
+  isRejected    Boolean  @default(false)
+  rejectedBy    String   @default("none")
+  rejectedTime  DateTime @default(now())
+  inTime        DateTime @default(now())
+  Student       Student  @relation(fields: [StudentId], references: [id])
 }
 
 model Outing {
-  id             String    @id
-  StudentId      String
-  reason         String
-  FromTime       DateTime  // Use DateTime for consistency, including UTC time
-  ToTime         DateTime  // Use DateTime for consistency, including UTC time
-  Hours          Int       @default(0)
-  RequestedTime  DateTime  @default(now()) // Defaults to current timestamp in UTC
-  isExpired      Boolean   @default(false)
-  isApproved     Boolean   @default(false)
-  issuedBy       String    @default("none")
-  issuedTime     DateTime  @default(now()) // Defaults to current timestamp in UTC
-  Message        String?
-  isRejected     Boolean   @default(false)
-  rejectedBy     String    @default("none")
-  rejectedTime   DateTime  @default(now()) // Defaults to current timestamp in UTC
-  inTime         DateTime  @default(now()) // Defaults to current timestamp in UTC
-  Student        Student   @relation(fields: [StudentId], references: [id])
+  id            String   @id
+  StudentId     String
+  reason        String
+  FromTime      DateTime
+  ToTime        DateTime
+  Hours         Int      @default(0)
+  RequestedTime DateTime @default(now())
+  isExpired     Boolean  @default(false)
+  isApproved    Boolean  @default(false)
+  issuedBy      String   @default("none")
+  issuedTime    DateTime @default(now())
+  Message       String?
+  isRejected    Boolean  @default(false)
+  rejectedBy    String   @default("none")
+  rejectedTime  DateTime @default(now())
+  inTime        DateTime @default(now())
+  Student       Student  @relation(fields: [StudentId], references: [id])
+}
+
+// New Models for Grading and Attendance
+model Branch {
+  id        String    @id @default(uuid())
+  name      String    @unique // e.g., CSE, ECE, EEE, CIVIL, MECH
+  subjects  Subject[] // Relation to subjects
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Semester {
+  id         String       @id @default(uuid())
+  name       String // e.g., Sem-1, Sem-2
+  year       String // e.g., E1, E2, E3, E4
+  subjects   Subject[] // Relation to subjects
+  grades     Grade[] // Relation to grades
+  attendance Attendance[] // Relation to attendance
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([name, year]) // Ensure unique semester-year combination
+}
+
+model Subject {
+  id         String       @id @default(uuid())
+  name       String // e.g., Calculus & Linear Algebra
+  credits    Float // e.g., 4, 1.5
+  branchId   String
+  semesterId String
+  branch     Branch       @relation(fields: [branchId], references: [id])
+  semester   Semester     @relation(fields: [semesterId], references: [id])
+  grades     Grade[] // Relation to grades
+  attendance Attendance[] // Relation to attendance
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([name, branchId, semesterId]) // Ensure unique subject per branch and semester
+}
+
+model Grade {
+  id         String   @id @default(uuid())
+  studentId  String
+  subjectId  String
+  semesterId String
+  grade      Float // Numeric grade (0-10)
+  student    Student  @relation(fields: [studentId], references: [id])
+  subject    Subject  @relation(fields: [subjectId], references: [id])
+  semester   Semester @relation(fields: [semesterId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([studentId, subjectId, semesterId]) // Ensure one grade per student, subject, semester
+}
+
+model Attendance {
+  id              String   @id @default(uuid())
+  studentId       String
+  subjectId       String
+  semesterId      String
+  totalClasses    Int      @default(0)
+  attendedClasses Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student         Student  @relation(fields: [studentId], references: [id])
+  subject         Subject  @relation(fields: [subjectId], references: [id])
+  semester        Semester @relation(fields: [semesterId], references: [id])
+
+  @@unique([studentId, subjectId, semesterId])
+  @@index([studentId, semesterId])
+  @@index([subjectId])
 }
