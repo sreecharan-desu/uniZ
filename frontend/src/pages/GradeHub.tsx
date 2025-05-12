@@ -135,10 +135,7 @@ export default function GradeHub() {
     },
   };
 
-  // Skeleton Loader Component
-  const SkeletonLoader = ({ width = 'w-full', height = 'h-4' }: { width?: string; height?: string }) => (
-    <div className={`bg-gray-300 rounded ${width} ${height} animate-pulse`}></div>
-  );
+
 
   return (
     <div className="min-h-screen bg-white font-sans text-black flex flex-col">

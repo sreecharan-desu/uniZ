@@ -136,11 +136,11 @@ export default function Attendance() {
         {/* Loading State */}
         {isLoading ? (
           <motion.div className="space-y-8" variants={itemVariants}>
-            {['E1', 'E2'].map((year, yearIndex) => (
+            {['E1', 'E2'].map((_year, yearIndex) => (
               <div key={yearIndex}>
                 <SkeletonLoader width="w-1/4" height="h-6" />
                 <div className="space-y-4 mt-4">
-                  {['Sem - 1', 'Sem - 2'].map((semester, semIndex) => (
+                  {['Sem - 1', 'Sem - 2'].map((_semester, semIndex) => (
                     <div key={semIndex} className="space-y-2">
                       <SkeletonLoader width="w-1/3" height="h-5" />
                       <div className="overflow-x-auto">

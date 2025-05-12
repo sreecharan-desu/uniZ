@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
-import { FaUser, FaVenusMars, FaTint, FaPhone, FaCalendar, FaEnvelope, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaUser, FaVenusMars, FaTint, FaPhone, FaEnvelope, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
 import { student } from '../store';
 import { useIsAuth } from '../customhooks/is_authenticated';
