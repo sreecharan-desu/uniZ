@@ -1,300 +1,767 @@
-import { useState, useEffect } from 'react';
-import { useRecoilValue } from 'recoil';
-import { FaUser, FaVenusMars, FaTint, FaPhone, FaEnvelope, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
+import { useState, useEffect, useCallback, memo } from 'react';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  FaUser,
+  FaVenusMars,
+  FaTint,
+  FaPhone,
+  FaEdit,
+  FaCheck,
+  FaTimes,
+  FaGraduationCap,
+  FaIdCard,
+  FaDoorOpen,
+  FaHome,
+  FaUsers,
+} from 'react-icons/fa';
 import axios from 'axios';
 import { student } from '../store';
 import { useIsAuth } from '../customhooks/is_authenticated';
 import { useStudentData } from '../customhooks/student_info';
+
 export const enableOutingsAndOutpasses = false;
 
-interface StudentDetailsProps {
-  label: string;
-  value: string | boolean;
-  icon: React.ReactNode;
-  editable?: boolean;
-  type?: string;
-}
+// Create individual field components with their own state
+const InputField = memo(({ 
+  label, 
+  initialValue = '', 
+  editable = true, 
+  type = 'text', 
+  isEditing, 
+  isLoading,
+  name,
+  onValueChange 
+}:any) => {
+  const [value, setValue] = useState(initialValue);
+  
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue, isEditing]);
+  
+  const handleChange = (e:any) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    onValueChange(name, newValue);
+  };
+  
+  return (
+    <div className="flex flex-col">
+      <span className="text-gray-600">{label}</span>
+      {isLoading ? (
+        <div className="bg-gray-100 rounded w-full h-6 animate-pulse"></div>
+      ) : isEditing && editable ? (
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={handleChange}
+          className="w-full bg-white text-black rounded-lg p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          aria-label={label}
+          autoComplete="off"
+        />
+      ) : (
+        <span className="text-black text-lg font-medium">
+          {value || (
+            <span className="bg-gray-400 italic px-4 rounded-full text-xs font-bold py-0">
+              Will be updated soon
+            </span>
+          )}
+        </span>
+      )}
+    </div>
+  );
+});
+
+// InfoCard component with individual state
+const InfoCard = memo(({
+  icon,
+  label,
+  initialValue = '',
+  editable = true,
+  name,
+  type = 'text',
+  isEditing,
+  isLoading,
+  onValueChange
+}:any) => {
+  const [value, setValue] = useState(initialValue);
+  
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue, isEditing]);
+  
+  const handleChange = (e:any) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    onValueChange(name, newValue);
+  };
+  
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-center space-x-3 mb-2">
+        {icon}
+        <span className="text-gray-600 font-semibold">{label}</span>
+      </div>
+      {isLoading ? (
+        <div className="bg-gray-100 rounded w-full h-6 animate-pulse"></div>
+      ) : isEditing && editable ? (
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={handleChange}
+          className="w-full bg-white text-black rounded-lg p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          aria-label={label}
+          required={name === 'name' || name === 'phone_number'}
+          autoComplete="off"
+        />
+      ) : (
+        <p className="text-black text-lg font-medium">
+          {value || (
+            <span className="bg-gray-400 italic px-4 rounded-full text-xs font-bold py-0">
+              Will be updated soon
+            </span>
+          )}
+        </p>
+      )}
+    </div>
+  );
+});
 
 export default function StudentProfilePage() {
   useIsAuth();
   useStudentData();
-  const user = useRecoilValue(student);
+  const user = useRecoilValue<any>(student);
+  const setStudent = useSetRecoilState(student);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    name: '',
-    gender: '',
-    blood_group: '',
-    phone_number: '',
-    date_of_birth: '',
-    email: '',
-  });
+  const [activeTab, setActiveTab] = useState('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Individual field states
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
+  const [bloodGroup, setBloodGroup] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [fatherName, setFatherName] = useState('');
+  const [motherName, setMotherName] = useState('');
+  const [fatherOccupation, setFatherOccupation] = useState('');
+  const [motherOccupation, setMotherOccupation] = useState('');
+  const [fatherEmail, setFatherEmail] = useState('');
+  const [motherEmail, setMotherEmail] = useState('');
+  const [fatherAddress, setFatherAddress] = useState('');
+  const [motherAddress, setMotherAddress] = useState('');
+  const [fatherPhoneNumber, setFatherPhoneNumber] = useState('');
+  const [motherPhoneNumber, setMotherPhoneNumber] = useState('');
 
-  // Update formData when user data is loaded
+  // Initialize field values from user data
   useEffect(() => {
-    if (user?.name) {
-      setFormData({
-        name: user.name || '',
-        gender: user.gender || '',
-        blood_group: user.blood_group || '',
-        phone_number: user.phone_number || '',
-        date_of_birth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
-        email: user.email || '',
-      });
+    if (user && Object.keys(user).length > 0) {
+      setName(user.name || '');
+      setGender(user.gender || '');
+      setBloodGroup(user.blood_group || '');
+      setPhoneNumber(user.phone_number || '');
+      setDateOfBirth(user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '');
+      setFatherName(user.father_name || '');
+      setMotherName(user.mother_name || '');
+      setFatherOccupation(user.father_occupation || '');
+      setMotherOccupation(user.mother_occupation || '');
+      setFatherEmail(user.father_email || '');
+      setMotherEmail(user.mother_email || '');
+      setFatherAddress(user.father_address || '');
+      setMotherAddress(user.mother_address || '');
+      setFatherPhoneNumber(user.father_phonenumber || '');
+      setMotherPhoneNumber(user.mother_phonenumber || '');
       setIsLoading(false);
     }
   }, [user]);
+  
+  // Handle field value changes
+  const handleFieldChange = useCallback((field:any, value:any) => {
+    switch(field) {
+      case 'name': setName(value); break;
+      case 'gender': setGender(value); break;
+      case 'blood_group': setBloodGroup(value); break;
+      case 'phone_number': setPhoneNumber(value); break;
+      case 'date_of_birth': setDateOfBirth(value); break;
+      case 'fatherName': setFatherName(value); break;
+      case 'motherName': setMotherName(value); break;
+      case 'fatherOccupation': setFatherOccupation(value); break;
+      case 'motherOccupation': setMotherOccupation(value); break;
+      case 'fatherEmail': setFatherEmail(value); break;
+      case 'motherEmail': setMotherEmail(value); break;
+      case 'fatherAddress': setFatherAddress(value); break;
+      case 'motherAddress': setMotherAddress(value); break;
+      case 'fatherPhoneNumber': setFatherPhoneNumber(value); break;
+      case 'motherPhoneNumber': setMotherPhoneNumber(value); break;
+      default: break;
+    }
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  // Reset fields to original values
+  const resetFields = useCallback(() => {
+    setName(user.name || '');
+    setGender(user.gender || '');
+    setBloodGroup(user.blood_group || '');
+    setPhoneNumber(user.phone_number || '');
+    setDateOfBirth(user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '');
+    setFatherName(user.father_name || '');
+    setMotherName(user.mother_name || '');
+    setFatherOccupation(user.father_occupation || '');
+    setMotherOccupation(user.mother_occupation || '');
+    setFatherEmail(user.father_email || '');
+    setMotherEmail(user.mother_email || '');
+    setFatherAddress(user.father_address || '');
+    setMotherAddress(user.mother_address || '');
+    setFatherPhoneNumber(user.father_phonenumber || '');
+    setMotherPhoneNumber(user.mother_phonenumber || '');
+  }, [user]);
+
+  const validateForm = () => {
+    if (!name.trim()) return 'Name is required';
+    if (!phoneNumber.match(/^\d{10}$/)) return 'Phone number must be 10 digits';
+    if (fatherEmail && !fatherEmail.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      return 'Invalid father email format';
+    }
+    if (motherEmail && !motherEmail.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      return 'Invalid mother email format';
+    }
+    return null;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e:any) => {
+    if (e) e.preventDefault();
+    
     setIsSubmitting(true);
     setError('');
+    
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
-      const response = await axios.put('https://uni-z-api.vercel.app/api/v1/student/updatedetails', 
+      if (!token) {
+        setError('Authentication token is missing. Please log in again.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const response = await axios.put(
+        'https://uni-z-api.vercel.app/api/v1/student/updatedetails',
         {
           username: user.username,
-          name: formData.name,
-          gender: formData.gender,
-          bloodGroup: formData.blood_group,
-          phoneNumber: formData.phone_number,
-          dateOfBirth: formData.date_of_birth,
+          name,
+          gender,
+          bloodGroup,
+          phoneNumber,
+          dateOfBirth,
+          fatherName,
+          motherName,
+          fatherOccupation,
+          motherOccupation,
+          fatherEmail,
+          motherEmail,
+          fatherAddress,
+          motherAddress,
+          fatherPhoneNumber,
+          motherPhoneNumber,
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       if (response.data.success) {
+        setStudent((prev) => ({
+          ...prev,
+          username: response.data.student.username,
+          email: response.data.student.email,
+          name,
+          gender,
+          blood_group: bloodGroup,
+          phone_number: phoneNumber,
+          date_of_birth: dateOfBirth,
+          father_name: fatherName,
+          mother_name: motherName,
+          father_occupation: fatherOccupation,
+          mother_occupation: motherOccupation,
+          father_email: fatherEmail,
+          mother_email: motherEmail,
+          father_address: fatherAddress,
+          mother_address: motherAddress,
+          father_phonenumber: fatherPhoneNumber,
+          mother_phonenumber: motherPhoneNumber,
+        }));
         setIsEditing(false);
+        setSuccess('Profile updated successfully!');
+        setTimeout(() => setSuccess(''), 3000);
       } else {
         setError(response.data.msg || 'Update failed');
       }
-    } catch (err) {
-      setError('An error occurred while updating');
+    } catch (err:any) {
+      setError(err.response?.data?.msg || 'An error occurred while updating');
     }
+    
     setIsSubmitting(false);
   };
 
-  const personalDetails: StudentDetailsProps[] = [
-    { 
-      label: 'Name', 
-      value: formData.name, 
-      icon: <FaUser className="text-black" />,
-      editable: true
-    },
-    { 
-      label: 'Gender', 
-      value: formData.gender, 
-      icon: <FaVenusMars className="text-black" />,
-      editable: true
-    },
-    { 
-      label: 'Blood Group', 
-      value: formData.blood_group, 
-      icon: <FaTint className="text-black" />,
-      editable: true
-    },
-    { 
-      label: 'Phone Number', 
-      value: formData.phone_number, 
-      icon: <FaPhone className="text-black" />,
-      editable: true
-    },
-    { 
-      label: 'Email', 
-      value: formData.email, 
-      icon: <FaEnvelope className="text-black" />,
-      editable: false
-    }
-  ];
+  // const formatDate = (isoDate) => {
+  //   if (!isoDate || isoDate.includes('1899') || isoDate === '') return 'Not set';
+  //   const date = new Date(isoDate);
+  //   if (isNaN(date.getTime())) return 'Not set';
+  //   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  // };
 
-  // Skeleton Loader Component
-  const SkeletonLoader = ({ width = 'w-full', height = 'h-4' }: { width?: string; height?: string }) => (
-    <div className={`bg-gray-300 rounded ${width} ${height} animate-pulse`}></div>
-  );
+  if (!user && !isLoading) {
+    return <div className="text-center text-red-600">Error: User data not available</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <div className="container mx-auto px-6 py-12">
-        {/* Profile Header */}
-        <div className="bg-gray-200 rounded-lg p-8 mb-8 relative -mt-20 shadow-lg">
-          <div className="flex items-center space-x-8">
+    <div className="min-h-screen bg-gray-50 font-sans text-black -mt-10">
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+          <div className="bg-black text-white p-4">
+            <h1 className="text-2xl font-bold">Student Profile</h1>
+          </div>
+          <div className="p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="relative">
-              <div className="w-32 h-32 bg-gray-300 rounded-full border-4 border-gray-400 flex items-center justify-center">
+              <div className="w-32 h-32 bg-black rounded-full border-4 border-gray-200 flex items-center justify-center text-white">
                 {isLoading ? (
-                  <SkeletonLoader width="w-16" height="h-16" />
+                  <div className="bg-gray-100 rounded w-16 h-16 animate-pulse"></div>
                 ) : (
-                  <span className="text-5xl font-bold text-black">
-                    {user.name?.[0] || ''}
-                  </span>
+                  <span className="text-5xl font-bold">{user.name?.[0] || ''}</span>
                 )}
               </div>
             </div>
-            <div className="flex-1">
+
+            <div className="flex-1 text-center md:text-left">
               {isLoading ? (
                 <>
-                  <SkeletonLoader width="w-3/4" height="h-8" />
-                  <SkeletonLoader width="w-1/2" height="h-4" />
-                  <SkeletonLoader width="w-1/3" height="h-4" />
+                  <div className="bg-gray-100 rounded w-3/4 h-8 animate-pulse"></div>
+                  <div className="bg-gray-100 rounded w-1/2 h-4 animate-pulse"></div>
+                  <div className="bg-gray-100 rounded w-1/3 h-4 animate-pulse"></div>
                 </>
               ) : (
                 <>
-                  <h1 className="text-4xl font-bold mb-2">
-                    {user.name || 'N/A'}
-                  </h1>
-                  <p className="text-gray-600 text-lg">
-                    {user.year && user.branch ? `${user.year} - ${user.branch}` : 'N/A'}
-                  </p>
-                  <p className="text-gray-600 mt-1">{user.username || 'N/A'}</p>
+                  <h1 className="text-3xl font-bold mb-2 text-black">{user.name || 'N/A'}</h1>
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center">
+                      <FaIdCard className="mr-2" /> {user.username || 'N/A'}
+                    </span>
+                    <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                      <FaGraduationCap className="mr-2" /> {user.year || 'N/A'} - {user.branch || 'N/A'}
+                    </span>
+                    {user.section && (
+                      <span className="bg-gray-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                        <FaUsers className="mr-2" /> Section {user.section}
+                      </span>
+                    )}
+                    {user.roomno && (
+                      <span className="bg-gray-500 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                        <FaDoorOpen className="mr-2" /> Room {user.roomno}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 mt-2">{user.email || 'N/A'}</p>
                 </>
               )}
             </div>
+
             {!isEditing ? (
-              <button 
+              <button
                 onClick={() => setIsEditing(true)}
-                className="absolute top-6 right-4 bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2"
                 disabled={isLoading}
               >
-                <FaEdit /> <span className="hidden md:inline">Edit Profile</span>
+                <FaEdit /> <span>Edit Profile</span>
               </button>
             ) : (
-              <div className="absolute top-4 right-4 flex space-x-2">
-                <button 
+              <div className="flex space-x-2">
+                <button
                   onClick={handleSubmit}
                   disabled={isSubmitting || isLoading}
-                  className="bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  <FaCheck /> <span className="hidden md:inline">Save</span>
+                  {isSubmitting ? (
+                    <span>Loading...</span>
+                  ) : (
+                    <>
+                      <FaCheck /> <span>Save</span>
+                    </>
+                  )}
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setIsEditing(false);
-                    setFormData({
-                      name: user.name || '',
-                      gender: user.gender || '',
-                      blood_group: user.blood_group || '',
-                      phone_number: user.phone_number || '',
-                      date_of_birth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
-                      email: user.email || '',
-                    });
+                    resetFields();
                   }}
-                  className="bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                  className="bg-gray-200 text-black px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors flex items-center space-x-2"
                   disabled={isLoading}
                 >
-                  <FaTimes /> <span className="hidden md:inline">Cancel</span>
+                  <FaTimes /> <span>Cancel</span>
                 </button>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Personal Details */}
-        <div className="bg-gray-200 rounded-lg p-8 space-y-6">
-          <h2 className="text-2xl font-bold mb-6 text-black">Personal Details</h2>
-          {error && (
-            <div className="bg-gray-300 border border-gray-400 text-black p-4 rounded-lg mb-4">
-              {error}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mx-6 mb-4 flex items-start">
+              <div>{success}</div>
             </div>
           )}
-          <div className="grid md:grid-cols-2 gap-6">
-            {personalDetails.map((detail, index) => (
-              <div 
-                key={index} 
-                className="bg-gray-300 rounded-lg p-4"
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mx-6 mb-4 flex items-start">
+              <div>{error}</div>
+            </div>
+          )}
+
+          <div className="border-t border-gray-200 mt-4">
+            <div className="flex overflow-x-auto">
+              <button
+                onClick={() => setActiveTab('personal')}
+                className={`px-6 py-3 font-medium flex items-center ${
+                  activeTab === 'personal' ? 'border-b-2 border-black text-black' : 'text-gray-500 hover:text-black'
+                }`}
               >
-                <div className="flex items-center space-x-3 mb-2">
-                  {detail.icon}
-                  <span className="text-gray-600 font-semibold">{detail.label}</span>
-                </div>
-                {isLoading ? (
-                  <SkeletonLoader width="w-full" height="h-6" />
-                ) : isEditing && detail.editable ? (
-                  <input
-                    type={detail.type || 'text'}
-                    name={detail.label.toLowerCase().replace(' ', '_')}
-                    value={formData[detail.label.toLowerCase().replace(' ', '_') as keyof typeof formData] as string}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-100 text-black rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                <FaUser className="mr-2" /> Personal
+              </button>
+              <button
+                onClick={() => setActiveTab('academic')}
+                className={`px-6 py-3 font-medium flex items-center ${
+                  activeTab === 'academic' ? 'border-b-2 border-black text-black' : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                <FaGraduationCap className="mr-2" /> Academic
+              </button>
+              <button
+                onClick={() => setActiveTab('family')}
+                className={`px-6 py-3 font-medium flex items-center ${
+                  activeTab === 'family' ? 'border-b-2 border-black text-black' : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                <FaHome className="mr-2" /> Family
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-md">
+            {activeTab === 'personal' && (
+              <div>
+                <h2 className="text-2xl font-bold mb-6 text-black border-b border-gray-300 pb-2">Personal Information</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <InfoCard
+                    icon={<FaUser className="text-black" />}
+                    label="Full Name"
+                    initialValue={name}
+                    editable={true}
+                    name="name"
+                    onValueChange={handleFieldChange}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
                   />
+                  <InfoCard
+                    icon={<FaVenusMars className="text-black" />}
+                    label="Gender"
+                    initialValue={gender}
+                    editable={true}
+                    name="gender"
+                    onValueChange={handleFieldChange}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  {/* <InfoCard
+                    icon={<FaCalendarAlt className="text-black" />}
+                    label="Date of Birth"
+                    initialValue={dateOfBirth}
+                    editable={true}
+                    name="date_of_birth"
+                    onValueChange={handleFieldChange}
+                    type="date"
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  /> */}
+                  <InfoCard
+                    icon={<FaTint className="text-black" />}
+                    label="Blood Group"
+                    initialValue={bloodGroup}
+                    editable={true}
+                    name="blood_group"
+                    onValueChange={handleFieldChange}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  <InfoCard
+                    icon={<FaPhone className="text-black" />}
+                    label="Phone Number"
+                    initialValue={phoneNumber}
+                    editable={true}
+                    name="phone_number"
+                    onValueChange={handleFieldChange}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  {/* <InfoCard
+                    icon={<FaEnvelope className="text-black" />}
+                    label="Email"
+                    initialValue={user.email}
+                    editable={false}
+                    name="email"
+                    onValueChange={() => {}}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  /> */}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'academic' && (
+              <div>
+                <h2 className="text-2xl font-bold mb-6 text-black border-b border-gray-300 pb-2">Academic Information</h2>
+                {isEditing ?   <div className="bg-red-50  mb-10 border-red-200 text-red-700 p-4 rounded-lg flex items-center space-x-2">
+        <svg
+          className="w-5 h-5 text-red-700"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <span className="font-medium">Academic Information can only be edited by Administration</span>
+      </div> : <></>}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <InfoCard
+                    icon={<FaIdCard className="text-black" />}
+                    label="Student ID"
+                    initialValue={user.username}
+                    editable={false}
+                    name="username"
+                    onValueChange={() => {}}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  <InfoCard
+                    icon={<FaGraduationCap className="text-black" />}
+                    label="Year"
+                    initialValue={user.year}
+                    editable={false}
+                    name="year"
+                    onValueChange={() => {}}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  <InfoCard
+                    icon={<FaGraduationCap className="text-black" />}
+                    label="Branch"
+                    initialValue={user.branch}
+                    editable={false}
+                    name="branch"
+                    onValueChange={() => {}}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  <InfoCard
+                    icon={<FaGraduationCap className="text-black" />}
+                    label="Section"
+                    initialValue={user.section}
+                    editable={false}
+                    name="section"
+                    onValueChange={() => {}}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                  <InfoCard
+                    icon={<FaDoorOpen className="text-black" />}
+                    label="Room Number"
+                    initialValue={user.roomno}
+                    editable={false}
+                    name="roomno"
+                    onValueChange={() => {}}
+                    isEditing={isEditing}
+                    isLoading={isLoading}
+                  />
+                </div>
+
+                {/* <div className="mt-8 bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-xl font-bold mb-4 text-black">Academic Overview</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
+                      <div className="text-3xl font-bold text-black">
+                        {isLoading ? <div className="bg-gray-100 rounded h-8 animate-pulse"></div> : user.count?.grades || 0}
+                      </div>
+                      <div className="text-gray-600">Total Subjects</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
+                      <div className="text-3xl font-bold text-black">
+                        {isLoading ? <div className="bg-gray-100 rounded h-8 animate-pulse"></div> : user.count?.attendance || 0}
+                      </div>
+                      <div className="text-gray-600">Attendance Records</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
+                      <div className="text-3xl font-bold text-black">
+                        {isLoading ? <div className="bg-gray-100 rounded h-8 animate-pulse"></div> : user.count?.Outpass || 0}
+                      </div>
+                      <div className="text-gray-600">Outpasses</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
+                      <div className="text-3xl font-bold text-black">
+                        {isLoading ? <div className="bg-gray-100 rounded h-8 animate-pulse"></div> : user.count?.Outing || 0}
+                      </div>
+                      <div className="text-gray-600">Outings</div>
+                    </div>
+                  </div>
+                </div> */}
+                
+              </div>
+            )}
+
+            {activeTab === 'family' && (
+              <div>
+                <h2 className="text-2xl font-bold mb-6 text-black border-b border-gray-300 pb-2">Family Information</h2>
+                
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold mb-4 text-black">Father's Information</h3>
+                  <div className="grid md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
+                    <InputField
+                      label="Name"
+                      initialValue={fatherName}
+                      name="fatherName"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Occupation"
+                      initialValue={fatherOccupation}
+                      name="fatherOccupation"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Email"
+                      initialValue={fatherEmail}
+                      name="fatherEmail"
+                      type="email"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Phone Number"
+                      initialValue={fatherPhoneNumber}
+                      name="fatherPhoneNumber"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Address"
+                      initialValue={fatherAddress}
+                      name="fatherAddress"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold mb-4 text-black">Mother's Information</h3>
+                  <div className="grid md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg">
+                    <InputField
+                      label="Name"
+                      initialValue={motherName}
+                      name="motherName"
+                                            onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Occupation"
+                      initialValue={motherOccupation}
+                      name="motherOccupation"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Email"
+                      initialValue={motherEmail}
+                      name="motherEmail"
+                      type="email"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Phone Number"
+                      initialValue={motherPhoneNumber}
+                      name="motherPhoneNumber"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                    <InputField
+                      label="Address"
+                      initialValue={motherAddress}
+                      name="motherAddress"
+                      onValueChange={handleFieldChange}
+                      isEditing={isEditing}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {isEditing && (
+            <div className="mt-6 flex justify-end space-x-4">
+              <button
+                type="submit"
+                disabled={isSubmitting || isLoading}
+                className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <span>Saving...</span>
                 ) : (
-                  <p className="text-black text-lg font-bold">
-                    {typeof detail.value === 'boolean' 
-                      ? (detail.value ? 'Yes' : 'No') 
-                      : detail.value || 'N/A'}
-                  </p>
+                  <>
+                    <FaCheck /> <span>Save Changes</span>
+                  </>
                 )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Parent Information */}
-        <div className="bg-gray-200 rounded-lg p-8 mt-8 space-y-6">
-          <h2 className="text-2xl font-bold mb-6 text-black">Parent Information</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Father's Information */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-black">Father</h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <FaUser className="text-black" />
-                  <span className="font-semibold text-gray-600">Name:</span>
-                  {isLoading ? (
-                    <SkeletonLoader width="w-1/2" height="h-4" />
-                  ) : (
-                    <span className="text-black">{user.father_name || 'N/A'}</span>
-                  )}
-                </div>
-                <div className="flex items-center space-x-3">
-                  <FaPhone className="text-black" />
-                  <span className="font-semibold text-gray-600">Phone:</span>
-                  {isLoading ? (
-                    <SkeletonLoader width="w-1/2" height="h-4" />
-                  ) : (
-                    <span className="text-black">{user.father_phonenumber || 'N/A'}</span>
-                  )}
-                </div>
-              </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  resetFields();
+                }}
+                className="bg-gray-200 text-black px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors flex items-center space-x-2"
+                disabled={isLoading}
+              >
+                <FaTimes /> <span>Cancel</span>
+              </button>
             </div>
-
-            {/* Mother's Information */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-black">Mother</h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <FaUser className="text-black" />
-                  <span className="font-semibold text-gray-600">Name:</span>
-                  {isLoading ? (
-                    <SkeletonLoader width="w-1/2" height="h-4" />
-                  ) : (
-                    <span className="text-black">{user.mother_name || 'N/A'}</span>
-                  )}
-                </div>
-                <div className="flex items-center space-x-3">
-                  <FaPhone className="text-black" />
-                  <span className="font-semibold text-gray-600">Phone:</span>
-                  {isLoading ? (
-                    <SkeletonLoader width="w-1/2" height="h-4" />
-                  ) : (
-                    <span className="text-black">{user.mother_phonenumber || 'N/A'}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          )}
+        </form>
       </div>
     </div>
   );

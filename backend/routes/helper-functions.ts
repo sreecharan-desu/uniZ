@@ -367,7 +367,7 @@ export const updateUserPrescence = async (userId: string, id: string) => {
 };
 
 export const getStudentDetails = async (username: string) => {
-  const user = await client.student.findFirst({ where: { Username: username.toLowerCase() }, select: { id: true, Username: true, Email: true, isApplicationPending: true, isPresentInCampus: true, Name: true, Gender: true, Year: true, Branch: true, Section: true, Roomno: true, Address: true, BloodGroup: true, PhoneNumber: true, _count: true, createdAt: true, DateOfBirth: true, updatedAt: true, grades: { include: { subject: { select: { name: true, credits: true } }, semester: { select: { name: true, year: true } } } }, attendance: { include: { subject: { select: { name: true } }, semester: { select: { name: true, year: true } } } }, FatherAddress: true, FatherName: true, FatherPhoneNumber: true, MotherAddress: true, MotherName: true, MotherPhoneNumber: true, FatherEmail: true, MotherEmail: true, FatherOccupation: true, MotherOccupation: true, isDisabled: true } });
+  const user = await client.student.findFirst({ where: { Username: username.toLowerCase() }, select: { id: true, Username: true, Email: true, isApplicationPending: true, isPresentInCampus: true, Name: true, Gender: true, Year: true, Branch: true, Section: true, Roomno: true, Address: true, BloodGroup: true, PhoneNumber: true, _count: true, createdAt: true, DateOfBirth: true, updatedAt: true, FatherAddress: true, FatherName: true, FatherPhoneNumber: true, MotherAddress: true, MotherName: true, MotherPhoneNumber: true, FatherEmail: true, MotherEmail: true, FatherOccupation: true, MotherOccupation: true, isDisabled: true } });
   return user ? {
     _id: user.id,
     username: user.Username,
@@ -380,8 +380,6 @@ export const getStudentDetails = async (username: string) => {
     roomno: user.Roomno,
     has_pending_requests: user.isApplicationPending,
     is_in_campus: user.isPresentInCampus,
-    grades: user.grades.map(g => ({ subject: g.subject.name, credits: g.subject.credits, grade: g.grade, semester: `${g.semester.year} ${g.semester.name}` })),
-    attendance: user.attendance.map(a => ({ subject: a.subject.name, attendedClasses: a.attendedClasses, totalClasses: a.totalClasses, semester: `${a.semester.year} ${a.semester.name}` })),
     blood_group: user.BloodGroup,
     phone_number: user.PhoneNumber,
     count: user._count,

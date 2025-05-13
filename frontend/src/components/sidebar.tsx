@@ -262,7 +262,7 @@ export default function Sidebar({ content }: MainContent) {
                 ]
               : []),
             {
-              name: "Results",
+              name: "GradeHub",
               path: "/student/gradehub",
               content: "gradehub",
               icon: (
@@ -276,6 +276,12 @@ export default function Sidebar({ content }: MainContent) {
                 </svg>
               ),
             },
+                        {
+              name: "Attendance",
+              path: "/student/attendance",
+              content: "attendance",
+              icon: <FaCalendarCheck size={20} />, // Increased size to 20px
+            },
             {
               name: "CampusHub",
               path: "/campushub",
@@ -288,12 +294,7 @@ export default function Sidebar({ content }: MainContent) {
               content: "studyspace",
               icon: <FaLaptopCode size={20} />, // Increased size to 20px
             },
-            {
-              name: "Attendance",
-              path: "/student/attendance",
-              content: "attendance",
-              icon: <FaCalendarCheck size={20} />, // Increased size to 20px
-            },
+
             {
               name: "Reset Password",
               path: "/student/resetpassword",

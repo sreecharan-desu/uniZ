@@ -1,12 +1,18 @@
 import { useEffect } from "react";
 import { useSetRecoilState } from "recoil";
-import { Admin } from "../store";
+import { adminUsername } from "../store";
 
-export function useAdminname(){
-    const setadminname = useSetRecoilState(Admin);
-    useEffect(()=>{
-        setadminname({
-            Username : 'admin'
-        })
-    },[])
+export function useAdminname() {
+    const setadminname = useSetRecoilState(adminUsername);
+
+    useEffect(() => {
+        const stored = localStorage.getItem('username');
+        if (stored) {
+            try {
+                setadminname(JSON.parse(stored)); // handles "\"SreeCharan\"" properly
+            } catch {
+                setadminname(stored); // fallback if not JSON
+            }
+        }
+    }, []);
 }

@@ -6,14 +6,16 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { PageTransition } from "./components/Transition";
 import { useIsAuth } from "./customhooks/is_authenticated";
+import AddStudents from "./pages/AddStudents";
+import AddGrades from "./pages/AddGrades";
+import AddAttendance from "./pages/AddAttendance";
+import Settings from "./pages/Settings";
 
 // Lazy load components
 const Home = lazy(() => import("./pages/home"));
 const Signin = lazy(() => import("./pages/StudentSignin"));
 const Admin = lazy(() => import("./pages/admin"));
 
-const ApproveComp = lazy(() => import("./components/approve-comp"));
-const UpdateStatus = lazy(() => import("./components/updatestudentstatus"));
 const SearchStudents = lazy(() => import("./components/searchstudents"));
 const Sidebar = lazy(() => import("./components/sidebar"));
 
@@ -171,7 +173,7 @@ function App() {
                 </PageTransition>
               }
             />
-                        <Route
+            <Route
               path="/studyspace"
               element={
                 <PageTransition>
@@ -179,14 +181,15 @@ function App() {
                 </PageTransition>
               }
             />
-                        <Route
+            <Route
               path="/campushub"
               element={
                 <PageTransition>
                   <Sidebar content="campushub" />
                 </PageTransition>
               }
-            />            <Route
+            />           
+           <Route
             path="/student/attendance"
             element={
               <PageTransition>
@@ -210,30 +213,42 @@ function App() {
                 </PageTransition>
               }
             />
-            <Route
+            {/* <Route
               path="/admin/approveouting"
               element={
                 <PageTransition>
                   <ApproveComp type="outing" />
                 </PageTransition>
               }
-            />
-            <Route
+            /> */}
+            <Route path="/admin/addstudents" element={                <PageTransition>
+<AddStudents />                </PageTransition>
+} />
+        <Route path="/admin/addgrades" element={                <PageTransition>
+<AddGrades />                </PageTransition>
+} />
+        <Route path="/admin/addattendance" element={                <PageTransition>
+<AddAttendance />                </PageTransition>
+} />
+        <Route path="/admin/settings" element={                <PageTransition>
+<Settings />                </PageTransition>
+} />
+            {/* <Route
               path="/admin/approveoutpass"
               element={
                 <PageTransition>
                   <Maintenance />
                 </PageTransition>
               }
-            />
-            <Route
+            /> */}
+            {/* <Route
               path="/admin/updatestudentstatus"
               element={
                 <PageTransition>
                   <UpdateStatus />
                 </PageTransition>
               }
-            />
+            /> */}
             <Route
               path="/admin/searchstudents"
               element={

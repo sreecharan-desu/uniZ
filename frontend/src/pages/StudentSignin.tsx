@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Input } from "../components/input";
 import { Button } from "../components/button";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { Admin, is_authenticated } from "../store";
+import { adminUsername, is_authenticated } from "../store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
@@ -23,7 +23,7 @@ export default function Signin({ type }: SigninProps) {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [authState] = useRecoilState(is_authenticated); // Check auth status
-  const setAdmin = useSetRecoilState(Admin);
+  const setAdmin = useSetRecoilState<any>(adminUsername);
   const setAuth = useSetRecoilState(is_authenticated);
   const navigate = useNavigate();
 
@@ -103,9 +103,7 @@ const passwordHandler = (event: any) => {
           is_authnticated: true,
           type: "admin",
         });
-        setAdmin({
-          Username: username.trim(),
-        });
+        setAdmin(username.trim());
         toast.success("Successfully signed in as admin!");
         navigate("/admin", { replace: true });
       }

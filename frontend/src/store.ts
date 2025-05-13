@@ -59,14 +59,10 @@ export const is_authenticated = atom({
 
 
 
-
-export const Admin = atom({
-    key : 'Admin',
-    default : {
-        Username : '',
-    }
-})
-
+export const adminUsername = atom<string | null>({
+    key: 'adminUsername',
+    default: null
+});
 
 
 export const outpasses = atom({

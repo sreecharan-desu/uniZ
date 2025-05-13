@@ -170,7 +170,7 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
   }
 });
 
-studentRouter.post('/getgrades', authMiddleware, async (req, res) => {
+studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
     const { username, semesterId } = req.body;
     if (!username || !semesterId) return res.json({ msg: 'Username and semesterId are required', success: false });
 
@@ -185,7 +185,6 @@ studentRouter.post('/getgrades', authMiddleware, async (req, res) => {
             where: { id: semesterId },
             select: { name: true, year: true }
         });
-        // console.log('semester:', semester);
         if (!semester) return res.json({ msg: 'Semester not found', success: false });
 
         const subjects = await client.subject.findMany({
@@ -195,7 +194,7 @@ studentRouter.post('/getgrades', authMiddleware, async (req, res) => {
 
         const gradeToLetter = (grade) => grade == 10 ? 'Ex' : grade == 9 ? 'A' : grade == 8 ? 'B' : grade == 7 ? 'C' : grade == 6 ? 'D' : grade == 5 ? 'E' : 'R';
         const gradeToPoints = { 'Ex': 10, 'A': 9, 'B': 8, 'C': 7, 'D': 6, 'E': 5, 'R': 0 };
-        // console.log(user.grades)
+
         // Map grades to letter grades
         const gradeData = Object.fromEntries(
             subjects.map(subject => [
@@ -206,31 +205,60 @@ studentRouter.post('/getgrades', authMiddleware, async (req, res) => {
                     : ''
             ])
         );
+
         // GPA Calculation
         let gpaResult;
-        const yearKey = semester.year; // e.g., 'E1'
-        const semesterKey = semester.name; // e.g., 'Sem - 1'
-        const branchKey = user.Branch; // e.g., 'CSE'
+        let calculationDetails:any = [];
+        let totalCreditsObtained = 0;
+        let totalCredits = 0;
+        let hasRemedial:any = null;
+        let weakSubjects:any = [];
+        let strongSubjects:any = [];
+
+        const yearKey = semester.year;
+        const semesterKey = semester.name;
+        const branchKey = user.Branch;
+
+        // Data for pie chart (grade distribution)
+        let gradeDistribution = { 'Ex': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0, 'R': 0 };
 
         if (subjectsData[yearKey]?.[semesterKey]?.[branchKey]) {
             const data = subjectsData[yearKey][semesterKey][branchKey];
-            console.log('data:', data);
-
-            let totalCreditsObtained = 0;
-            let totalCredits = 0;
-            let hasRemedial:any = null;
 
             subjects.forEach((subject, index) => {
                 const gradeLetter = gradeData[subject.name];
                 const credit = data.credits[index] || 0;
+
+                // Update grade distribution for pie chart
+                if (gradeLetter) {
+                    gradeDistribution[gradeLetter]++;
+                }
+
+                // Track weak and strong subjects
+                if (gradeLetter === 'R' || gradeLetter === 'E') {
+                    weakSubjects.push(subject.name);
+                } else if (gradeLetter === 'Ex' || gradeLetter === 'A') {
+                    strongSubjects.push(subject.name);
+                }
 
                 if (gradeLetter === 'R') {
                     hasRemedial = subject.name;
                 }
 
                 if (gradeLetter && gradeLetter !== '' && gradeLetter !== 'R') {
-                    totalCreditsObtained += (gradeToPoints[gradeLetter] || 0) * credit;
+                    const points = (gradeToPoints[gradeLetter] || 0);
+                    const creditPoints = points * credit;
+                    totalCreditsObtained += creditPoints;
                     totalCredits += credit;
+
+                    // Add calculation details
+                    calculationDetails.push({
+                        subject: subject.name,
+                        grade: gradeLetter,
+                        points: points,
+                        credits: credit,
+                        contribution: creditPoints
+                    });
                 }
             });
 
@@ -240,17 +268,43 @@ studentRouter.post('/getgrades', authMiddleware, async (req, res) => {
                 const gpa = (totalCreditsObtained / totalCredits).toFixed(2);
                 gpaResult = parseFloat(gpa);
             } else {
-                gpaResult = null; // No grades available
+                gpaResult = null;
             }
         } else {
-            gpaResult = null; // Invalid year/semester/branch
+            gpaResult = null;
         }
+
+        // Generate motivational messages
+        const motivationalMessages = [
+            gpaResult >= 8 ? "You've nailed it! Keep up the excellent work!" : 
+            gpaResult >= 6 ? "Great effort! A little more focus can take you to the top!" : 
+            "Don't worry, every challenge is a chance to grow! Let's focus on improvement!",
+            weakSubjects.length > 0 ? `Consider focusing on ${weakSubjects.join(', ')} to boost your performance.` : 
+            "You're doing well across the board! Keep it up!",
+            strongSubjects.length > 0 ? `Awesome job in ${strongSubjects.join(', ')}! You're killing it!` : 
+            "Let's aim to shine in all subjects!"
+        ];
+
+        // Prepare data for visualizations
+        const visualizationData = {
+            pieChart: {
+                labels: Object.keys(gradeDistribution),
+                data: Object.values(gradeDistribution)
+            },
+            barChart: calculationDetails.map(detail => ({
+                subject: detail.subject,
+                points: detail.points
+            }))
+        };
 
         res.json({
             year: semester.year,
             semester: semester.name,
             grade_data: gradeData,
             gpa: gpaResult,
+            calculation_details: calculationDetails, // Details of how GPA was calculated
+            motivational_messages: motivationalMessages, // Random motivational sentences
+            visualization_data: visualizationData, // Data for pie and bar charts
             success: true
         });
     } catch (error) {

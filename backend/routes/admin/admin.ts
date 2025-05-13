@@ -7,20 +7,14 @@ import { authMiddleware, validateResetPassInputs } from "../student/middlewares/
 const client = new PrismaClient();
 import {
   addStudent,
-  approveOuting,
-  approveOutpass,
+
   convertLetterToNumericGrade,
-  getOutingRequests,
-  getOutPassRequests,
+ 
   getStudentDetails,
-  getStudentsOutsideCampus,
   getUsers,
-  rejectOuting,
-  rejectOutpass,
-  sendEmail,
+
   subjectsData,
   updateAdminPassword,
-  updateUserPrescence,
   validateInput,
   validateInputForAttendance,
 } from "../helper-functions";
@@ -50,23 +44,6 @@ adminRouter.put("/resetpass", validateResetPassInputs, fetchAdmin, authMiddlewar
   }
 });
 
-adminRouter.get("/getoutpassrequests", authMiddleware, async (req, res) => {
-  try {
-    const requests = await getOutPassRequests();
-    res.json({ outpasses: requests, success: true });
-  } catch (e) {
-    res.json({ msg: "Error : Fething requests Try again!", success: true });
-  }
-});
-
-adminRouter.get("/getoutingrequests", authMiddleware, async (req, res) => {
-  try {
-    const requests = await getOutingRequests();
-    res.json({ outings: requests, success: true });
-  } catch (e) {
-    res.json({ msg: "Error : Fething requests Try again!", success: true });
-  }
-});
 
 adminRouter.get("/getstudents", authMiddleware, async (req, res) => {
   try {
@@ -98,98 +75,117 @@ adminRouter.get("/getstudents", authMiddleware, async (req, res) => {
   }
 });
 
-//  ----------------------------------------------------------------------------------   //  Outpass and Outing Approvals  ----------------------------------------------------------------------------------   //
-adminRouter.post("/approveoutpass", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.body;
-    const outpass = await approveOutpass(id);
-    if (outpass?.success) {
-      const outpassData = await client.outpass.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, ToDay: true } });
-      const email = outpassData?.Student.Email;
-      if (email) {
-        const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color: #4CAF50;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outpass Request Has been Approved!</h1><p>Your outpass request with ID: <strong>${id}</strong> has been Approved!</p><div class="details"><p><strong> You should return to campus on ${outpassData.ToDay.toLocaleDateString()}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
-        await sendEmail(email, "Regarding your OutpassRequest", outPassEmailBody);
-      }
-    }
-    res.json({ msg: outpass.msg, success: outpass.success });
-  } catch (e) {
-    res.json({ msg: "Error approving outpass Please Try again!", success: false });
-  }
-});
+// //  ----------------------------------------------------------------------------------   //  Outpass and Outing Approvals  ----------------------------------------------------------------------------------   //
+// adminRouter.get("/getoutpassrequests", authMiddleware, async (req, res) => {
+//   try {
+//     const requests = await getOutPassRequests();
+//     res.json({ outpasses: requests, success: true });
+//   } catch (e) {
+//     res.json({ msg: "Error : Fething requests Try again!", success: true });
+//   }
+// });
 
-adminRouter.post("/approveouting", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.body;
-    const outing = await approveOuting(id);
-    if (outing?.success) {
-      const outingData = await client.outing.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, ToTime: true } });
-      const email = outingData?.Student.Email;
-      if (email) {
-        const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color: #4CAF50;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outing Request Has been Approved!</h1><p>Your outing request with ID: <strong>${id}</strong> has been Approved!</p><div class="details"><p><strong> You should return to campus by ${outingData.ToTime.toLocaleTimeString()}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
-        await sendEmail(email, "Regarding your OutingRequest", outPassEmailBody);
-      }
-    }
-    res.json({ msg: outing.msg, success: outing.success });
-  } catch (e) {
-    res.json({ msg: "Error approving outing Please Try again!", success: false });
-  }
-});
+// adminRouter.get("/getoutingrequests", authMiddleware, async (req, res) => {
+//   try {
+//     const requests = await getOutingRequests();
+//     res.json({ outings: requests, success: true });
+//   } catch (e) {
+//     res.json({ msg: "Error : Fething requests Try again!", success: true });
+//   }
+// });
 
-adminRouter.post("/rejectouting", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.body;
-    const outing = await rejectOuting(id);
-    if (outing?.success) {
-      const outingData = await client.outing.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, Message: true, rejectedBy: true, rejectedTime: true } });
-      const email = outingData?.Student.Email;
-      if (email) {
-        const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color:red;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outing Request Has been Rejected!</h1><p>Your outing request with ID: <strong>${id}</strong> has been <b>Rejected!</b></p><div class="details"><p><strong>Rejected by : ${outingData.rejectedBy}</strong></p><p><strong>Rejected Time : ${outingData.rejectedTime}</strong></p><p><strong>Message : ${outingData.Message}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
-        await sendEmail(email, "Regarding your OutingRequest", outPassEmailBody);
-      }
-    }
-    res.json({ msg: outing.msg, success: outing.success });
-  } catch (e) {
-    res.json({ msg: "Error rejecting outing Please Try again!", success: false });
-  }
-});
 
-adminRouter.post("/rejectoutpass", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.body;
-    const outpass = await rejectOutpass(id);
-    if (outpass?.success) {
-      const outpassData = await client.outpass.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, Message: true, rejectedBy: true, rejectedTime: true } });
-      const email = outpassData?.Student.Email;
-      if (email) {
-        const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color: red;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outpass Request Has been Rejected!</h1><p>Your outpass request with ID: <strong>${id}</strong> has been <b>Rejected!</b></p><div class="details"><p><strong>Rejected by : ${outpassData.rejectedBy}</strong></p><p><strong>Rejected Time : ${outpassData.rejectedTime}</strong></p><p><strong>Message : ${outpassData.Message}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
-        await sendEmail(email, "Regarding your OutPassRequest", outPassEmailBody);
-      }
-    }
-    res.json({ msg: outpass.msg, success: outpass.success });
-  } catch (e) {
-    res.json({ msg: "Error rejecting outpass Please Try again!", success: false });
-  }
-});
+// adminRouter.post("/approveoutpass", authMiddleware, async (req, res) => {
+//   try {
+//     const { id } = req.body;
+//     const outpass = await approveOutpass(id);
+//     if (outpass?.success) {
+//       const outpassData = await client.outpass.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, ToDay: true } });
+//       const email = outpassData?.Student.Email;
+//       if (email) {
+//         const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color: #4CAF50;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outpass Request Has been Approved!</h1><p>Your outpass request with ID: <strong>${id}</strong> has been Approved!</p><div class="details"><p><strong> You should return to campus on ${outpassData.ToDay.toLocaleDateString()}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
+//         await sendEmail(email, "Regarding your OutpassRequest", outPassEmailBody);
+//       }
+//     }
+//     res.json({ msg: outpass.msg, success: outpass.success });
+//   } catch (e) {
+//     res.json({ msg: "Error approving outpass Please Try again!", success: false });
+//   }
+// });
 
-adminRouter.get("/getstudentsoutsidecampus", authMiddleware, async (req, res) => {
-  try {
-    const students = await getStudentsOutsideCampus();
-    res.json({ students, success: true });
-  } catch (e) {
-    res.json({ msg: "Error fetching students", success: false });
-  }
-});
+// adminRouter.post("/approveouting", authMiddleware, async (req, res) => {
+//   try {
+//     const { id } = req.body;
+//     const outing = await approveOuting(id);
+//     if (outing?.success) {
+//       const outingData = await client.outing.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, ToTime: true } });
+//       const email = outingData?.Student.Email;
+//       if (email) {
+//         const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color: #4CAF50;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outing Request Has been Approved!</h1><p>Your outing request with ID: <strong>${id}</strong> has been Approved!</p><div class="details"><p><strong> You should return to campus by ${outingData.ToTime.toLocaleTimeString()}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
+//         await sendEmail(email, "Regarding your OutingRequest", outPassEmailBody);
+//       }
+//     }
+//     res.json({ msg: outing.msg, success: outing.success });
+//   } catch (e) {
+//     res.json({ msg: "Error approving outing Please Try again!", success: false });
+//   }
+// });
 
-adminRouter.post("/updatestudentstatus", authMiddleware, async (req, res) => {
-  try {
-    const { userId, id } = req.body;
-    const student = await updateUserPrescence(userId, id);
-    res.json({ msg: student.msg, success: student.success });
-  } catch (e) {
-    res.json({ msg: "Error fetching students", success: false });
-  }
-});
-//  ----------------------------------------------------------------------------------   //  Outpass and Outing Approvals  ----------------------------------------------------------------------------------   //
+// adminRouter.post("/rejectouting", authMiddleware, async (req, res) => {
+//   try {
+//     const { id } = req.body;
+//     const outing = await rejectOuting(id);
+//     if (outing?.success) {
+//       const outingData = await client.outing.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, Message: true, rejectedBy: true, rejectedTime: true } });
+//       const email = outingData?.Student.Email;
+//       if (email) {
+//         const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color:red;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outing Request Has been Rejected!</h1><p>Your outing request with ID: <strong>${id}</strong> has been <b>Rejected!</b></p><div class="details"><p><strong>Rejected by : ${outingData.rejectedBy}</strong></p><p><strong>Rejected Time : ${outingData.rejectedTime}</strong></p><p><strong>Message : ${outingData.Message}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
+//         await sendEmail(email, "Regarding your OutingRequest", outPassEmailBody);
+//       }
+//     }
+//     res.json({ msg: outing.msg, success: outing.success });
+//   } catch (e) {
+//     res.json({ msg: "Error rejecting outing Please Try again!", success: false });
+//   }
+// });
+
+// adminRouter.post("/rejectoutpass", authMiddleware, async (req, res) => {
+//   try {
+//     const { id } = req.body;
+//     const outpass = await rejectOutpass(id);
+//     if (outpass?.success) {
+//       const outpassData = await client.outpass.findFirst({ where: { id }, select: { Student: { select: { Email: true } }, Message: true, rejectedBy: true, rejectedTime: true } });
+//       const email = outpassData?.Student.Email;
+//       if (email) {
+//         const outPassEmailBody = `<!DOCTYPE html><html><head><style>body {font-family: Arial, sans-serif;color: #333;background-color: #f4f4f4;margin: 0;padding: 20px;}.container {background-color: #ffffff;border-radius: 8px;padding: 20px;max-width: 600px;margin: 0 auto;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}h1 {color: red;font-size: 24px;margin-top: 0;}p {font-size: 16px;line-height: 1.6;margin: 10px 0;}.details {margin-top: 20px;padding: 15px;border: 1px solid #ddd;border-radius: 5px;background-color: #f9f9f9;}.details p {margin: 5px 0;}.footer {margin-top: 20px;font-size: 14px;color: #888;}</style></head><body><div class="container"><h1>Your Outpass Request Has been Rejected!</h1><p>Your outpass request with ID: <strong>${id}</strong> has been <b>Rejected!</b></p><div class="details"><p><strong>Rejected by : ${outpassData.rejectedBy}</strong></p><p><strong>Rejected Time : ${outpassData.rejectedTime}</strong></p><p><strong>Message : ${outpassData.Message}</strong></p></div><div class="footer"><p>Thank you for your patience.</p><p>Best regards,<br>uniZ</p></div></div></body></html>`;
+//         await sendEmail(email, "Regarding your OutPassRequest", outPassEmailBody);
+//       }
+//     }
+//     res.json({ msg: outpass.msg, success: outpass.success });
+//   } catch (e) {
+//     res.json({ msg: "Error rejecting outpass Please Try again!", success: false });
+//   }
+// });
+
+// adminRouter.get("/getstudentsoutsidecampus", authMiddleware, async (req, res) => {
+//   try {
+//     const students = await getStudentsOutsideCampus();
+//     res.json({ students, success: true });
+//   } catch (e) {
+//     res.json({ msg: "Error fetching students", success: false });
+//   }
+// });
+
+// adminRouter.post("/updatestudentstatus", authMiddleware, async (req, res) => {
+//   try {
+//     const { userId, id } = req.body;
+//     const student = await updateUserPrescence(userId, id);
+//     res.json({ msg: student.msg, success: student.success });
+//   } catch (e) {
+//     res.json({ msg: "Error fetching students", success: false });
+//   }
+// });
+// //  ----------------------------------------------------------------------------------   //  Outpass and Outing Approvals  ----------------------------------------------------------------------------------   //
 
 
 interface UploadProgress {

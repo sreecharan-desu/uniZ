@@ -108,8 +108,9 @@ export default function Navbar() {
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-2">
-                            <div className='bg-white text-black rounded-full p-2 px-3 text-xl font-bold'>
-                                W
+                            <div className='bg-white text-black rounded-full p-2 px-4 text-xl font-bold'>
+                                {/* @ts-ignore */}
+                                {localStorage.getItem('admin_token') ? getInitials(JSON.parse(adminName)) : ''}
                             </div>
                             <div className="flex-col justify-center">
                                 <p className="text-white text-left text-sm font-semibold">
