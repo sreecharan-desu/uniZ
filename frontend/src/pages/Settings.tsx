@@ -18,9 +18,9 @@ export default function Settings() {
   const [password, setPassword] = useState('');
   const [repassword, setRePassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showOldPassword, _setShowOldPassword] = useState(false);
+  const [showNewPassword, _setShowNewPassword] = useState(false);
+  const [showConfirmPassword, _setShowConfirmPassword] = useState(false);
   const navigateTo = useNavigate();
   const username = useRecoilValue(adminUsername);
 

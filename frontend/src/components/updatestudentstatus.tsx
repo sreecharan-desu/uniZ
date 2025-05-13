@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRecoilValue } from "recoil";
-import { useOutsideCampus } from "../customhooks/outsidecampus";
 import { offCampus } from "../store";
 import { UPDATE_STUDENT_STATUS } from "../apis";
 import { Button } from "./button";
@@ -31,7 +30,7 @@ const StudentCardSkeleton = () => (
 
 export default function UpdateStatus() {
   useIsAuth();
-  useOutsideCampus();
+  // useOutsideCampus();
   const students = useRecoilValue(offCampus);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([{_id :'',username : '',name : '',email : '',gender : '',is_in_campus : false,outings_list : [{        from_time: '',
