@@ -194,6 +194,7 @@ interface UploadProgress {
   failedRecords: { id: string }[];
   status: 'pending' | 'completed' | 'failed';
   startTime: Date;
+  errors : any[]
 }
 
 const progressStore: Map<string, UploadProgress> = new Map();
@@ -234,6 +235,7 @@ adminRouter.post('/updatestudents', authMiddleware, async (req, res) => {
   if (!students.length) return res.json({ msg: 'Input data is empty', success: false });
   try {
     const processId = uuidv4();
+    //@ts-ignore
     progressStore.set(processId, { totalRecords: students.length, processedRecords: 0, failedRecords: [], status: 'pending', startTime: new Date() });
     (async () => {
       let records = 0;
@@ -270,206 +272,340 @@ adminRouter.post('/updatestudents', authMiddleware, async (req, res) => {
 adminRouter.post('/addgrades', authMiddleware, async (req, res) => {
   const data = req.body;
   const validationErrors = validateInput(data);
-  if (validationErrors.length > 0) return res.status(400).json({ msg: 'Input JSON format does not match required structure', success: false, errors: validationErrors });
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ msg: 'Invalid input', success: false, errors: validationErrors });
+  }
+
   try {
     const processId = uuidv4();
-    progressStore.set(processId, { totalRecords: data.Students.length, processedRecords: 0, failedRecords: [], status: 'pending', startTime: new Date() });
+    //@ts-ignore
+    progressStore.set(processId, { totalRecords: data.Students.length, processedRecords: 0, errors: [], status: 'pending', startTime: new Date() });
+
     const [year, name] = data.SemesterName.split('*');
     const semester = await client.semester.findFirst({ where: { year, name }, select: { id: true } });
-    if (!semester) return res.status(400).json({ msg: `Semester "${data.SemesterName}" not found in database`, success: false });
+    if (!semester) {
+      return res.status(400).json({ msg: `Semester "${data.SemesterName}" not found`, success: false });
+    }
+
+    const chunks:any = chunkArray(data.Students, 50);
     let processedRecords = 0;
-    const failedRecords: any = [];
-    const processingErrors: any = [];
-    for (const [index, record] of data.Students.entries()) {
-      try {
-        const { Username, Grades } = record;
-        const student = await client.student.findFirst({ where: { Username: Username.toLowerCase() }, select: { id: true, Branch: true } });
-        if (!student) {
-          failedRecords.push({ username: Username, recordIndex: index, reason: 'Student not found in database' });
-          processingErrors.push({ recordIndex: index, message: `Student "${Username}" not found in database` });
-          continue;
-        }
-        const subjectData = subjectsData[year]?.[name]?.[student.Branch];
-        if (!subjectData) {
-          failedRecords.push({ username: Username, recordIndex: index, reason: `No subject data found for ${student.Branch} in ${data.SemesterName}` });
-          processingErrors.push({ recordIndex: index, message: `No subject data found for ${student.Branch} in ${data.SemesterName}` });
-          continue;
-        }
-        const expectedSubjects = subjectData.names.map((name, i) => ({ name, index: i })).filter((subject, i) => subject.name && (!subjectData.hide || !subjectData.hide.includes(i + 1)));
-        const gradeSubjectNames = Grades.map(grade => grade.SubjectName);
-        const missingSubjects = expectedSubjects.filter(subject => !gradeSubjectNames.includes(subject.name));
-        if (missingSubjects.length > 0) {
-          failedRecords.push({ username: Username, recordIndex: index, reason: `Missing grades for subjects: ${missingSubjects.map(s => s.name).join(', ')}` });
-          processingErrors.push({ recordIndex: index, message: `Missing grades for subjects: ${missingSubjects.map(s => s.name).join(', ')}` });
-          continue;
-        }
-        const branch = await client.branch.findFirstOrThrow({ where: { name: student.Branch } });
-        const branchId = branch.id;
-        await client.$transaction(async (tx) => {
-          for (const [gradeIndex, { SubjectName, Grade }] of Grades.entries()) {
-            const isElective = SubjectName.includes('Elective') || SubjectName.includes('MOOC');
-            let subject;
-            if (isElective) {
-              subject = await tx.subject.findFirst({ where: { name: SubjectName, semesterId: semester.id, branchId }, select: { id: true } });
-              if (!subject) {
+    const errors:any = [];
+
+    for (const chunk of chunks) {
+      const usernames = chunk.map(record => record.Username.toLowerCase());
+      const students = await client.student.findMany({
+        where: { Username: { in: usernames } },
+        select: { id: true, Branch: true },
+      });
+      const studentMap = new Map(students.map((s:any) => [s.Username, s]));
+
+      await Promise.all(
+        chunk.map(async (record, index) => {
+          try {
+            const { Username, Grades } = record;
+            const student = studentMap.get(Username.toLowerCase());
+            if (!student) {
+              errors.push({ recordIndex: index, username: Username, message: 'Student not found' });
+              return;
+            }
+
+            const subjectData = subjectsData[year]?.[name]?.[student.Branch];
+            if (!subjectData) {
+              errors.push({ recordIndex: index, username: Username, message: `No subject data for ${student.Branch} in ${data.SemesterName}` });
+              return;
+            }
+
+            // Validate grades
+            const expectedSubjects = subjectData.names
+              .map((name, i) => ({ name, index: i }))
+              .filter((subject, i) => subject.name && (!subjectData.hide || !subjectData.hide.includes(i + 1)));
+            const gradeSubjectNames = Grades.map(grade => grade.SubjectName);
+            const missingSubjects = expectedSubjects.filter(subject => !gradeSubjectNames.includes(subject.name));
+            if (missingSubjects.length > 0) {
+              errors.push({ recordIndexmetrics: index, username: Username, message: `Missing grades for subjects: ${missingSubjects.map(s => s.name).join(', ')}` });
+              return;
+            }
+
+            const branch:any = await client.branch.findFirstOrThrow({ where: { name: student.Branch } });
+            const gradeData:any = [];
+
+            for (const { SubjectName, Grade } of Grades) {
+              const isElective = SubjectName.includes('Elective') || SubjectName.includes('MOOC');
+              let subject = await client.subject.findFirst({
+                where: { name: SubjectName, semesterId: semester.id, branchId: branch.id },
+                select: { id: true },
+              });
+
+              if (!subject && isElective) {
                 const creditIndex = subjectData.names.indexOf(SubjectName);
                 const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
-                subject = await tx.subject.create({ data: { id: uuidv4(), name: SubjectName, credits, branchId, semesterId: semester.id }, select: { id: true } });
+                subject = await client.subject.create({
+                  data: { id: uuidv4(), name: SubjectName, credits, branchId: branch.id, semesterId: semester.id },
+                  select: { id: true },
+                });
               }
-            } else {
-              subject = await tx.subject.findFirst({ where: { name: SubjectName, semesterId: semester.id, branchId }, select: { id: true } });
+
               if (!subject) {
-                failedRecords.push({ username: Username, recordIndex: index, gradeIndex, reason: `Subject "${SubjectName}" not found for semester "${data.SemesterName}" and branch "${student.Branch}"` });
-                processingErrors.push({ recordIndex: index, gradeIndex, message: `Subject "${SubjectName}" not found for semester "${data.SemesterName}" and branch "${student.Branch}"` });
+                errors.push({ recordIndex: index, username: Username, message: `Subject "${SubjectName}" not found` });
                 continue;
               }
+
+              const numericGrade = convertLetterToNumericGrade(Grade);
+              if (numericGrade === null) {
+                errors.push({ recordIndex: index, username: Username, message: `Invalid grade "${Grade}" for "${SubjectName}"` });
+                continue;
+              }
+
+              gradeData.push({
+                studentId: student.id,
+                subjectId: subject.id,
+                semesterId: semester.id,
+                grade: numericGrade,
+              });
             }
-            const numericGrade = convertLetterToNumericGrade(Grade);
-            if (numericGrade === null) {
-              failedRecords.push({ username: Username, recordIndex: index, gradeIndex, reason: `Invalid grade "${Grade}" for subject "${SubjectName}"` });
-              processingErrors.push({ recordIndex: index, gradeIndex, message: `Invalid grade "${Grade}" for subject "${SubjectName}"` });
-              continue;
-            }
-            await tx.grade.upsert({ where: { studentId_subjectId_semesterId: { studentId: student.id, subjectId: subject.id, semesterId: semester.id } }, update: { grade: numericGrade }, create: { studentId: student.id, subjectId: subject.id, semesterId: semester.id, grade: numericGrade } });
+
+            // Bulk upsert grades
+            await client.$transaction(
+              gradeData.map(data =>
+                client.grade.upsert({
+                  where: { studentId_subjectId_semesterId: { studentId: data.studentId, subjectId: data.subjectId, semesterId: data.semesterId } },
+                  update: { grade: data.grade },
+                  create: data,
+                })
+              )
+            );
+
+            processedRecords++;
+          } catch (error:any) {
+            errors.push({ recordIndex: index, username: record.Username, message: error.message || 'Processing error' });
           }
-        });
-        processedRecords++;
-      } catch (error: any) {
-        console.error(`Failed to process record ${index} for username ${record.Username}:`, error);
-        failedRecords.push({ username: record.Username, recordIndex: index, reason: error.message || 'Unexpected error during processing' });
-        processingErrors.push({ recordIndex: index, message: error.message || 'Unexpected error', stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
-      }
-      const progress:any = progressStore.get(processId);
+        })
+      );
+
+      const progress = progressStore.get(processId);
       if (progress) {
         progress.processedRecords = processedRecords;
-        progress.failedRecords = failedRecords;
-        progress.errors = processingErrors;
+        progress.errors = errors;
       }
     }
+
     const progress:any = progressStore.get(processId);
     if (progress) {
-      progress.processedRecords = processedRecords;
-      progress.failedRecords = failedRecords;
-      progress.errors = processingErrors;
-      progress.status = failedRecords.length === data.Students.length ? 'failed' : 'completed';
+      progress.status = errors.length === data.Students.length ? 'failed' : 'completed';
       progress.endTime = new Date();
       setTimeout(() => progressStore.delete(processId), 5 * 60 * 1000);
     }
-    console.log(`Process completed: ${processedRecords} successful, ${failedRecords.length} failed`);
+
     res.status(200).json({
-      msg: `Processed ${processedRecords} of ${data.Students.length} student grade records successfully`,
-      success: failedRecords.length === 0,
+      msg: `Processed ${processedRecords} of ${data.Students.length} records`,
+      success: errors.length === 0,
       processId,
       totalRecords: data.Students.length,
       processedRecords,
-      failedRecords,
-      errors: processingErrors,
+      errors,
     });
-  } catch (error: any) {
-    console.error('Unexpected error in /addgrades route:', error);
-    res.status(500).json({ msg: 'Internal Server Error', success: false, error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+  } catch (error) {
+    res.status(500).json({ msg: 'Internal Server Error', success: false });
   }
 });
+
+function chunkArray(array, size) {
+  const chunks:any = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 
 adminRouter.post('/addattendance', authMiddleware, async (req, res) => {
   const data = req.body;
   const validationErrors = validateInputForAttendance(data);
-  if (validationErrors.length > 0) return res.status(400).json({ msg: 'Input JSON format does not match required structure', success: false, errors: validationErrors });
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ msg: 'Input JSON format does not match required structure', success: false, errors: validationErrors });
+  }
+
   try {
     const processId = uuidv4();
-    progressStore.set(processId, { totalRecords: data.data.length, processedRecords: 0, failedRecords: [], status: 'pending', startTime: new Date() });
+    //@ts-ignore
+    progressStore.set(processId, {
+      totalRecords: data.data.length,
+      processedRecords: 0,
+      errors: [],
+      status: 'pending',
+      startTime: new Date(),
+    });
+
     const [year, name] = data.SemesterName.split('*');
     const semester = await client.semester.findFirst({ where: { year, name }, select: { id: true } });
-    if (!semester) return res.status(400).json({ msg: `Semester "${data.SemesterName}" not found in database`, success: false });
+    if (!semester) {
+      return res.status(400).json({ msg: `Semester "${data.SemesterName}" not found in database`, success: false });
+    }
+
+    // Background processing
     (async () => {
       let processedRecords = 0;
-      const failedRecords: any = [];
-      const processingErrors: any = [];
+      const errors:any = [];
+
       for (const [index, record] of data.data.entries()) {
+        const startRecord = Date.now();
         try {
           const { IdNumber, no_of_classes_happened, no_of_classes_attended } = record;
-          const student = await client.student.findFirst({ where: { id: IdNumber.toLowerCase() }, select: { id: true, Branch: true } });
+          const student = await client.student.findFirst({
+            where: { id: IdNumber.toLowerCase() },
+            select: { id: true, Branch: true },
+          });
           if (!student) {
-            failedRecords.push({ idNumber: IdNumber, recordIndex: index, reason: 'Student not found in database' });
-            processingErrors.push({ recordIndex: index, message: `Student "${IdNumber}" not found in database` });
+
+            errors.push({ recordIndex: index, idNumber: IdNumber, message: `Student "${IdNumber}" not found in database` });
             continue;
           }
+
           const subjectData = subjectsData[year]?.[name]?.[student.Branch];
           if (!subjectData) {
-            failedRecords.push({ idNumber: IdNumber, recordIndex: index, reason: `No subject data found for ${student.Branch} in ${data.SemesterName}` });
-            processingErrors.push({ recordIndex: index, message: `No subject data found for ${student.Branch} in ${data.SemesterName}` });
+            errors.push({
+              recordIndex: index,
+              idNumber: IdNumber,
+              message: `No subject data found for ${student.Branch} in ${data.SemesterName}`,
+            });
             continue;
           }
-          const expectedSubjects = subjectData.names.map((name, i) => ({ name, index: i })).filter((subject, i) => subject.name && (!subjectData.hide || !subjectData.hide.includes(i + 1)));
+
+          const expectedSubjects = subjectData.names
+            .map((name, i) => ({ name, index: i }))
+            .filter((subject, i) => subject.name && (!subjectData.hide || !subjectData.hide.includes(i + 1)));
           const happenedSubjectNames = no_of_classes_happened.map(cls => cls.SubjectName);
           const attendedSubjectNames = no_of_classes_attended.map(cls => cls.SubjectName);
-          const missingSubjects = expectedSubjects.filter(subject => !happenedSubjectNames.includes(subject.name) || !attendedSubjectNames.includes(subject.name));
+          const missingSubjects = expectedSubjects.filter(
+            subject => !happenedSubjectNames.includes(subject.name) || !attendedSubjectNames.includes(subject.name)
+          );
           if (missingSubjects.length > 0) {
-            failedRecords.push({ idNumber: IdNumber, recordIndex: index, reason: `Missing attendance for subjects: ${missingSubjects.map(s => s.name).join(', ')}` });
-            processingErrors.push({ recordIndex: index, message: `Missing attendance for subjects: ${missingSubjects.map(s => s.name).join(', ')}` });
+            errors.push({
+              recordIndex: index,
+              idNumber: IdNumber,
+              message: `Missing attendance for subjects: ${missingSubjects.map(s => s.name).join(', ')}`,
+            });
             continue;
           }
+
           const branch = await client.branch.findFirstOrThrow({ where: { name: student.Branch } });
           const branchId = branch.id;
           const happenedMap = new Map(no_of_classes_happened.map(cls => [cls.SubjectName, cls.Classes]));
           const attendedMap = new Map(no_of_classes_attended.map(cls => [cls.SubjectName, cls.Classes]));
-          await client.$transaction(async (tx) => {
-            for (const subjectName of happenedSubjectNames) {
-              const totalClasses: number = Number(happenedMap.get(subjectName)) || 0;
-              const attendedClasses: number = Number(attendedMap.get(subjectName)) || 0;
-              if (attendedClasses > totalClasses) {
-                failedRecords.push({ idNumber: IdNumber, recordIndex: index, reason: `Attended classes (${attendedClasses}) exceeds total classes (${totalClasses}) for subject "${subjectName}"` });
-                processingErrors.push({ recordIndex: index, message: `Attended classes (${attendedClasses}) exceeds total classes (${totalClasses}) for subject "${subjectName}"` });
+
+          // Process each subject without a transaction
+          for (const subjectName of happenedSubjectNames) {
+            const totalClasses = Number(happenedMap.get(subjectName)) || 0;
+            const attendedClasses = Number(attendedMap.get(subjectName)) || 0;
+            if (attendedClasses > totalClasses) {
+              errors.push({
+                recordIndex: index,
+                idNumber: IdNumber,
+                message: `Attended classes (${attendedClasses}) exceeds total classes (${totalClasses}) for subject "${subjectName}"`,
+              });
+              continue;
+            }
+
+            const isElective = subjectName.includes('Elective') || subjectName.includes('MOOC');
+            let subject = await client.subject.findFirst({
+              where: { name: subjectName, semesterId: semester.id, branchId },
+              select: { id: true },
+            });
+
+            if (!subject && isElective) {
+              const creditIndex = subjectData.names.indexOf(subjectName);
+              const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
+              try {
+                subject = await client.subject.create({
+                  data: { id: uuidv4(), name: subjectName, credits, branchId, semesterId: semester.id },
+                  select: { id: true },
+                });
+              } catch (error:any) {
+                errors.push({
+                  recordIndex: index,
+                  idNumber: IdNumber,
+                  message: `Failed to create elective subject "${subjectName}": ${error.message}`,
+                });
                 continue;
               }
-              const isElective = subjectName.includes('Elective') || subjectName.includes('MOOC');
-              let subject;
-              if (isElective) {
-                subject = await tx.subject.findFirst({ where: { name: subjectName, semesterId: semester.id, branchId }, select: { id: true } });
-                if (!subject) {
-                  const creditIndex = subjectData.names.indexOf(subjectName);
-                  const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
-                  subject = await tx.subject.create({ data: { id: uuidv4(), name: subjectName, credits, branchId, semesterId: semester.id }, select: { id: true } });
-                }
-              } else {
-                subject = await tx.subject.findFirst({ where: { name: subjectName, semesterId: semester.id, branchId }, select: { id: true } });
-                if (!subject) {
-                  failedRecords.push({ idNumber: IdNumber, recordIndex: index, reason: `Subject "${subjectName}" not found for semester "${data.SemesterName}" and branch "${student.Branch}"` });
-                  processingErrors.push({ recordIndex: index, message: `Subject "${subjectName}" not found for semester "${data.SemesterName}" and branch "${student.Branch}"` });
-                  continue;
-                }
-              }
-              await tx.attendance.upsert({ where: { studentId_subjectId_semesterId: { studentId: student.id, subjectId: subject.id, semesterId: semester.id } }, update: { totalClasses, attendedClasses }, create: { studentId: student.id, subjectId: subject.id, semesterId: semester.id, totalClasses, attendedClasses } });
             }
-          });
+
+            if (!subject) {
+              errors.push({
+                recordIndex: index,
+                idNumber: IdNumber,
+                message: `Subject "${subjectName}" not found for semester "${data.SemesterName}" and branch "${student.Branch}"`,
+              });
+              continue;
+            }
+
+            try {
+              await client.attendance.upsert({
+                where: {
+                  studentId_subjectId_semesterId: {
+                    studentId: student.id,
+                    subjectId: subject.id,
+                    semesterId: semester.id,
+                  },
+                },
+                update: { totalClasses, attendedClasses },
+                create: { studentId: student.id, subjectId: subject.id, semesterId: semester.id, totalClasses, attendedClasses },
+              });
+            } catch (error:any) {
+              errors.push({
+                recordIndex: index,
+                idNumber: IdNumber,
+                message: `Failed to upsert attendance for "${subjectName}": ${error.message}`,
+              });
+              continue;
+            }
+          }
+
           processedRecords++;
-        } catch (error: any) {
+        } catch (error:any) {
           console.error(`Failed to process record ${index} for idNumber ${record.IdNumber}:`, error);
-          failedRecords.push({ idNumber: record.IdNumber, recordIndex: index, reason: error.message || 'Unexpected error during processing' });
-          processingErrors.push({ recordIndex: index, message: error.message || 'Unexpected error', stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
+          errors.push({
+            recordIndex: index,
+            idNumber: record.IdNumber,
+            message: error.message || 'Unexpected error during processing',
+          });
         }
-        const progress:any = progressStore.get(processId);
+
+        // Update progress
+        const progress = progressStore.get(processId);
         if (progress) {
           progress.processedRecords = processedRecords;
-          progress.failedRecords = failedRecords;
-          progress.errors = processingErrors;
+          progress.errors = errors;
         }
+
+        console.log(`Processed record ${index} in ${Date.now() - startRecord}ms`);
       }
+
+      // Finalize progress
       const progress:any = progressStore.get(processId);
       if (progress) {
         progress.processedRecords = processedRecords;
-        progress.failedRecords = failedRecords;
-        progress.errors = processingErrors;
-        progress.status = failedRecords.length === data.data.length ? 'failed' : 'completed';
+        progress.errors = errors;
+        progress.status = errors.length === data.data.length ? 'failed' : 'completed';
         progress.endTime = new Date();
-        setTimeout(() => progressStore.delete(processId), 5 * 60 * 1000);
+        setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
       }
-      console.log(`Process completed: ${processedRecords} successful, ${failedRecords.length} failed`);
+
+      console.log(`Process ${processId} completed: ${processedRecords} successful, ${errors.length} failed`);
     })();
-    res.status(202).json({ msg: `Processing ${data.data.length} student attendance records in the background`, processId, success: true });
-  } catch (error: any) {
+
+    res.status(202).json({
+      msg: `Processing ${data.data.length} student attendance records in the background`,
+      processId,
+      success: true,
+    });
+  } catch (error:any) {
     console.error('Unexpected error in /addattendance route:', error);
-    res.status(500).json({ msg: 'Internal Server Error', success: false, error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+    res.status(500).json({
+      msg: 'Internal Server Error',
+      success: false,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 });
 
