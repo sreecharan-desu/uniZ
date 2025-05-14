@@ -247,7 +247,7 @@ export default function AddGrades() {
         setError('Error fetching progress. Check your network or try again.');
         clearInterval(interval);
       }
-    }, 1000); // Poll every 1 second
+    }, 3000); // Poll every 1 second
 
     return () => clearInterval(interval);
   }, [processId]);
