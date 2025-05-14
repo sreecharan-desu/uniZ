@@ -258,7 +258,7 @@ adminRouter.post('/updatestudents', authMiddleware, async (req, res) => {
         progress.processedRecords = records;
         progress.failedRecords = failedRecords;
         progress.status = 'completed';
-        setTimeout(() => progressStore.delete(processId), 5 * 60 * 1000);
+        setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
       }
       console.log(`Process completed: ${records} successful, ${failedRecords.length} failed`);
     })();
@@ -269,6 +269,40 @@ adminRouter.post('/updatestudents', authMiddleware, async (req, res) => {
   }
 });
 
+
+// Helper to chunk arrays
+const chunkArrayForAddGrades = (array, size) => {
+  const chunks:any = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+};
+
+// Cache for subjects
+const subjectCache = new Map();
+async function getOrCreateSubject(subjectName, semesterId, branchId, subjectData, isElective) {
+  const cacheKey = `${subjectName}_${semesterId}_${branchId}`;
+  if (subjectCache.has(cacheKey)) {
+    return subjectCache.get(cacheKey);
+  }
+  let subject = await client.subject.findFirst({
+    where: { name: subjectName, semesterId, branchId },
+    select: { id: true },
+  });
+  if (!subject && isElective) {
+    const creditIndex = subjectData.names.indexOf(subjectName);
+    const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
+    subject = await client.subject.create({
+      data: { id: uuidv4(), name: subjectName, credits, branchId, semesterId },
+      select: { id: true },
+    });
+  }
+  subjectCache.set(cacheKey, subject);
+  return subject;
+}
+
+// HTTP endpoint
 adminRouter.post('/addgrades', authMiddleware, async (req, res) => {
   const data = req.body;
   const validationErrors = validateInput(data);
@@ -279,132 +313,190 @@ adminRouter.post('/addgrades', authMiddleware, async (req, res) => {
   try {
     const processId = uuidv4();
     //@ts-ignore
-    progressStore.set(processId, { totalRecords: data.Students.length, processedRecords: 0, errors: [], status: 'pending', startTime: new Date() });
+    progressStore.set(processId, {
+      totalRecords: data.Students.length,
+      processedRecords: 0,
+      errors: [],
+      status: 'pending',
+      startTime: new Date(),
+    });
 
     const [year, name] = data.SemesterName.split('*');
-    const semester = await client.semester.findFirst({ where: { year, name }, select: { id: true } });
+    const semester = await client.semester.findFirst({
+      where: { year, name },
+      select: { id: true },
+    });
     if (!semester) {
       return res.status(400).json({ msg: `Semester "${data.SemesterName}" not found`, success: false });
     }
 
-    const chunks:any = chunkArray(data.Students, 50);
-    let processedRecords = 0;
-    const errors:any = [];
-
-    for (const chunk of chunks) {
-      const usernames = chunk.map(record => record.Username.toLowerCase());
-      const students = await client.student.findMany({
-        where: { Username: { in: usernames } },
-        select: { id: true, Branch: true },
+    // Validate usernames
+    const usernames = data.Students.map(record => record.Username.toLowerCase());
+    const existingStudents = await client.student.findMany({
+      where: { Username: { in: usernames, mode: 'insensitive' } }, // Case-insensitive for PostgreSQL
+      select: { Username: true },
+    });
+    const existingUsernames = new Set(existingStudents.map(s => s.Username.toLowerCase()));
+    const invalidUsernames = usernames.filter(u => !existingUsernames.has(u));
+    if (invalidUsernames.length > 0) {
+      return res.status(400).json({
+        msg: `Invalid usernames: ${invalidUsernames.join(', ')}`,
+        success: false,
       });
-      const studentMap = new Map(students.map((s:any) => [s.Username, s]));
+    }
 
-      await Promise.all(
-        chunk.map(async (record, index) => {
+    // Background processing
+    (async () => {
+      let processedRecords = 0;
+      const errors:any = [];
+      const chunks:any = chunkArrayForAddGrades(data.Students, 50);
+
+      for (const chunk of chunks) {
+        const startChunk = Date.now();
+        const usernames = chunk.map(record => record.Username.toLowerCase());
+        const students = await client.student.findMany({
+          where: { Username: { in: usernames, mode: 'insensitive' } },
+          select: { id: true, Username: true, Branch: true },
+        });
+        const studentMap = new Map(students.map(s => [s.Username.toLowerCase(), s]));
+
+        const branchNames = [...new Set(students.map(s => s.Branch))];
+        const branches = await client.branch.findMany({
+          where: { name: { in: branchNames } },
+          select: { id: true, name: true },
+        });
+        const branchMap = new Map(branches.map(b => [b.name, b.id]));
+
+        for (const [index, record] of chunk.entries()) {
+          const startRecord = Date.now();
           try {
             const { Username, Grades } = record;
             const student = studentMap.get(Username.toLowerCase());
             if (!student) {
               errors.push({ recordIndex: index, username: Username, message: 'Student not found' });
-              return;
+              continue;
             }
 
             const subjectData = subjectsData[year]?.[name]?.[student.Branch];
             if (!subjectData) {
-              errors.push({ recordIndex: index, username: Username, message: `No subject data for ${student.Branch} in ${data.SemesterName}` });
-              return;
+              errors.push({
+                recordIndex: index,
+                username: Username,
+                message: `No subject data for ${student.Branch} in ${data.SemesterName}`,
+              });
+              continue;
             }
 
-            // Validate grades
             const expectedSubjects = subjectData.names
               .map((name, i) => ({ name, index: i }))
               .filter((subject, i) => subject.name && (!subjectData.hide || !subjectData.hide.includes(i + 1)));
             const gradeSubjectNames = Grades.map(grade => grade.SubjectName);
             const missingSubjects = expectedSubjects.filter(subject => !gradeSubjectNames.includes(subject.name));
             if (missingSubjects.length > 0) {
-              errors.push({ recordIndexmetrics: index, username: Username, message: `Missing grades for subjects: ${missingSubjects.map(s => s.name).join(', ')}` });
-              return;
+              errors.push({
+                recordIndex: index,
+                username: Username,
+                message: `Missing grades for subjects: ${missingSubjects.map(s => s.name).join(', ')}`,
+              });
+              continue;
             }
 
-            const branch:any = await client.branch.findFirstOrThrow({ where: { name: student.Branch } });
-            const gradeData:any = [];
+            const branchId = branchMap.get(student.Branch);
+            if (!branchId) {
+              errors.push({
+                recordIndex: index,
+                username: Username,
+                message: `Branch ${student.Branch} not found`,
+              });
+              continue;
+            }
 
             for (const { SubjectName, Grade } of Grades) {
-              const isElective = SubjectName.includes('Elective') || SubjectName.includes('MOOC');
-              let subject = await client.subject.findFirst({
-                where: { name: SubjectName, semesterId: semester.id, branchId: branch.id },
-                select: { id: true },
-              });
-
-              if (!subject && isElective) {
-                const creditIndex = subjectData.names.indexOf(SubjectName);
-                const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
-                subject = await client.subject.create({
-                  data: { id: uuidv4(), name: SubjectName, credits, branchId: branch.id, semesterId: semester.id },
-                  select: { id: true },
-                });
-              }
-
-              if (!subject) {
-                errors.push({ recordIndex: index, username: Username, message: `Subject "${SubjectName}" not found` });
-                continue;
-              }
-
               const numericGrade = convertLetterToNumericGrade(Grade);
               if (numericGrade === null) {
-                errors.push({ recordIndex: index, username: Username, message: `Invalid grade "${Grade}" for "${SubjectName}"` });
+                errors.push({
+                  recordIndex: index,
+                  username: Username,
+                  message: `Invalid grade "${Grade}" for "${SubjectName}"`,
+                });
                 continue;
               }
 
-              gradeData.push({
-                studentId: student.id,
-                subjectId: subject.id,
-                semesterId: semester.id,
-                grade: numericGrade,
-              });
-            }
+              const isElective = SubjectName.includes('Elective') || SubjectName.includes('MOOC');
+              const subject = await getOrCreateSubject(SubjectName, semester.id, branchId, subjectData, isElective);
+              if (!subject) {
+                errors.push({
+                  recordIndex: index,
+                  username: Username,
+                  message: `Subject "${SubjectName}" not found`,
+                });
+                continue;
+              }
 
-            // Bulk upsert grades
-            await client.$transaction(
-              gradeData.map(data =>
-                client.grade.upsert({
-                  where: { studentId_subjectId_semesterId: { studentId: data.studentId, subjectId: data.subjectId, semesterId: data.semesterId } },
-                  update: { grade: data.grade },
-                  create: data,
-                })
-              )
-            );
+              try {
+                await client.grade.upsert({
+                  where: {
+                    studentId_subjectId_semesterId: {
+                      studentId: student.id,
+                      subjectId: subject.id,
+                      semesterId: semester.id,
+                    },
+                  },
+                  update: { grade: numericGrade },
+                  create: {
+                    studentId: student.id,
+                    subjectId: subject.id,
+                    semesterId: semester.id,
+                    grade: numericGrade,
+                  },
+                });
+              } catch (error:any) {
+                errors.push({
+                  recordIndex: index,
+                  username: Username,
+                  message: `Failed to upsert grade for "${SubjectName}": ${error.message}`,
+                });
+                continue;
+              }
+            }
 
             processedRecords++;
           } catch (error:any) {
-            errors.push({ recordIndex: index, username: record.Username, message: error.message || 'Processing error' });
+            console.error(`Error processing record ${index} for ${record.Username}:`, error);
+            errors.push({
+              recordIndex: index,
+              username: record.Username,
+              message: error.message || 'Unexpected error',
+            });
           }
-        })
-      );
+          console.log(`Processed record ${index} in ${Date.now() - startRecord}ms`);
+        }
 
-      const progress = progressStore.get(processId);
-      if (progress) {
-        progress.processedRecords = processedRecords;
-        progress.errors = errors;
+        const progress = progressStore.get(processId);
+        if (progress) {
+          progress.processedRecords = processedRecords;
+          progress.errors = errors;
+        }
+        console.log(`Processed chunk in ${Date.now() - startChunk}ms`);
       }
-    }
 
-    const progress:any = progressStore.get(processId);
-    if (progress) {
-      progress.status = errors.length === data.Students.length ? 'failed' : 'completed';
-      progress.endTime = new Date();
-      setTimeout(() => progressStore.delete(processId), 5 * 60 * 1000);
-    }
+      const progress:any = progressStore.get(processId);
+      if (progress) {
+        progress.status = errors.length === data.Students.length ? 'failed' : 'completed';
+        progress.endTime = new Date();
+        setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
+      }
 
-    res.status(200).json({
-      msg: `Processed ${processedRecords} of ${data.Students.length} records`,
-      success: errors.length === 0,
+      console.log(`Process ${processId} completed: ${processedRecords} successful, ${errors.length} failed`);
+    })();
+
+    res.status(202).json({
+      msg: `Processing ${data.Students.length} student grade records in the background`,
       processId,
-      totalRecords: data.Students.length,
-      processedRecords,
-      errors,
+      success: true,
     });
   } catch (error) {
+    console.error('Error in /addgrades:', error);
     res.status(500).json({ msg: 'Internal Server Error', success: false });
   }
 });
