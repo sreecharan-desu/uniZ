@@ -9,7 +9,7 @@ import { isMaintenance } from "../App";
 // Add new Skeleton components
 const UserSkeleton = () => (
     <div className="flex items-center space-x-2 animate-pulse">
-        <div className="bg-gray-300 rounded-full p-2 px-3 h-10 w-10"></div>
+        <div className="bg-gray-300 rounded-full p-2 px-4 h-10 w-10"></div>
         <div className="flex-col justify-center">
             <div className="bg-gray-300 h-4 w-32 rounded mb-2"></div>
             <div className="bg-gray-300 h-4 w-40 rounded"></div>
@@ -91,7 +91,7 @@ export default function Navbar() {
                         <UserSkeleton />
                     ) : (
                         <div className="flex items-center space-x-2">
-                            <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-3 font-bold`}>
+                            <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-4 font-bold`}>
                                 {username?.name ? getInitials(username.name) : ''}
                             </div>
                             <div className="flex-col justify-center">

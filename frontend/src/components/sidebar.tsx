@@ -183,7 +183,7 @@ export default function Sidebar({ content }: MainContent) {
               <div
                 className={`${
                   username.name ? "bg-white text-black" : "bg-transparent text-white"
-                } rounded-full p-2 px-3 font-bold -ml-2`}
+                } rounded-full p-2 px-4 font-bold -ml-2`}
               >
                 {username.name
                   ? `${username.name[0]}${username.name.split(" ")[1]?.[0] || ""}`

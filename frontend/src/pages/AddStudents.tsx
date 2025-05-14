@@ -10,6 +10,7 @@ export default function AddStudents() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [previewData, setPreviewData] = useState<any[]>([]); // New state for preview
   const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +32,18 @@ export default function AddStudents() {
         return;
       }
       setFile(selectedFile);
+      // Parse CSV for preview
+      Papa.parse(selectedFile, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const jsonData = results.data.slice(0, 5); // Show up to 5 rows
+          setPreviewData(jsonData);
+        },
+        error: () => {
+          setError('Error parsing CSV for preview.');
+        },
+      });
     }
   };
 
@@ -78,7 +91,7 @@ export default function AddStudents() {
         });
       });
 
-      const jsonData = results.data.slice(0, -1);
+      const jsonData = results.data;
       if (!validateStudentsData(jsonData)) {
         setError('CSV format does not match required structure. Ensure all required columns are present and non-empty. Download sample CSV.');
         setIsUploading(false);
@@ -252,6 +265,56 @@ export default function AddStudents() {
                 className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-900 hover:file:bg-gray-200 disabled:opacity-50"
                 disabled={isUploading}
               />
+              {previewData.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Preview (First 5 Rows)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          {[
+                            'ID NUMBER',
+                            'NAME OF THE STUDENT',
+                            'GENDER',
+                            'BRANCH',
+                            'BATCH',
+                            'MOBILE NUMBER',
+                            "FATHER'S NAME",
+                            "MOTHER'S NAME",
+                            "PARENT'S NUMBER",
+                            'BLOOD GROUP',
+                            'ADDRESS',
+                          ].map((header) => (
+                            <th
+                              key={header}
+                              className="px-4 py-2 text-left text-sm font-medium text-gray-600 border-b"
+                            >
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewData.map((row, index) => (
+                          <tr key={index} className="border-b">
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['ID NUMBER']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['NAME OF THE STUDENT']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['GENDER']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['BRANCH']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['BATCH']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['MOBILE NUMBER']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row["FATHER'S NAME"]}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row["MOTHER'S NAME"]}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row["PARENT'S NUMBER"]}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['BLOOD GROUP']}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{row['ADDRESS']}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
             <button
               onClick={handleUpload}
