@@ -172,7 +172,7 @@ export default function AddStudents() {
         setError('Error fetching progress. Check your network or try again.');
         clearInterval(interval);
       }
-    }, 1000); // Poll every 1 second as requested
+    }, 3000); // Poll every 1 second as requested
 
     return () => clearInterval(interval);
   }, [processId]);
