@@ -36,10 +36,10 @@ export default function Signin({ type }: SigninProps) {
   }, [authState, navigate]);
 
   const usernameHandler = (event: any) => {
-    setUsername(event.target.value);
+    setUsername(event.target.value.toLowerCase());
 }
 const passwordHandler = (event: any) => {
-    setPassword(event.target.value);
+    setPassword(event.target.value.toLowerCase());
 }
 
   // Validate and send data to backend
@@ -50,7 +50,7 @@ const passwordHandler = (event: any) => {
       return;
     }
 
-    if (type === "student" && !username.includes("o")) {
+    if (type === "student" && !username.toLowerCase().includes("o")) {
       toast.error("Student username must be your college ID (e.g., containing 'o')");
       return;
     }

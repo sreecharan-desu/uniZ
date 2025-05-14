@@ -194,7 +194,7 @@ export default function Sidebar({ content }: MainContent) {
                   isCollapsed ? "opacity-0 w-0" : "opacity-100"
                 }`}
               >
-                {!isCollapsed && (username.username?.toUpperCase() || "User")}
+                {!isCollapsed && (username.username || "User")}
               </span>
             </div>
           )}
