@@ -77,7 +77,7 @@ export async function addStudent(idNumber: string, name: string, gender: string 
     const normalizedBranch = branch?.replace(/-\d+$/, '').toUpperCase() || '';
     const validBranches = ['CSE', 'ECE', 'EEE', 'CIVIL', 'MECH'];
     if (branch && !validBranches.includes(normalizedBranch)) throw new Error(`Invalid branch ${branch} for student ${idNumber}`);
-    const hashedPasswordResult = await hashPassword(`${idNumber}@rguktong`);
+    const hashedPasswordResult = await hashPassword(`${idNumber.toLowerCase()}@rguktong`);
     if (!hashedPasswordResult.success || !hashedPasswordResult.password) throw new Error(`Failed to hash password for student ${idNumber}`);
     const studentData = {
       Username: idNumber.toLowerCase(),
