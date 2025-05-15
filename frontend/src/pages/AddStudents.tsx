@@ -1,16 +1,52 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { useNavigate } from 'react-router-dom';
 
+// Define interfaces for type safety
+interface Student {
+  'ID NUMBER': string;
+  'NAME OF THE STUDENT': string;
+  'GENDER': string;
+  'BRANCH': string;
+  'BATCH': string;
+  'MOBILE NUMBER': string;
+  "FATHER'S NAME": string;
+  "MOTHER'S NAME": string;
+  "PARENT'S NUMBER": string;
+  'BLOOD GROUP': string;
+  'ADDRESS': string;
+}
+
+interface FailedRecord {
+  id: string;
+  reason: string | object;
+}
+
+interface ProgressResponse {
+  processId: string;
+  totalRecords: number;
+  processedRecords: number;
+  failedRecords: FailedRecord[];
+  percentage: number;
+  status: 'pending' | 'completed' | 'failed';
+  success: boolean;
+  msg?: string;
+}
+
+interface UploadResponse {
+  success: boolean;
+  processId?: string;
+  msg?: string;
+}
+
 export default function AddStudents() {
   const [file, setFile] = useState<File | null>(null);
   const [processId, setProcessId] = useState<string | null>(null);
-  const [progress, setProgress] = useState<any>(null);
+  const [progress, setProgress] = useState<ProgressResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [previewData, setPreviewData] = useState<any[]>([]); // New state for preview
+  const [previewData, setPreviewData] = useState<Student[]>([]);
   const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,6 +55,7 @@ export default function AddStudents() {
     setSuccessMsg(null);
     setProgress(null);
     setProcessId(null);
+    setPreviewData([]);
 
     if (selectedFile) {
       // Validate file type
@@ -26,14 +63,14 @@ export default function AddStudents() {
         setError('Please select a valid CSV file.');
         return;
       }
-      // Validate file size (e.g., max 5MB)
+      // Validate file size (max 5MB)
       if (selectedFile.size > 5 * 1024 * 1024) {
         setError('File size exceeds 5MB limit.');
         return;
       }
       setFile(selectedFile);
       // Parse CSV for preview
-      Papa.parse(selectedFile, {
+      Papa.parse<Student>(selectedFile, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
@@ -47,7 +84,7 @@ export default function AddStudents() {
     }
   };
 
-  const validateStudentsData = (data: any) => {
+  const validateStudentsData = (data: unknown): data is Student[] => {
     const requiredKeys = [
       'ID NUMBER',
       'NAME OF THE STUDENT',
@@ -66,7 +103,8 @@ export default function AddStudents() {
       data.length > 0 &&
       data.every((student) =>
         typeof student === 'object' &&
-        requiredKeys.every((key) => student[key] && typeof student[key] === 'string')
+        student !== null &&
+        requiredKeys.every((key) => key in student && typeof student[key] === 'string' && student[key])
       )
     );
   };
@@ -82,8 +120,8 @@ export default function AddStudents() {
     setSuccessMsg(null);
 
     try {
-      const results = await new Promise<any>((resolve, reject) => {
-        Papa.parse(file, {
+      const results = await new Promise<Papa.ParseResult<Student>>((resolve, reject) => {
+        Papa.parse<Student>(file, {
           header: true,
           skipEmptyLines: true,
           complete: (results) => resolve(results),
@@ -114,8 +152,8 @@ export default function AddStudents() {
         body: JSON.stringify(jsonData),
       });
 
-      const data = await response.json();
-      if (data.success) {
+      const data: UploadResponse = await response.json();
+      if (data.success && data.processId) {
         setProcessId(data.processId);
         setSuccessMsg(data.msg || 'Processing started successfully.');
       } else {
@@ -137,6 +175,7 @@ export default function AddStudents() {
         const token = localStorage.getItem('admin_token');
         if (!token) {
           setError('Authentication token not found. Please log in again.');
+          setSuccessMsg(null);
           clearInterval(interval);
           return;
         }
@@ -152,30 +191,53 @@ export default function AddStudents() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data: ProgressResponse = await response.json();
         if (data.success) {
           setProgress(data);
           if (data.status === 'completed' || data.status === 'failed') {
             clearInterval(interval);
             if (data.status === 'completed') {
-              setSuccessMsg('All records processed successfully!');
+              if (data.processedRecords > 0 && data.failedRecords.length === 0) {
+                setSuccessMsg('All records processed successfully!');
+                setError(null);
+              } else if (data.failedRecords.length > 0) {
+                setError(
+                  `Processing completed with issues: ${data.failedRecords.length} record(s) failed. Check failed records for details.`
+                );
+                setSuccessMsg(null);
+              } else {
+                setError('Processing completed, but no records were processed successfully.');
+                setSuccessMsg(null);
+              }
             } else if (data.status === 'failed') {
               setError('Processing failed. Check failed records for details.');
+              setSuccessMsg(null);
             }
           }
         } else {
           setError(data.msg || 'Failed to fetch progress.');
+          setSuccessMsg(null);
           clearInterval(interval);
         }
       } catch (err) {
         console.error('Progress fetch error:', err);
         setError('Error fetching progress. Check your network or try again.');
+        setSuccessMsg(null);
         clearInterval(interval);
       }
-    }, 3000); // Poll every 1 second as requested
+    }, 3000); // Poll every 3 seconds
 
     return () => clearInterval(interval);
   }, [processId]);
+
+  const handleReset = () => {
+    setFile(null);
+    setProcessId(null);
+    setProgress(null);
+    setError(null);
+    setSuccessMsg(null);
+    setPreviewData([]);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12">
@@ -347,6 +409,12 @@ export default function AddStudents() {
                 'Upload'
               )}
             </button>
+            <button
+              onClick={handleReset}
+              className="w-full py-3 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition-colors"
+            >
+              Reset
+            </button>
             {progress && (
               <div className="mt-6 space-y-4">
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -380,15 +448,18 @@ export default function AddStudents() {
                       {progress.status}
                     </span>
                   </p>
-                  {progress.failedRecords?.length > 0 && (
+                  {progress.failedRecords.length > 0 && (
                     <div className="mt-2">
                       <p className="text-red-600">
                         {progress.failedRecords.length} record(s) failed:
                       </p>
                       <ul className="list-disc pl-5 text-sm text-red-600">
-                        {progress.failedRecords.map((record: any, index: number) => (
+                        {progress.failedRecords.map((record, index) => (
                           <li key={index}>
-                            ID: {record.id || 'Unknown'} - {record.reason || 'No reason provided'}
+                            ID: {record.id || 'Unknown'} -{' '}
+                            {typeof record.reason === 'string' && record.reason
+                              ? record.reason
+                              : 'Failed to process (no specific reason provided)'}
                           </li>
                         ))}
                       </ul>
