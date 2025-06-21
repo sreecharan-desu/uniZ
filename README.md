@@ -1,16 +1,5 @@
 # Repository Documentation
 
-Welcome to the comprehensive documentation for this repository. This documentation was automatically generated using AI-powered code analysis.
-
-## Documentation Statistics
-
-| Metric | Value |
-|--------|-------|
-| **Total Modules** | 1 |
-| **Total Sections** | 4 |
-| **Generation Time** | 53.15s |
-| **Last Updated** | 6/21/2025, 12:40:21 PM |
-
 ## Repository Architecture
 
 ```mermaid
