@@ -12,19 +12,17 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-black py-4 z-10 w-full text-center m-10">
+    <footer className="bg-black py-4 z-10 w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col justify-center place-content-center md:flex-row md:justify-between md:items-center">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
           {/* Logo and Copyright */}
-
-          <div className="flex justify-center items-center space-x-2">
-            <span className="font-bold text-white text-center text-xl sm:text-2xl">Schat</span>
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-white text-xl sm:text-2xl">uniZ</span>
             <span className="text-gray-400 text-sm mt-1">© {year}</span>
           </div>
 
-
           {/* Creator Credit and Social Links */}
-          <div className="flex flex-col mt-4 md:mt-0 justify-center place-content-center items-center">
+          <div className="flex flex-col mt-4 md:mt-0">
             {/* Creator Credit */}
             <div className="text-gray-400 text-sm flex items-center">
               <span>Made with</span>
@@ -59,9 +57,7 @@ export function Footer() {
                 </a>
               ))}
             </div>
-
           </div>
-
         </div>
       </div>
     </footer>
