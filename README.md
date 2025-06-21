@@ -79,31 +79,6 @@ The system is built using a React frontend and a Node.js/Express backend (althou
 
 ### Component Relationships
 
-The following diagram illustrates the relationships between the key components:
-
-```mermaid
-graph LR
-    A[App.tsx] --> B(Layout.tsx);
-    B --> C(ApproveComp.tsx);
-    B --> D(Navbar.tsx);
-    B --> E(Footer.tsx);
-    A --> F(store.ts);
-    A --> G(Transition.tsx);
-    C --> F;
-    C --> H(Button.tsx);
-    C --> I(timeUtils.ts);
-    C --> J(apis.ts);
-    A --> K(main.tsx);
-    A --> L(Modal.tsx);
-    style K fill:#f9f,stroke:#333,stroke-width:2px
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#f9f,stroke:#333,stroke-width:2px
-    style C fill:#f9f,stroke:#333,stroke-width:2px
-    style F fill:#f9f,stroke:#333,stroke-width:2px
-    style G fill:#f9f,stroke:#333,stroke-width:2px
-    style L fill:#f9f,stroke:#333,stroke-width:2px
-```
-
 **Explanation:**
 
 *   `App.tsx` is the root component, setting up the application's structure.
