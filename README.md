@@ -2,22 +2,6 @@
 
 ## Repository Architecture
 
-```mermaid
-graph TB
-    A[Repository] --> B[Modules: 1]
-    A --> C[Sections: 4]
-    B --> D[Core Components]
-    B --> E[UI Components]
-    B --> F[Utilities]
-    C --> G[API Documentation]
-    C --> H[Implementation Guides]
-    C --> I[Code Examples]
-    
-    style A fill:#10b981,stroke:#059669,color:#ffffff
-    style B fill:#3b82f6,stroke:#2563eb,color:#ffffff
-    style C fill:#8b5cf6,stroke:#7c3aed,color:#ffffff
-```
-
 ## Table of Contents
 
 ### 1. Frontend Utilities for Authentication, Data Fetching, and Time Management
