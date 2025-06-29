@@ -11,6 +11,7 @@ No description available
 **Sections:**
 
 
+
 **1.** [Admin Approval Component: Managing Outing and Outpass Requests](#section-link-module-module_miscellaneous_utilities-section-optimized_admin_approval_component:_managing_outing_and_outpass_requests)
 
 **2.** [Secure React Routes with `useIsAuth`: Role-Based Authentication and Redirection](#section-link-module-module_miscellaneous_utilities-section-optimized_secure_react_routes_with_`useisauth`:_role-based_authentication_and_redirection)
