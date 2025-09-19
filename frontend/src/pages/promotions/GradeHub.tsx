@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import axios from 'axios';
-import { student } from '../store';
+import { student } from '../../store';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChevronDown, Award, AlertCircle, X } from 'lucide-react';

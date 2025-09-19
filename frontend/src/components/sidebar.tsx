@@ -4,21 +4,21 @@ import { useNavigate } from "react-router-dom"; // Fixed import
 import { useIsAuth } from "../customhooks/is_authenticated";
 import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { motion } from "framer-motion";
-import { enableOutingsAndOutpasses } from "../pages/student"; // Fixed import path
-const CampusHub = lazy(() => import("../pages/CampusHub"));
-const Attendance = lazy(() => import("../pages/Attendance")); // Fixed typo
-const StudySpace = lazy(() => import("../pages/StudySpace")); // Fixed typo and case
+import { enableOutingsAndOutpasses } from "../pages/student/student"; // Fixed import path
+const CampusHub = lazy(() => import("../pages/promotions/CampusHub"));
+const Attendance = lazy(() => import("../pages/attendance/Attendance")); // Fixed typo
+const StudySpace = lazy(() => import("../pages/promotions/StudySpace")); // Fixed typo and case
 const OutpassOuting = lazy(() => import("./outpass&outing")); // Fixed path and name
-const ResetPassword = lazy(() => import("../pages/resetpass")); // Fixed path and name
+const ResetPassword = lazy(() => import("../pages/student/resetpass")); // Fixed path and name
 const RequestComp = lazy(() => import("./request-component")); // Fixed path and name
-const Student = lazy(() => import("../pages/student")); // Fixed path and name
-const GradeHub = lazy(() => import("../pages/GradeHub"));
+const Student = lazy(() => import("../pages/student/student")); // Fixed path and name
+const GradeHub = lazy(() => import("../pages/promotions/GradeHub"));
 import { FaCalendarCheck, FaLaptopCode } from "react-icons/fa";
 import { FaHouseLock } from "react-icons/fa6";
 import { Error } from "../App";
 
 // Re-export enableOutingsAndOutpasses
-export { enableOutingsAndOutpasses } from "../pages/student";
+export { enableOutingsAndOutpasses } from "../pages/student/student";
 
 interface MainContent {
   content:

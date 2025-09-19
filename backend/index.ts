@@ -8,8 +8,9 @@ app.use(cors());
 app.use("/api/v1/", mainRoute);
 
 app.get('/',(req,res) =>{
-  res.send("Hello from backed");
+  res.send("Hello from backend");
 })
+
 // Start the server
 app.listen(3000, () => {
   console.log(`Listening on Port number ${3000}`);

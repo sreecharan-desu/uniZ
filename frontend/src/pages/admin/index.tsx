@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router";
-import { useAdminname } from "../customhooks/adminname";
-import { useIsAuth } from "../customhooks/is_authenticated";
+import { useAdminname } from "../../customhooks/adminname";
+import { useIsAuth } from "../../customhooks/is_authenticated";
 import { useState, useEffect } from "react";
 
 // Loading Skeletons

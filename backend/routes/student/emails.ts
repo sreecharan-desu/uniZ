@@ -51,7 +51,7 @@ export const getOutpassMailFormatForStudent = (outpass:any)=>{
         <h1>Your Outpass Request</h1>
         <p>Your outpass request with ID: <strong>${
           outpass.outpass_details?.id
-        }</strong> is being sent to your warden. You will be notified via email once it is approved or rejected.</p>
+        }</strong> is being sent to your Administration. You will be notified via email once it is approved or rejected.</p>
         <div class="details">
             <p><strong>From Day:</strong> ${
               outpass.outpass_details?.FromDay.toLocaleString()
@@ -78,8 +78,8 @@ export const getOutpassMailFormatForStudent = (outpass:any)=>{
             return outPassEmailBody;
 }
 
-export const getOutpassMailFormatForWarden = (outpass:any,user:any)=>{
-    const wardenOutPassEmailBody = `
+export const getOutpassMailFormatForAdministration = (outpass:any,user:any)=>{
+    const AdministrationOutPassEmailBody = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -156,7 +156,7 @@ export const getOutpassMailFormatForWarden = (outpass:any,user:any)=>{
 </html>
 `;
 
-return wardenOutPassEmailBody;
+return AdministrationOutPassEmailBody;
 }
 
 export const getOutingMailFormatForStudent = (outing)=>{
@@ -212,7 +212,7 @@ export const getOutingMailFormatForStudent = (outing)=>{
                         <h1>Your Outing Request</h1>
                         <p>Your outing request with ID: <strong>${
                         outing.outing_details?.id
-                        }</strong> is being sent to your warden. You will be notified via email once it is approved or rejected.</p>
+                        }</strong> is being sent to your Administration. You will be notified via email once it is approved or rejected.</p>
                         <div class="details">
                             <p><strong>Reason:</strong> ${outing.outing_details?.reason}</p>
                             <p><strong>From Time:</strong> ${
@@ -238,8 +238,8 @@ export const getOutingMailFormatForStudent = (outing)=>{
                 return studentOutingEmailBody;
 }
 
-export const getOutingMailFormatForWarden = (outing:any,user:any)=>{
-    const wardenOutingEmailBody = `
+export const getOutingMailFormatForAdministration = (outing:any,user:any)=>{
+    const AdministrationOutingEmailBody = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -305,7 +305,7 @@ export const getOutingMailFormatForWarden = (outing:any,user:any)=>{
     </html>
     `;
 
-    return wardenOutingEmailBody;
+    return AdministrationOutingEmailBody;
 }
 
 export const passwordResetSuccess = `
@@ -360,7 +360,7 @@ export const passwordResetSuccess = `
         <h1>Your Password Reset Request</h1>
         <div class="details">
            <p>Your Password has been changed! We processed this on your request through uniZ website</p>
-           <p><strong>If this is not you Complaint about this to warden!</strong></p>
+           <p><strong>If this is not you Complaint about this to Administration!</strong></p>
 
            <p>**Kindly ignore this if it is done by you!</p>
         </div>
@@ -425,7 +425,7 @@ export const passwordResetFailed = `
         <h1>Your Password Reset Request</h1>
         <div class="details">
         <p>An attempt to change your password has been notices on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()} through uniZ website</p>
-        <p><strong>If this is not you Immediately Change your password or Complaint about this to warden!</strong></p>
+        <p><strong>If this is not you Immediately Change your password or Complaint about this to Administration!</strong></p>
 
         <p>**Kindly ignore this if it is done by you!</p>
         </div>

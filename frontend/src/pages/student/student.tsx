@@ -15,9 +15,9 @@ import {
   FaUsers,
 } from 'react-icons/fa';
 import axios from 'axios';
-import { student } from '../store';
-import { useIsAuth } from '../customhooks/is_authenticated';
-import { useStudentData } from '../customhooks/student_info';
+import { student } from '../../store';
+import { useIsAuth } from '../../customhooks/is_authenticated';
+import { useStudentData } from '../../customhooks/student_info';
 
 export const enableOutingsAndOutpasses = false;
 

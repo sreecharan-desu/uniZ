@@ -4,6 +4,7 @@
   "description": "An outpass Management System",
   "main": "dist/index.js",
   "scripts": {
+    "dev": "nodemon --watch '*.ts' --exec 'ts-node' ./index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma generate",
     "build": "prisma generate && tsc",
@@ -17,7 +18,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/nodemailer": "^6.4.15",
-    "@types/xlsx": "^0.0.36",
+    "@types/xlsx": "^0.0.35",
     "nodemon": "^3.1.4",
     "prisma": "^6.3.0",
     "ts-node": "^10.9.2",

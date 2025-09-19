@@ -48,7 +48,7 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
   const { username, password } = req.body;
   const isUserPresent = await findUserByUsername(username);
 
-  if (!isUserPresent) return res.json({ msg: "Seems like you dont have an account yet! Consult your Warden!", success: false });
+  if (!isUserPresent) return res.json({ msg: "Seems like you dont have an account yet! Consult your Administration!", success: false });
 
   const userResult = await currentUserByUsername(username);
   if (!userResult.success || !userResult.user) return res.json({ msg: "Invalid credentials Please Try again!", success: false });

@@ -6,15 +6,15 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { PageTransition } from "./components/Transition";
 import { useIsAuth } from "./customhooks/is_authenticated";
-import AddStudents from "./pages/AddStudents";
-import AddGrades from "./pages/AddGrades";
-import AddAttendance from "./pages/AddAttendance";
-import Settings from "./pages/Settings";
+import AddStudents from "./pages/admin/AddStudents";
+import AddGrades from "./pages/admin/AddGrades";
+import AddAttendance from "./pages/attendance/AddAttendance";
+import Settings from "./pages/admin/Settings";
 
 // Lazy load components
 const Home = lazy(() => import("./pages/home"));
-const Signin = lazy(() => import("./pages/StudentSignin"));
-const Admin = lazy(() => import("./pages/admin"));
+const Signin = lazy(() => import("./pages/auth/CommonSignin"));
+const Admin = lazy(() => import("./pages/admin/index"));
 
 const SearchStudents = lazy(() => import("./components/searchstudents"));
 const Sidebar = lazy(() => import("./components/sidebar"));

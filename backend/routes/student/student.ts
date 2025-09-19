@@ -17,7 +17,7 @@ import {
     updateStudentPassword,
 } from "../helper-functions";
 import { PrismaClient } from "@prisma/client";
-import { getOutingMailFormatForStudent, getOutingMailFormatForWarden, getOutpassMailFormatForStudent, getOutpassMailFormatForWarden, passwordResetFailed, passwordResetSuccess } from "./emails";
+import { getOutingMailFormatForStudent, getOutingMailFormatForAdministration, getOutpassMailFormatForStudent, getOutpassMailFormatForAdministration, passwordResetFailed, passwordResetSuccess } from "./emails";
 const client = new PrismaClient();
 export const studentRouter = Router();
 
@@ -53,10 +53,10 @@ studentRouter.post('/requestoutpass', isPresentInCampus, isApplicationPending, a
         if (outpass?.success) {
             const user = await client.student.findFirst({ where: { id: userId }, select: { Email: true, Username: true } });
             const studentOutpassEmail = await getOutpassMailFormatForStudent(outpass);
-            const wardenOutpassEmail = await getOutpassMailFormatForWarden(outpass, user);
+            const AdministrationOutpassEmail = await getOutpassMailFormatForAdministration(outpass, user);
             if (user?.Email) {
                 await sendEmail(user.Email, "Regarding your OutpassRequest", studentOutpassEmail);
-                await sendEmail('sreecharan309@gmail.com', `New Outpass Request From ${user.Username}`, wardenOutpassEmail);
+                await sendEmail('sreecharan309@gmail.com', `New Outpass Request From ${user.Username}`, AdministrationOutpassEmail);
             }
             res.json({ msg: outpass.msg, success: outpass.success });
         } else {
@@ -74,10 +74,10 @@ studentRouter.post('/requestouting', isPresentInCampus, isApplicationPending, au
     if (outing?.success) {
         const user = await client.student.findFirst({ where: { id: userId }, select: { Email: true, Username: true } });
         const studentOutingEmailBody = await getOutingMailFormatForStudent(outing);
-        const wardenOutingEmailBody = await getOutingMailFormatForWarden(outing, user);
+        const AdministrationOutingEmailBody = await getOutingMailFormatForAdministration(outing, user);
         if (user && user.Email && user.Username) {
             await sendEmail(user.Email, "Regarding your OutingRequest", studentOutingEmailBody);
-            await sendEmail('sreecharan309@gmail.com', `New Outing Request From ${user.Username}`, wardenOutingEmailBody);
+            await sendEmail('sreecharan309@gmail.com', `New Outing Request From ${user.Username}`, AdministrationOutingEmailBody);
         }
         res.json({ msg: outing.msg, success: outing.success });
     } else {

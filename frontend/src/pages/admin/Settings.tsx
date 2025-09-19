@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Button } from '../components/button';
-import { Input } from '../components/input';
+import { Button } from '../../components/button';
+import { Input } from '../../components/input';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { adminUsername } from '../store';
-import { useIsAuth } from '../customhooks/is_authenticated';
+import { adminUsername } from '../../store';
+import { useIsAuth } from '../../customhooks/is_authenticated';
 import { toast } from 'react-toastify';
 
 interface ResetPasswordResponse {

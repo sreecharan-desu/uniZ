@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import axios from 'axios';
-import { student } from '../store';
+import { student } from '../../store';
 import { ChevronDown, Award, AlertCircle, X, UserCheck, CheckCircle } from 'lucide-react';
 
 interface SubjectAttendance {

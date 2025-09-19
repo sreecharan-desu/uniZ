@@ -245,7 +245,7 @@ export const approveOutpass = async (id: string, adminName: string = "admin", me
   const pass:any = await getOutpassbyId(id);
   if (!pass?.isApproved) {
     if (pass.isRejected) return { msg: `You cannot approve a Rejected OutpassRequestThe outpass with id ${id} is already rejected on ${pass.rejectedTime.toString().split("GMT")[0] + "IST"} by ${pass.rejectedBy || pass.Message}`, success: false };
-    await client.outpass.update({ where: { id }, data: { isApproved: true, issuedBy: "Warden", Message: "Approved by Warden ", issuedTime: new Date(), Student: { update: { isApplicationPending: false, isPresentInCampus: false } } } });
+    await client.outpass.update({ where: { id }, data: { isApproved: true, issuedBy: "Administration", Message: "Approved by Administration ", issuedTime: new Date(), Student: { update: { isApplicationPending: false, isPresentInCampus: false } } } });
     return { msg: `OutpassRequest with id : ${id} approved successfully...`, success: true };
   }
   return { msg: `The outpassRequest with id ${id} is already approved on ${pass.issuedTime} by ${pass.issuedBy || pass.Message}`, success: false };
@@ -257,7 +257,7 @@ export const rejectOutpass = async (id: string, adminName?: string, message?: st
   const pass:any = await getOutpassbyId(id);
   if (!pass?.isRejected) {
     if (pass.isApproved) return { msg: `You cannot reject an approved OutpassRequest The outpass with id ${id} is already approved on ${pass.issuedTime.toString().split("GMT")[0] + "IST"} by ${pass.issuedBy || pass.Message}`, success: false };
-    await client.outpass.update({ where: { id }, data: { issuedTime: new Date(), isRejected: true, rejectedBy: adminName || "Warden", Message: message || "Rejected by Warden for not valid reason", rejectedTime: new Date(), Student: { update: { isApplicationPending: false } } } });
+    await client.outpass.update({ where: { id }, data: { issuedTime: new Date(), isRejected: true, rejectedBy: adminName || "Administration", Message: message || "Rejected by Administration for not valid reason", rejectedTime: new Date(), Student: { update: { isApplicationPending: false } } } });
     return { msg: `OutpassRequest with id ${id} rejected successfully...`, success: true };
   }
   return { msg: `The OutpassRequest with id ${id} is already rejected on ${pass.rejectedTime.toString().split("GMT")[0] + "IST"} by ${pass.rejectedBy || pass.Message}`, success: false };
@@ -287,7 +287,7 @@ export const approveOuting = async (id: string, adminName: string = "admin", mes
   const pass:any = await getOutingbyId(id);
   if (!pass?.isApproved) {
     if (pass.isRejected) return { msg: `You cannot approve a Rejected Outing RequestThe outpass with id ${id} is already rejected on ${pass.rejectedTime.toString().split("GMT")[0] + "IST"} by ${pass.rejectedBy || pass.Message}`, success: false };
-    await client.outing.update({ where: { id }, data: { isApproved: true, issuedBy: "Warden", Message: "Approved by Warden ", issuedTime: new Date(), Student: { update: { isApplicationPending: false, isPresentInCampus: false } } } });
+    await client.outing.update({ where: { id }, data: { isApproved: true, issuedBy: "Administration", Message: "Approved by Administration ", issuedTime: new Date(), Student: { update: { isApplicationPending: false, isPresentInCampus: false } } } });
     return { msg: `OutingRequest with id : ${id} approved successfully...`, success: true };
   }
   return { msg: `The outingRequest with id ${id} is already approved on ${pass.issuedTime.toString().split("GMT")[0] + "IST"} by ${pass.issuedBy || pass.Message}`, success: false };
@@ -299,7 +299,7 @@ export const rejectOuting = async (id: string, adminName?: string, message?: str
   const pass:any = await getOutingbyId(id);
   if (!pass?.isRejected) {
     if (pass.isApproved) return { msg: `You cannot reject an approved OutingRequest The outingRequest with id ${id} is already approved on ${pass.issuedTime.toString().split("GMT")[0] + "IST"} by ${pass.issuedBy || pass.Message}`, success: false };
-    await client.outing.update({ where: { id }, data: { issuedTime: new Date(), isRejected: true, rejectedBy: adminName || "Warden", Message: message || "Rejected by Warden for not valid reason", rejectedTime: new Date(), Student: { update: { isApplicationPending: false } } } });
+    await client.outing.update({ where: { id }, data: { issuedTime: new Date(), isRejected: true, rejectedBy: adminName || "Administration", Message: message || "Rejected by Administration for not valid reason", rejectedTime: new Date(), Student: { update: { isApplicationPending: false } } } });
     return { msg: `OutingRequest with id ${id} rejected successfully...`, success: true };
   }
   return { msg: `The outingRequest with id ${id} is already rejected on ${pass.rejectedTime.toString().split("GMT")[0] + "IST"} by ${pass.rejectedBy || pass.Message}`, success: false };

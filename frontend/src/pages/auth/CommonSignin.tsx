@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import { Input } from "../components/input";
-import { Button } from "../components/button";
+import { Input } from "../../components/input";
+import { Button } from "../../components/button";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { adminUsername, is_authenticated } from "../store";
+import { adminUsername, is_authenticated } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import { SIGNIN } from "../../apis";
 
 type SigninProps = {
   type: "student" | "admin";
@@ -37,14 +38,13 @@ export default function Signin({ type }: SigninProps) {
 
   const usernameHandler = (event: any) => {
     setUsername(event.target.value.toLowerCase());
-}
-const passwordHandler = (event: any) => {
-    setPassword(event.target.value.toLowerCase());
-}
+  };
+  const passwordHandler = (event: any) => {
+    setPassword(event.target.value);
+  };
 
   // Validate and send data to backend
   const sendDataToBackend = async () => {
-    // Client-side validation
     if (username.trim() === "" || password.trim() === "") {
       toast.error("Username and password are required");
       return;
@@ -63,12 +63,9 @@ const passwordHandler = (event: any) => {
     setIsLoading(true);
 
     try {
-      console.log(type)
-      const response = await fetch(`https://uni-z-api.vercel.app/api/v1/${type}/signin`, {
+      const response = await fetch(SIGNIN(type), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: username.trim(),
           password: password.trim(),
@@ -90,19 +87,13 @@ const passwordHandler = (event: any) => {
       if (data.student_token) {
         localStorage.setItem("student_token", JSON.stringify(data.student_token));
         localStorage.setItem("username", JSON.stringify(username.trim()));
-        setAuth({
-          is_authnticated: true,
-          type: "student",
-        });
+        setAuth({ is_authnticated: true, type: "student" });
         toast.success(`Successfully signed in as ${username.trim()}!`);
         navigate("/student", { replace: true });
       } else if (data.admin_token) {
         localStorage.setItem("admin_token", JSON.stringify(data.admin_token));
         localStorage.setItem("username", JSON.stringify(username.trim()));
-        setAuth({
-          is_authnticated: true,
-          type: "admin",
-        });
+        setAuth({ is_authnticated: true, type: "admin" });
         setAdmin(username.trim());
         toast.success("Successfully signed in as admin!");
         navigate("/admin", { replace: true });
@@ -112,6 +103,11 @@ const passwordHandler = (event: any) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // prevent page reload
+    sendDataToBackend();
   };
 
   return (
@@ -125,22 +121,21 @@ const passwordHandler = (event: any) => {
         <h1 className="text-3xl font-extrabold text-black">
           {type === "student" ? "Student Sign In" : "Admin Sign In"}
         </h1>
-        <div className="flex flex-col justify-center w-full p-8 bg-white shadow-lg rounded-2xl border border-gray-200">
-        <Input
-                        type="text"
-                        onchangeFunction={usernameHandler}
-                        placeholder="Username"
-                    />
-                    <Input
-                        type="password"
-                        onchangeFunction={passwordHandler}
-                        placeholder="Password"
-                    />
-                    <Button
-                        value="Sign In"
-                        onclickFunction={sendDataToBackend}
-                        loading = {isLoading}
-                    />
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col justify-center w-full p-8 bg-white shadow-lg rounded-2xl border border-gray-200 space-y-4"
+        >
+          <Input
+            type="text"
+            onchangeFunction={usernameHandler}
+            placeholder="Username"
+          />
+          <Input
+            type="password"
+            onchangeFunction={passwordHandler}
+            placeholder="Password"
+          />
+          <Button value="Sign In" onclickFunction={sendDataToBackend} loading={isLoading} />
           <p className="mt-4 text-gray-600 text-sm">
             Back to{" "}
             <a
@@ -150,7 +145,7 @@ const passwordHandler = (event: any) => {
               dashboard
             </a>
           </p>
-        </div>
+        </form>
       </motion.div>
     </div>
   );
