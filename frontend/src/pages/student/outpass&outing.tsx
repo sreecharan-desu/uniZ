@@ -1,10 +1,10 @@
 import { useRecoilValue } from "recoil";
-import { student } from "../store";
-import { Button } from "./button";
+import { student } from "../../store";
+import { Button } from "../../components/button";
 import { useNavigate } from "react-router";
 import React from "react";
-import { calculateDuration, formatDuration } from '../utils/timeUtils';
-const RequestCard = React.lazy(() => import('../components/requestCard'));
+import { calculateDuration, formatDuration } from '../../utils/timeUtils';
+const RequestCard = React.lazy(() => import('../../components/requestCard'));
 
 type requestProps = {
     request: "outing" | "outpass"

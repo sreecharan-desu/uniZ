@@ -8,9 +8,9 @@ import { enableOutingsAndOutpasses } from "../pages/student/student"; // Fixed i
 const CampusHub = lazy(() => import("../pages/promotions/CampusHub"));
 const Attendance = lazy(() => import("../pages/attendance/Attendance")); // Fixed typo
 const StudySpace = lazy(() => import("../pages/promotions/StudySpace")); // Fixed typo and case
-const OutpassOuting = lazy(() => import("./outpass&outing")); // Fixed path and name
+const OutpassOuting = lazy(() => import("../pages/student/outpass&outing")); // Fixed path and name
 const ResetPassword = lazy(() => import("../pages/student/resetpass")); // Fixed path and name
-const RequestComp = lazy(() => import("./request-component")); // Fixed path and name
+const RequestComp = lazy(() => import("../pages/student/request-component")); // Fixed path and name
 const Student = lazy(() => import("../pages/student/student")); // Fixed path and name
 const GradeHub = lazy(() => import("../pages/promotions/GradeHub"));
 import { FaCalendarCheck, FaLaptopCode } from "react-icons/fa";
