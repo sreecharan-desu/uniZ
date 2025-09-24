@@ -10,6 +10,7 @@ import {
 } from "./middlewares/middlewares";
 import {
     getStudentDetails,
+    hashPassword,
     requestOuting,
     requestOutpass,
     sendEmail,
@@ -27,6 +28,113 @@ studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, re
     const token = jwt.sign(username, process.env.JWT_SECURITY_KEY);
     res.json({ student_token: token, success: true });
 });
+
+// STEP 1: Request OTP for Forgot Password
+studentRouter.post("/forgotpass", async (req, res) => {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ msg: "Username is required", success: false });
+    try {
+        const user = await client.student.findUnique({
+            where: { Username: username },
+            select: { Email: true, Username: true }
+        });
+
+        if (!user) return res.status(404).json({ msg: "User not found", success: false });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins validity
+
+        await client.student.update({
+            where: { Username: username },
+            data: {
+                OTP: otp,
+                updatedAt: new Date()
+            }
+        });
+
+        const emailBody = `Your OTP for password reset is: ${otp}. It is valid for 10 minutes. If you did not request this, please ignore this email.`;
+        await sendEmail(user.Email, "Password Reset OTP", emailBody);
+
+        res.status(200).json({ msg: "OTP sent to your registered email", success: true });
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        res.status(500).json({ msg: "Unexpected error. Try again later.", success: false });
+    }
+});
+
+
+// STEP 2: Verify OTP
+studentRouter.post("/verifyotp", async (req, res) => {
+    const { username, otp } = req.body;
+    if (!username || !otp) return res.status(400).json({ msg: "Username and OTP are required", success: false });
+
+    try {
+        const user = await client.student.findUnique({
+            where: { Username: username },
+            select: { OTP: true, updatedAt: true }
+        });
+
+        if (!user || !user.OTP) return res.status(404).json({ msg: "No OTP request found", success: false });
+
+        const otpAge = (Date.now() - user.updatedAt.getTime()) / 1000 / 60; // minutes
+        if (otpAge > 10) {
+            return res.status(400).json({ msg: "OTP has expired. Please request again.", success: false });
+        }
+
+        if (user.OTP !== otp) {
+            return res.status(400).json({ msg: "Invalid OTP", success: false });
+        }
+
+        res.status(200).json({ msg: "OTP verified successfully. You can now set a new password.", success: true });
+    } catch (error) {
+        console.error("Error verifying OTP:", error);
+        res.status(500).json({ msg: "Unexpected error. Try again later.", success: false });
+    }
+});
+
+
+// STEP 3: Set New Password (after OTP verification)
+studentRouter.put("/setnewpass", async (req, res) => {
+    const { username, new_password, otp } = req.body;
+    if (!username || !new_password || !otp) {
+        return res.status(400).json({ msg: "Username, OTP, and new password are required", success: false });
+    }
+
+    try {
+        const user = await client.student.findUnique({
+            where: { Username: username },
+            select: { OTP: true, updatedAt: true, Email: true }
+        });
+
+        if (!user || !user.OTP) return res.status(404).json({ msg: "No OTP found. Request again.", success: false });
+
+        const otpAge = (Date.now() - user.updatedAt.getTime()) / 1000 / 60;
+        if (otpAge > 10 || user.OTP !== otp) {
+            return res.status(400).json({ msg: "OTP expired or invalid", success: false });
+        }
+
+        // Hash new password
+        const hashResult = await hashPassword(new_password);
+        const hashedPassword = hashResult && typeof hashResult === 'object' && 'password' in hashResult ? hashResult.password : null;
+        if (hashedPassword) {
+        await client.student.update({
+            where: { Username: username },
+            data: {
+                Password: hashedPassword,
+                OTP: "" // clear OTP after reset
+            }
+        });
+        }
+
+        await sendEmail(user.Email, "Password Reset Successful", "Your password has been updated successfully.");
+
+        res.status(200).json({ msg: "Password updated successfully! Please log in.", success: true });
+    } catch (error) {
+        console.error("Error setting new password:", error);
+        res.status(500).json({ msg: "Unexpected error. Try again later.", success: false });
+    }
+});
+
 
 studentRouter.put("/resetpass", validateResetPassInputs, fetchStudent, authMiddleware, async (req, res) => {
     const { username, new_password } = req.body;
