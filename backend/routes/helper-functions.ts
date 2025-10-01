@@ -119,6 +119,7 @@ export const getUsers = async () => {
     grades : { select : { subject : {select : {name : true,credits : true}} ,grade : true, semester : {select : {name : true,year : true}}}},
      BloodGroup : true, PhoneNumber : true, DateOfBirth : true, FatherAddress : true, FatherName : true, FatherPhoneNumber : true, MotherAddress : true, MotherName : true, MotherPhoneNumber : true, FatherEmail : true, MotherEmail : true, FatherOccupation : true, MotherOccupation : true, isDisabled: true,Year: true, Branch: true, Section: true, Roomno: true, createdAt: true, updatedAt: true },
   });
+  
   return Promise.all(users.map(async user => ({
   id: user.id,
     username: user.Username,
