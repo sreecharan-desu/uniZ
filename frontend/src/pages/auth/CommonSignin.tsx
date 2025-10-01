@@ -7,7 +7,7 @@ import { adminUsername, is_authenticated } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { SIGNIN } from "../../apis";
+import { FORGOT_PASS_ENDPOINT, SET_NEW_PASS_ENDPOINT, SIGNIN } from "../../apis";
 
 type SigninProps = {
   type: "student" | "admin";
@@ -17,6 +17,7 @@ interface SigninResponse {
   msg?: string;
   student_token?: string;
   admin_token?: string;
+  success?: boolean;
 }
 
 export default function Signin({ type }: SigninProps) {
@@ -73,7 +74,7 @@ export default function Signin({ type }: SigninProps) {
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
       const data: SigninResponse = await response.json();
 
-      if (data.msg) {
+      if (data.msg && !data.student_token && !data.admin_token) {
         toast.error(data.msg);
         return;
       }
@@ -99,18 +100,40 @@ export default function Signin({ type }: SigninProps) {
     }
   };
 
-  // --------------------------
-  //  Reset Password APIs (students only, placeholders)
-  // --------------------------
   const requestOtp = async () => {
     if (username.trim() === "") {
-      toast.error("Please enter your username/email");
+      toast.error("Please enter your email");
       return;
     }
-    toast.info(`OTP has been sent to ${username}'s registered email (placeholder)`);
-    setStep("verifyOtp");
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(FORGOT_PASS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim() }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data?.msg || `Failed to request OTP: ${response.status}`);
+        return;
+      }
+
+      if (data.success) {
+        toast.success(data.msg || "OTP sent to your registered email");
+        setStep("verifyOtp");
+      } else {
+        toast.error(data.msg || "Failed to send OTP");
+      }
+    } catch (error: any) {
+      toast.error(`Error requesting OTP: ${error.message || "Network error"}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // We call the setnewpass endpoint which also validates the OTP on the server side.
   const resetPassword = async () => {
     if (otp.trim() === "" || newPassword.trim() === "") {
       toast.error("OTP and new password are required");
@@ -120,9 +143,39 @@ export default function Signin({ type }: SigninProps) {
       toast.error("New password must be at least 6 characters long");
       return;
     }
-    toast.success("Password has been reset successfully (placeholder)");
-    setStep("signin");
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(SET_NEW_PASS_ENDPOINT, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), otp: otp.trim(), new_password: newPassword }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data?.msg || `Failed to reset password: ${response.status}`);
+        return;
+      }
+
+      if (data.success) {
+        toast.success(data.msg || "Password has been reset successfully. Please sign in.");
+        // Clear sensitive fields
+        setOtp("");
+        setNewPassword("");
+        setStep("signin");
+      } else {
+        toast.error(data.msg || "Failed to reset password");
+      }
+    } catch (error: any) {
+      toast.error(`Error resetting password: ${error.message || "Network error"}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Optional: if you want to provide a separate "Verify OTP" step before accepting a new password
+  // you can implement a function that calls VERIFY_OTP_ENDPOINT and then shows a dedicated form.
 
   // --------------------------
   //  Submit Handler
@@ -134,15 +187,16 @@ export default function Signin({ type }: SigninProps) {
     if (step === "verifyOtp") resetPassword();
   };
 
-  return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-br from-white to-gray-200">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="max-w-md w-full text-center space-y-8"
-      >
-        <h1 className="text-3xl font-extrabold text-black">
+ return (
+  <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-br from-white to-gray-100">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="max-w-md w-full text-center space-y-8"
+    >
+      <div>
+        <h1 className="text-3xl font-extrabold text-black tracking-tight">
           {step === "signin"
             ? type === "student"
               ? "Student Sign In"
@@ -151,53 +205,94 @@ export default function Signin({ type }: SigninProps) {
             ? "Forgot Password"
             : "Reset Password"}
         </h1>
+        <p className="mt-2 text-gray-500 text-sm">
+          {step === "signin"
+            ? "Welcome back! Please enter your details."
+            : step === "forgot"
+            ? "Enter your email to receive an OTP."
+            : "Set your new password to continue."}
+        </p>
+      </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col justify-center w-full p-8 bg-white shadow-lg rounded-2xl border border-gray-200 space-y-4"
-        >
-          {/* Signin Form */}
-          {step === "signin" && (
-            <>
-              <Input type="text" onchangeFunction={usernameHandler} placeholder="Username" />
-              <Input type="password" onchangeFunction={passwordHandler} placeholder="Password" />
-              <Button value="Sign In" onclickFunction={sendDataToBackend} loading={isLoading} />
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col justify-center w-full p-8 bg-white shadow-xl rounded-2xl border border-gray-200 space-y-5"
+      >
+        {/* Signin Form */}
+        {step === "signin" && (
+          <>
+            <Input
+              type="text"
+              onchangeFunction={usernameHandler}
+              placeholder="Username"
+            />
+            <Input
+              type="password"
+              onchangeFunction={passwordHandler}
+              placeholder="Password"
+            />
+            <Button
+              value="Sign In"
+              onclickFunction={sendDataToBackend}
+              loading={isLoading}
+            />
 
-              {type === "student" && (
-                <p
-                  className="mt-2 text-blue-600 text-sm cursor-pointer hover:underline"
-                  onClick={() => setStep("forgot")}
-                >
-                  Forgot password?
-                </p>
-              )}
-            </>
-          )}
-
-          {/* Forgot Password (students only) */}
-          {type === "student" && step === "forgot" && (
-            <>
-              <Input type="text" onchangeFunction={usernameHandler} placeholder="Enter your username/email" />
-              <Button value="Send OTP" onclickFunction={requestOtp} loading={isLoading} />
+            {type === "student" && (
               <p
-                className="mt-2 text-gray-600 text-sm cursor-pointer hover:underline"
-                onClick={() => setStep("signin")}
+                className="mt-2 text-sm text-blue-600 cursor-pointer hover:underline transition"
+                onClick={() => setStep("forgot")}
               >
-                Back to Sign In
+                Forgot password?
               </p>
-            </>
-          )}
+            )}
+          </>
+        )}
 
-          {/* Reset Password (students only) */}
-          {type === "student" && step === "verifyOtp" && (
-            <>
-              <Input type="text" onchangeFunction={(e: any) => setOtp(e.target.value)} placeholder="Enter OTP" />
-              <Input type="password" onchangeFunction={(e: any) => setNewPassword(e.target.value)} placeholder="Enter New Password" />
-              <Button value="Reset Password" onclickFunction={resetPassword} loading={isLoading} />
-            </>
-          )}
-        </form>
-      </motion.div>
-    </div>
-  );
+        {/* Forgot Password (students only) */}
+        {type === "student" && step === "forgot" && (
+          <>
+            <Input
+              type="text"
+              onchangeFunction={usernameHandler}
+              placeholder="Enter your email"
+            />
+            <Button
+              value="Send OTP"
+              onclickFunction={requestOtp}
+              loading={isLoading}
+            />
+            <p
+              className="mt-2 text-sm text-gray-500 cursor-pointer hover:underline transition"
+              onClick={() => setStep("signin")}
+            >
+              Back to Sign In
+            </p>
+          </>
+        )}
+
+        {/* Reset Password (students only) */}
+        {type === "student" && step === "verifyOtp" && (
+          <>
+            <Input
+              type="text"
+              onchangeFunction={(e: any) => setOtp(e.target.value)}
+              placeholder="Enter OTP"
+            />
+            <Input
+              type="password"
+              onchangeFunction={(e: any) => setNewPassword(e.target.value)}
+              placeholder="Enter New Password"
+            />
+            <Button
+              value="Reset Password"
+              onclickFunction={resetPassword}
+              loading={isLoading}
+            />
+          </>
+        )}
+      </form>
+    </motion.div>
+  </div>
+);
+
 }
