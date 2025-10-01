@@ -91,7 +91,7 @@ export default function Navbar() {
                         <UserSkeleton />
                     ) : (
                         <div className="flex items-center space-x-2">
-                            <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full p-2 px-4 font-bold`}>
+                            <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full py-1 px-2 font-bold`}>
                                 {username?.name ? getInitials(username.name) : ''}
                             </div>
                             <div className="flex-col justify-center">
