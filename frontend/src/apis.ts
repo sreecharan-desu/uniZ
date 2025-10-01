@@ -20,6 +20,14 @@ export const REQUEST_OUTING = `${BASE_URL}/student/requestouting`;
 export const REQUEST_OUTPASS = `${BASE_URL}/student/requestoutpass`;
 export const RESET_PASS = `${BASE_URL}/student/resetpass`;
 
+  // --------------------------
+  //  Reset Password APIs (students)
+  //  NOTE: Update endpoints below if your backend uses a different base path.
+  // --------------------------
+  export const FORGOT_PASS_ENDPOINT = `${BASE_URL}/student/forgotpass`; // POST { username }
+  export const VERIFY_OTP_ENDPOINT = `${BASE_URL}/student/verifyotp`; // POST { username, otp }
+  export const SET_NEW_PASS_ENDPOINT = `${BASE_URL}/student/setnewpass`; // PUT { username, otp, new_password }
+
 // Common endpoints
 export const SIGNIN = (type: "student" | "admin") => `${BASE_URL}/${type}/signin`;
 export const SIGNUP = (type: "student" | "admin") => `${BASE_URL}/${type}/signup`;
