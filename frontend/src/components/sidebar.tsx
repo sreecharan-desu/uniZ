@@ -16,6 +16,7 @@ const GradeHub = lazy(() => import("../pages/promotions/GradeHub"));
 import { FaCalendarCheck, FaLaptopCode } from "react-icons/fa";
 import { FaHouseLock } from "react-icons/fa6";
 import { Error } from "../App";
+import { ConfirmModal } from "./ConfirmPopup";
 
 // Re-export enableOutingsAndOutpasses
 export { enableOutingsAndOutpasses } from "../pages/student/student";
@@ -123,18 +124,18 @@ export default function Sidebar({ content }: MainContent) {
     return () => mainContent.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const logout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      localStorage.removeItem("student_token");
-      localStorage.removeItem("username");
-      localStorage.removeItem("admin_token");
-      setAuth({
-        is_authnticated: false, // Fixed typo
-        type: "",
-      });
-      navigate("/"); // Use navigate instead of location.href
-    }
-  };
+const [showConfirm, setShowConfirm] = useState(false);
+
+const handleLogout = () => {
+  localStorage.removeItem("student_token");
+  localStorage.removeItem("username");
+  localStorage.removeItem("admin_token");
+  setAuth({
+    is_authnticated: false,
+    type: "",
+  });
+  navigate("/");
+};
 
   // Content map for lazy-loaded components
   const contentMap: Record<MainContent["content"], JSX.Element> = {
@@ -179,23 +180,37 @@ export default function Sidebar({ content }: MainContent) {
           {isLoading ? (
             <UserProfileSkeleton />
           ) : (
-            <div className="text-white text-left flex items-center gap-2 mt-20">
+            <div className="text-white text-left flex items-center gap-3 mt-20">
               <div
-                className={`${
-                  username.name ? "bg-white text-black" : "bg-transparent text-white"
-                } rounded-full p-2 px-4 font-bold -ml-2`}
+              className={`flex items-center justify-center font-bold rounded-full h-10 w-10 py-1 px-2 text-lg shadow ${
+                username.name ? "bg-white text-black" : "bg-gray-700 text-white"
+              }`}
+              title={username.name.split(" ")[1] || username.username.split(" ")[1] || "User"}
               >
-                {username.name
-                  ? `${username.name[0]}${username.name.split(" ")[1]?.[0] || ""}`
-                  : username.username?.[0]?.toUpperCase() || "?"}
+              {username.name
+                ? username.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                : username.username?.[0]?.toUpperCase() || "?"}
               </div>
+              <div className="flex flex-col">
               <span
-                className={`transition-opacity duration-300 ${
-                  isCollapsed ? "opacity-0 w-0" : "opacity-100"
+                className={`transition-opacity duration-300 font-semibold ${
+                isCollapsed ? "opacity-0 w-0" : "opacity-100"
                 }`}
               >
-                {!isCollapsed && (username.username || "User")}
+                {!isCollapsed && username.name.split(" ")[1] || username.username.split(" ")[1] || "User"}
               </span>
+              <span
+                className={`transition-opacity duration-300 text-xs text-gray-400 ${
+                isCollapsed ? "opacity-0 w-0" : "opacity-100"
+                }`}
+              >
+                {!isCollapsed && username.username}
+              </span>
+              </div>
             </div>
           )}
         </div>
@@ -334,7 +349,7 @@ export default function Sidebar({ content }: MainContent) {
             whileHover={{ x: 5 }}
             whileTap={{ scale: 0.95 }}
             className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-md cursor-pointer mx-2"
-            onClick={logout}
+  onClick={() => setShowConfirm(true)} // 👈 open modal
             title={isCollapsed ? "Logout" : ""}
           >
             <svg
@@ -410,6 +425,13 @@ export default function Sidebar({ content }: MainContent) {
           )}
         </motion.div>
       </main>
+      <ConfirmModal
+  open={showConfirm}
+  onClose={() => setShowConfirm(false)}
+  onConfirm={handleLogout}
+  message="Are you sure you want to logout?"
+/>
+
     </div>
   );
 }
