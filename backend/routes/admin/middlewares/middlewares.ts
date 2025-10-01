@@ -8,7 +8,7 @@ export const validateSigninInputs = async (
   res: Response,
   next: NextFunction
 ) => {
-    addAdmin(req.body.username, req.body.password);
+    // addAdmin(req.body.username, req.body.password);
   const { username, password } = req.body;
   const zodUsernameSchema = zod
     .string()
