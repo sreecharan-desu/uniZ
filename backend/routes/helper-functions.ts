@@ -233,11 +233,11 @@ export const findAdminByUsername = async (username: string) => {
   return admin ? { admin, success: true } : { success: false };
 };
 
-export const addAdmin = async (username: string, password: string) => {
+export const addAdmin = async (username: string, password: string, role: string,email:string) => {
   const hashedPassword = await hashPassword(password);
   const id = "id_" + (await crypto.randomBytes(12).toString("hex"));
   if ((await findAdminByUsername(username)).success) return console.log("Admin already exists. Try a new username");
-  if (hashedPassword.success && hashedPassword.password) try { await client.admin.create({ data: { id, Username: username, Password: hashedPassword.password }, select: { id: true, Username: true } }); } catch { console.log("Error adding admin"); } else console.log("Error hashing password");
+  if (hashedPassword.success && hashedPassword.password) try { await client.admin.create({ data: { id, Username: username, Password: hashedPassword.password, role: role, Email: email }, select: { id: true, Username: true } }); } catch { console.log("Error adding admin"); } else console.log("Error hashing password");
 };
 
 export const approveOutpass = async (id: string, adminName: string = "admin", message?: string) => {
@@ -365,6 +365,33 @@ export const updateUserPrescence = async (userId: string, id: string) => {
     console.log(e);
     return { msg: "Error updating student prescence Try again!", success: false };
   }
+};
+
+export const getStudentSuggestions = async (username: string) => {
+  const students = await client.student.findMany({
+    where: {
+      Username: {
+        startsWith: username.toLowerCase(),
+        mode: "insensitive",
+      },
+    },
+    select: {
+      id: true,
+      Username: true,
+      Name: true,
+      Branch: true,
+      Year: true,
+    },
+  });
+
+  const suggestions = students.map((student) => ({
+    id: student.id,
+    username: student.Username,
+    name: student.Name,
+    branch: student.Branch,
+    year: student.Year,
+  }));
+  return suggestions;
 };
 
 export const getStudentDetails = async (username: string) => {
