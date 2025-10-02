@@ -1,4 +1,4 @@
-const BASE_URL =
+export const BASE_URL =
   process.env.NODE_ENV === "production"
     ? "https://uni-z-api.vercel.app/api/v1"
     : "http://localhost:3000/api/v1";
@@ -13,6 +13,7 @@ export const APPROVE_OUTPASS = `${BASE_URL}/admin/approveoutpass`;
 export const REJECT_OUTPASS = `${BASE_URL}/admin/rejectoutpass`;
 export const SEARCH_STUDENTS = `${BASE_URL}/admin/searchstudent`;
 export const UPDATE_STUDENT_STATUS = `${BASE_URL}/admin/updatestudentstatus`;
+
 
 // Student endpoints
 export const STUDENT_INFO = `${BASE_URL}/student/getdetails`;
