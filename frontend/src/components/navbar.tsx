@@ -92,7 +92,7 @@ export default function Navbar() {
                     ) : (
                         <div className="flex items-center space-x-2">
                             <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full py-1 px-2 font-bold`}>
-                                {username?.name ? getInitials(username.name) : ''}
+                                {username?.name ? getInitials(username.name).toUpperCase() : ''}
                             </div>
                             <div className="flex-col justify-center">
                                 <p className="text-white text-left text-sm font-semibold">{username?.name}</p>
@@ -110,13 +110,13 @@ export default function Navbar() {
                         <div className="flex items-center space-x-2">
                             <div className='bg-white text-black rounded-full p-2 px-4 text-xl font-bold'>
                                 {/* @ts-ignore */}
-                                {localStorage.getItem('admin_token') ? getInitials(JSON.parse(adminName)) : ''}
+                                {localStorage.getItem('admin_token') ? getInitials(JSON.parse(adminName)).toUpperCase() : ''}
                             </div>
                             <div className="flex-col justify-center">
                                 <p className="text-white text-left text-sm font-semibold">
                                     {adminName?.slice(1,adminName.length-1).toString()}
                                 </p>
-                                <p className="text-white text-left text-sm font-semibold">sreecharan309@gmail.com</p>
+                                <p className="text-white text-left text-sm font-semibold">                                    {adminName?.slice(1,adminName.length-1).toString().split("@")[0]}@rguktong.ac.in</p>
                             </div>
                         </div>
                     </div>
