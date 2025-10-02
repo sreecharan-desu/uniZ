@@ -61,17 +61,42 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
   next();
 };
 
+
+import { PrismaClient } from "@prisma/client";
+
+const client = new PrismaClient();
+
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.headers.authorization;
-  if (!authorization || !process.env.JWT_SECURITY_KEY) return res.json({ msg: "AUTH_ERROR : Missing authorization headers!", success: false });
+  if (!authorization || !process.env.JWT_SECURITY_KEY)
+    return res.status(401).json({ msg: "AUTH_ERROR : Missing authorization headers!", success: false });
 
   try {
     const token = authorization.split(" ")[1];
-    jwt.verify(token, process.env.JWT_SECURITY_KEY) ? next() : res.json({ msg: "AUTH_ERROR : Invalid token", success: false });
-  } catch (e) {
-    res.json({ msg: "AUTH_ERROR : Missing authorization headers!", success: false });
+    const decoded_username = jwt.verify(token, process.env.JWT_SECURITY_KEY) as string ;
+    console.log('decoded_username JWT:', decoded_username);
+    // fetch admin from DB
+    const admin = await client.admin.findUnique({
+      where: { Username: decoded_username },
+      select: { id: true, Username: true, role: true },
+    });
+
+    if (!admin) return res.status(401).json({ msg: "AUTH_ERROR : Admin not found", success: false });
+
+    // attach admin object to request
+    (req as any).admin = {
+      _id: admin.id,
+      username: admin.Username,
+      role: admin.role,
+    };
+
+    next();
+  } catch (err) {
+    console.error("AUTH_ERROR", err);
+    res.status(401).json({ msg: "AUTH_ERROR : Invalid token", success: false });
   }
 };
+
 
 export const isPresentInCampus = async (req: Request, res: Response, next: NextFunction) => {
   try {
