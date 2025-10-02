@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../../apis";
-import { Trash2, ToggleLeft, PlusCircle, Eye, Move } from "lucide-react";
+import { Trash2, PlusCircle, Eye, Move } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -124,14 +124,6 @@ export default function BannerManager() {
     } catch (err) { console.error(err); alert("Error uploading image or adding banner"); }
   };
 
-  const toggleBanner = async (id: string) => {
-    await fetch(`${BASE_URL}/admin/banners/${id}/publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${JSON.parse(token!)}` },
-      body: JSON.stringify({ publish: true }),
-    });
-    fetchBanners();
-  };
 
   const deleteBanner = async (id: string) => {
     await fetch(`${BASE_URL}/admin/banners/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${JSON.parse(token!)}` } });
