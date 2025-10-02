@@ -7,12 +7,11 @@ import { authMiddleware, validateResetPassInputs } from "../student/middlewares/
 const client = new PrismaClient();
 import {
   addStudent,
-
   convertLetterToNumericGrade,
- 
   getStudentDetails,
+  getStudentSuggestions,
   getUsers,
-
+  sendEmail,
   subjectsData,
   updateAdminPassword,
   validateInput,
@@ -41,37 +40,6 @@ adminRouter.put("/resetpass", validateResetPassInputs, fetchAdmin, authMiddlewar
     });
   } catch (e) {
     res.json({ msg: "Error updating password Please try again!", success: false });
-  }
-});
-
-
-adminRouter.get("/getstudents", authMiddleware, async (req, res) => {
-  try {
-    const filter = req.query.filter as string;
-
-    // Check if filter is provided
-    if (!filter) {
-      return res.json({ msg: "Filter is required", success: false });
-    }
-
-    if (filter === "all") {
-      const students = await getUsers(); // Assumes getUsers() is defined elsewhere
-      res.json({ students, msg: `Successfully fetched ${students.length} students`, success: true });
-    } else if (filter === "names") {
-      const students = await client.student.findMany({ select: { id: true, Name: true } });
-      res.json({ students, msg: `Successfully fetched ${students.length} students`, success: true });
-    } else {
-      // Treat filter as a student ID
-      const student = await client.student.findUnique({ where: { id: filter }, select: { id: true, Name: true } });
-      if (student) {
-        res.json({ student, msg: `Successfully fetched student ${student.Name}`, success: true });
-      } else {
-        res.json({ msg: `Student with ID ${filter} not found`, success: false });
-      }
-    }
-  } catch (e) {
-    console.log(e);
-    res.json({ msg: "Error: Fetching students. Please try again!", success: false });
   }
 });
 
@@ -187,7 +155,6 @@ adminRouter.get("/getstudents", authMiddleware, async (req, res) => {
 // });
 // //  ----------------------------------------------------------------------------------   //  Outpass and Outing Approvals  ----------------------------------------------------------------------------------   //
 
-
 interface UploadProgress {
   totalRecords: number;
   processedRecords: number;
@@ -198,17 +165,100 @@ interface UploadProgress {
 }
 
 const progressStore: Map<string, UploadProgress> = new Map();
+// Helper to chunk arrays
+const chunkArrayForAddGrades = (array, size) => {
+  const chunks:any = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+};
 
+// Cache for subjects
+const subjectCache = new Map();
+async function getOrCreateSubject(subjectName, semesterId, branchId, subjectData, isElective) {
+  const cacheKey = `${subjectName}_${semesterId}_${branchId}`;
+  if (subjectCache.has(cacheKey)) {
+    return subjectCache.get(cacheKey);
+  }
+  let subject = await client.subject.findFirst({
+    where: { name: subjectName, semesterId, branchId },
+    select: { id: true },
+  });
+  if (!subject && isElective) {
+    const creditIndex = subjectData.names.indexOf(subjectName);
+    const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
+    subject = await client.subject.create({
+      data: { id: uuidv4(), name: subjectName, credits, branchId, semesterId },
+      select: { id: true },
+    });
+  }
+  subjectCache.set(cacheKey, subject);
+  return subject;
+}
+
+function chunkArray(array, size) {
+  const chunks:any = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+
+adminRouter.get("/getstudents", authMiddleware, async (req, res) => {
+  try {
+    const filter = req.query.filter as string;
+
+    // Check if filter is provided
+    if (!filter) {
+      return res.json({ msg: "Filter is required", success: false });
+    }
+
+    if (filter === "all") {
+      const students = await getUsers(); // Assumes getUsers() is defined elsewhere
+      res.json({ students, msg: `Successfully fetched ${students.length} students`, success: true });
+    } else if (filter === "names") {
+      const students = await client.student.findMany({ select: { id: true, Name: true } });
+      res.json({ students, msg: `Successfully fetched ${students.length} students`, success: true });
+    } else {
+      // Treat filter as a student ID
+      const student = await client.student.findUnique({ where: { id: filter }, select: { id: true, Name: true } });
+      if (student) {
+        res.json({ student, msg: `Successfully fetched student ${student.Name}`, success: true });
+      } else {
+        res.json({ msg: `Student with ID ${filter} not found`, success: false });
+      }
+    }
+  } catch (e) {
+    console.log(e);
+    res.json({ msg: "Error: Fetching students. Please try again!", success: false });
+  }
+});
 
 adminRouter.post('/searchstudent', authMiddleware, async (req, res) => {
   try {
     const { username } = req.body;
-    const student = await getStudentDetails(username);
-    res.json(student ? { student, success: true } : { msg: "No student found with idnumber : " + username, success: false });
+    // Return matching students for suggestions (case-insensitive, startsWith)
+    const suggestions = await getStudentSuggestions(username);
+    if (suggestions.length === 0) {
+      return res.json({ msg: "No student found with id starting: " + username, success: false });
+    }
+
+    // If exact match exists, also return full student details
+    const exactStudent = await getStudentDetails(username);
+
+    res.json({
+      success: true,
+      suggestions, // list of students with basic info: username, name
+      student: exactStudent || null,
+    });
   } catch (e) {
+    console.error(e);
     res.json({ msg: "Error fetching students", success: false });
   }
 });
+
 
 adminRouter.get("/updatestudents-progress", authMiddleware, async (req, res) => {
   try {
@@ -269,40 +319,6 @@ adminRouter.post('/updatestudents', authMiddleware, async (req, res) => {
   }
 });
 
-
-// Helper to chunk arrays
-const chunkArrayForAddGrades = (array, size) => {
-  const chunks:any = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-};
-
-// Cache for subjects
-const subjectCache = new Map();
-async function getOrCreateSubject(subjectName, semesterId, branchId, subjectData, isElective) {
-  const cacheKey = `${subjectName}_${semesterId}_${branchId}`;
-  if (subjectCache.has(cacheKey)) {
-    return subjectCache.get(cacheKey);
-  }
-  let subject = await client.subject.findFirst({
-    where: { name: subjectName, semesterId, branchId },
-    select: { id: true },
-  });
-  if (!subject && isElective) {
-    const creditIndex = subjectData.names.indexOf(subjectName);
-    const credits = creditIndex !== -1 ? subjectData.credits[creditIndex] : 3;
-    subject = await client.subject.create({
-      data: { id: uuidv4(), name: subjectName, credits, branchId, semesterId },
-      select: { id: true },
-    });
-  }
-  subjectCache.set(cacheKey, subject);
-  return subject;
-}
-
-// HTTP endpoint
 adminRouter.post('/addgrades', authMiddleware, async (req, res) => {
   const data = req.body;
   const validationErrors = validateInput(data);
@@ -500,15 +516,6 @@ adminRouter.post('/addgrades', authMiddleware, async (req, res) => {
     res.status(500).json({ msg: 'Internal Server Error', success: false });
   }
 });
-
-function chunkArray(array, size) {
-  const chunks:any = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
 
 adminRouter.post('/addattendance', authMiddleware, async (req, res) => {
   const data = req.body;
@@ -727,5 +734,289 @@ adminRouter.post('/populate-curriculum', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: 'Internal Server Error', success: false });
+  }
+});
+
+
+// --- Role & Permission helpers (add near top of file) ---
+type Role = 'webmaster' | 'dean' | 'director';
+type Permission =
+  | 'manage_banners'
+  | 'send_notifications'
+  | 'assign_roles'
+  | 'manage_users'
+  | 'manage_curriculum'
+  | 'view_reports';
+
+const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  webmaster: ['manage_banners', 'send_notifications'],
+  dean: ['manage_banners', 'send_notifications', 'view_reports', 'manage_users'],
+  director: ['manage_banners', 'send_notifications', 'assign_roles', 'manage_users', 'manage_curriculum', 'view_reports'],
+};
+
+// Middleware: ensure req.admin exists (fetchAdmin should set it). Then check role/permission
+function requireRole(role: Role) {
+  return (req, res, next) => {
+    const admin = (req as any).admin;
+    if (!admin) return res.status(401).json({ msg: 'Unauthorized', success: false });
+    if (admin.role !== role) return res.status(403).json({ msg: 'Forbidden: role required', success: false });
+    next();
+  };
+}
+
+function requireAnyRole(...roles: Role[]) {
+  return (req, res, next) => {
+    const admin = (req as any).admin;
+    console.log('Checking roles', admin);
+    if (!admin) return res.status(401).json({ msg: 'Unauthorized', success: false });
+    if (!roles.includes(admin.role)) return res.status(403).json({ msg: 'Forbidden: insufficient role', success: false });
+    next();
+  };
+}
+
+function requirePermission(permission: Permission) {
+  return (req, res, next) => {
+    const admin = (req as any).admin;
+    if (!admin) return res.status(401).json({ msg: 'Unauthorized', success: false });
+    const role: Role = admin.role;
+    const perms = ROLE_PERMISSIONS[role] || [];
+    if (!perms.includes(permission)) return res.status(403).json({ msg: 'Forbidden: insufficient permission', success: false });
+    next();
+  };
+}
+
+// --- Banner model assumptions ---
+// Prisma model (for reference, add to schema.prisma if not present):
+/*
+model Banner {
+  id         String   @id @default(uuid())
+  title      String
+  imageUrl   String?
+  text       String?
+  isPublished Boolean @default(false)
+  createdBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+*/
+
+// --- Banners CRUD & publish routes ---
+adminRouter.post('/banners', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { title, text, imageUrl, isPublished = false } = req.body;
+    if (!title) return res.status(400).json({ msg: 'Title is required', success: false });
+    const createdBy = (req as any).admin?.username || null;
+    const banner = await client.banner.create({
+      data: { id: uuidv4(), title, text: text ?? '', imageUrl: imageUrl ?? null, isPublished, createdBy },
+    });
+    res.json({ banner, success: true, msg: 'Banner created' });
+  } catch (err) {
+    console.error('Create banner error', err);
+    res.status(500).json({ msg: 'Error creating banner', success: false });
+  }
+});
+
+adminRouter.get('/banners', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const onlyPublished = req.query.published === 'true';
+    const banners = await client.banner.findMany({
+      where: onlyPublished ? { isPublished: true } : {},
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ banners, success: true });
+  } catch (err) {
+    console.error('Get banners error', err);
+    res.status(500).json({ msg: 'Error fetching banners', success: false });
+  }
+});
+
+adminRouter.put('/banners/:id', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, text, imageUrl } = req.body;
+    const banner = await client.banner.update({
+      where: { id },
+      data: { title, text, imageUrl, updatedAt: new Date() },
+    });
+    res.json({ banner, success: true, msg: 'Banner updated' });
+  } catch (err) {
+    console.error('Update banner error', err);
+    res.status(500).json({ msg: 'Error updating banner', success: false });
+  }
+});
+
+adminRouter.delete('/banners/:id', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    await client.banner.delete({ where: { id } });
+    res.json({ msg: 'Banner deleted', success: true });
+  } catch (err) {
+    console.error('Delete banner error', err);
+    res.status(500).json({ msg: 'Error deleting banner', success: false });
+  }
+});
+
+adminRouter.post('/banners/:id/publish', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { publish } = req.body; // boolean true/false
+    const banner = await client.banner.update({ where: { id }, data: { isPublished: !!publish } });
+    res.json({ banner, success: true, msg: publish ? 'Banner published' : 'Banner unpublished' });
+  } catch (err) {
+    console.error('Publish banner error', err);
+    res.status(500).json({ msg: 'Error changing publish status', success: false });
+  }
+});
+
+// --- Roles & Permissions management routes ---
+// Get available roles & default permissions
+
+// GET /admin/getadmins
+adminRouter.get('/getadmins', authMiddleware, requireAnyRole('dean', 'director', 'webmaster'), async (req, res) => {
+  try {
+    const admins = await client.admin.findMany({
+      select: { id: true, Username: true, role: true },
+    });
+    res.json({ admins, success: true });
+  } catch (err) {
+    console.error('Error fetching admins:', err);
+    res.status(500).json({ msg: 'Error fetching admins', success: false });
+  }
+});
+
+adminRouter.get('/roles', authMiddleware, requireAnyRole('dean', 'director', 'webmaster'), async (req, res) => {
+  res.json({ roles: ROLE_PERMISSIONS, success: true });
+});
+
+// Assign role to an admin (director only)
+adminRouter.put('/assign-role', authMiddleware, requirePermission('assign_roles'), async (req, res) => {
+  try {
+    const { username, role } = req.body;
+    if (!username || !role) return res.status(400).json({ msg: 'username and role required', success: false });
+    if (!['webmaster', 'dean', 'director'].includes(role)) return res.status(400).json({ msg: 'Invalid role', success: false });
+    // Update admin record in DB (assumes admin table has `username` and `role` fields)
+    const updated = await client.admin.updateMany({
+      where: { Username: username },
+      data: { role },
+    });
+    if (updated.count === 0) return res.status(404).json({ msg: 'Admin user not found', success: false });
+    res.json({ msg: `Assigned role ${role} to ${username}`, success: true });
+  } catch (err) {
+    console.error('Assign role error', err);
+    res.status(500).json({ msg: 'Error assigning role', success: false });
+  }
+});
+
+// Update role's permissions (director only) - optional: persists custom permissions
+adminRouter.put('/roles/:role/permissions', authMiddleware, requirePermission('assign_roles'), async (req, res) => {
+  try {
+    const role = req.params.role as Role;
+    const { permissions } = req.body as { permissions: Permission[] };
+    if (!['webmaster', 'dean', 'director'].includes(role)) return res.status(400).json({ msg: 'Invalid role', success: false });
+    // simple in-memory update; optionally persist to DB if you have a roles table
+    ROLE_PERMISSIONS[role] = permissions;
+    res.json({ msg: `Permissions updated for ${role}`, permissions, success: true });
+  } catch (err) {
+    console.error('Update permissions error', err);
+    res.status(500).json({ msg: 'Error updating permissions', success: false });
+  }
+});
+
+// --- Email notifications routes ---
+// Assumptions:
+// - sendEmail(to, subject, html) helper exists and returns a promise
+// - You may want to create a NotificationLog model to persist logs (optional)
+adminRouter.post('/notify/email', authMiddleware, requirePermission('send_notifications'), async (req, res) => {
+  try {
+    const { target, filter, subject, htmlBody } = req.body;
+    // target: 'all' | 'branch' | 'batch' | 'userIds'
+    // filter: for branch -> { branch: 'CSE' }, for batch -> { batch: '2025' }, for userIds -> { ids: ['id1','id2'] }
+    if (!target || !subject || !htmlBody) return res.status(400).json({ msg: 'target, subject and htmlBody are required', success: false });
+
+    const processId = uuidv4();
+    progressStore.set(processId, {
+      totalRecords: 0,
+      processedRecords: 0,
+      failedRecords: [],
+      status: 'pending',
+      startTime: new Date(),
+      errors: [],
+    });
+
+    // resolve recipient user emails in background
+    (async () => {
+      try {
+        let students: any[] = [];
+        if (target === 'all') {
+          students = await client.student.findMany({ select: { id: true, Email: true } });
+        } else if (target === 'branch' && filter?.branch) {
+          students = await client.student.findMany({ where: { Branch: filter.branch }, select: { id: true, Email: true } });
+        } else if (target === 'batch' && filter?.batch) {
+          students = await client.student.findMany({ where: { Year: filter.batch }, select: { id: true, Email: true } });
+        } else if (target === 'userIds' && Array.isArray(filter?.ids)) {
+          students = await client.student.findMany({ where: { id: { in: filter.ids } }, select: { id: true, Email: true } });
+        } else {
+          // invalid filter
+          const p = progressStore.get(processId);
+          if (p) { p.status = 'failed'; p.errors = [{ message: 'Invalid target or filter' }]; }
+          return;
+        }
+
+        const emails = students.map(s => s.Email).filter(Boolean);
+        const total = emails.length;
+        const p = progressStore.get(processId);
+        if (p) p.totalRecords = total;
+
+        // send in small batches to avoid SMTP limits
+        const emailChunks = chunkArray(emails, 50);
+        let processed = 0;
+        for (const chunk of emailChunks) {
+          // send concurrently per chunk
+          await Promise.all(chunk.map(async (to) => {
+            try {
+              await sendEmail(to, subject, htmlBody);
+              processed++;
+            } catch (err) {
+              const prog:any = progressStore.get(processId);
+              if (prog) prog.failedRecords.push({ email: to, reason: (err as any).message || err });
+            }
+            const prog = progressStore.get(processId);
+            if (prog) prog.processedRecords = processed;
+          }));
+        }
+
+        const finalProg:any = progressStore.get(processId);
+        if (finalProg) {
+          finalProg.status = finalProg.failedRecords.length === finalProg.totalRecords ? 'failed' : 'completed';
+          finalProg.endTime = new Date();
+          setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
+        }
+      } catch (err) {
+        console.error('notify/email background error', err);
+        const prog:any = progressStore.get(processId);
+        if (prog) { prog.status = 'failed'; prog.errors.push(err); prog.endTime = new Date(); setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000); }
+      }
+    })();
+
+    res.status(202).json({ msg: 'Email sending started', processId, success: true });
+  } catch (err) {
+    console.error('notify/email error', err);
+    res.status(500).json({ msg: 'Error starting email notification', success: false });
+  }
+});
+
+// Reuse your existing /updatestudents-progress style endpoint for notification progress:
+// GET /notifications-progress?processId=...
+adminRouter.get('/notifications-progress', authMiddleware, requirePermission('send_notifications'), async (req, res) => {
+  try {
+    const { processId } = req.query;
+    if (!processId || typeof processId !== 'string') return res.status(400).json({ msg: 'Missing processId', success: false });
+    const progress = progressStore.get(processId);
+    if (!progress) return res.status(404).json({ msg: 'No process found', success: false });
+    const percentage = progress.totalRecords > 0 ? ((progress.processedRecords / progress.totalRecords) * 100).toFixed(2) : '0.00';
+    res.json({ ...progress, percentage: parseFloat(percentage), success: true });
+  } catch (err) {
+    console.error('notifications-progress error', err);
+    res.status(500).json({ msg: 'Error fetching progress', success: false });
   }
 });
