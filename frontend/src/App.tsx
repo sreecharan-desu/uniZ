@@ -10,13 +10,17 @@ import AddStudents from "./pages/admin/AddStudents";
 import AddGrades from "./pages/admin/AddGrades";
 import AddAttendance from "./pages/attendance/AddAttendance";
 import Settings from "./pages/admin/Settings";
+import RoleManagement from "./pages/admin/RoleManagement";
+import BannerManager from "./pages/admin/BannerManager";
+import EmailNotification from "./pages/admin/EmailNotification";
+
 
 // Lazy load components
 const Home = lazy(() => import("./pages/home"));
 const Signin = lazy(() => import("./pages/auth/CommonSignin"));
 const Admin = lazy(() => import("./pages/admin/index"));
 
-const SearchStudents = lazy(() => import("./components/searchstudents"));
+const SearchStudents = lazy(() => import("./pages/admin/searchstudents"));
 const Sidebar = lazy(() => import("./components/sidebar"));
 
 // Fallback UI
@@ -233,6 +237,33 @@ function App() {
         <Route path="/admin/settings" element={                <PageTransition>
 <Settings />                </PageTransition>
 } />
+<Route
+  path="/admin/roles"
+  element={
+    <PageTransition>
+      <RoleManagement />
+    </PageTransition>
+  }
+/>
+
+<Route
+  path="/admin/banners"
+  element={
+    <PageTransition>
+      <BannerManager />
+    </PageTransition>
+  }
+/>
+
+<Route
+  path="/admin/notifications"
+  element={
+    <PageTransition>
+      <EmailNotification />
+    </PageTransition>
+  }
+/>
+        
             {/* <Route
               path="/admin/approveoutpass"
               element={
