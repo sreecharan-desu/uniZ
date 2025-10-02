@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import zod from "zod";
-import { addAdmin, currentAdminByUsername } from "../../helper-functions";
+import {currentAdminByUsername } from "../../helper-functions";
 import bcrypt from "bcrypt";
 
 export const validateSigninInputs = async (
@@ -8,7 +8,6 @@ export const validateSigninInputs = async (
   res: Response,
   next: NextFunction
 ) => {
-    // addAdmin(req.body.username, req.body.password);
   const { username, password } = req.body;
   const zodUsernameSchema = zod
     .string()
