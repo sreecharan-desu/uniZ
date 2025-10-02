@@ -49,8 +49,10 @@ model Admin {
   id        String   @id
   Username  String   @unique
   Password  String
+  Email    String   @unique @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  role      String   @default("webmaster") // roles: webmaster, dean, director
 }
 
 model Outpass {
@@ -163,4 +165,16 @@ model Attendance {
   @@unique([studentId, subjectId, semesterId])
   @@index([studentId, semesterId])
   @@index([subjectId])
+}
+
+
+model Banner {
+  id         String   @id @default(uuid())
+  title      String
+  imageUrl   String?
+  text       String?
+  isPublished Boolean @default(false)
+  createdBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
