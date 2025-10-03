@@ -112,16 +112,60 @@ export async function addStudent(idNumber: string, name: string, gender: string 
   }
 }
 
-export const getUsers = async () => {
+export const getUsers = async (skip = 0, take = 10) => {
   const users = await client.student.findMany({
-    select: { id: true, Username: true, Email: true, Name: true, Gender: true, isApplicationPending: true, isPresentInCampus: true, Outing: { select: { id: true, StudentId: true, reason: true, FromTime: true, ToTime: true, isExpired: true, RequestedTime: true, Hours: true, isApproved: true, isRejected: true, issuedBy: true, issuedTime: true, Message: true, rejectedBy: true, rejectedTime: true, inTime: true } }, Outpass: { select: { id: true, StudentId: true, Reason: true, FromDay: true, ToDay: true, isExpired: true, RequestedTime: true, Days: true, isApproved: true, isRejected: true, issuedBy: true, issuedTime: true, Message: true, rejectedBy: true, rejectedTime: true, inTime: true } },
-    _count : true,Address : true,attendance : {select : { subject : {select : {name : true}} ,attendedClasses : true, totalClasses : true, semester : {select : {name : true,year : true}}}},
-    grades : { select : { subject : {select : {name : true,credits : true}} ,grade : true, semester : {select : {name : true,year : true}}}},
-     BloodGroup : true, PhoneNumber : true, DateOfBirth : true, FatherAddress : true, FatherName : true, FatherPhoneNumber : true, MotherAddress : true, MotherName : true, MotherPhoneNumber : true, FatherEmail : true, MotherEmail : true, FatherOccupation : true, MotherOccupation : true, isDisabled: true,Year: true, Branch: true, Section: true, Roomno: true, createdAt: true, updatedAt: true },
+    skip,
+    take,
+    select: {
+      id: true,
+      Username: true,
+      Email: true,
+      Name: true,
+      Gender: true,
+      isApplicationPending: true,
+      isPresentInCampus: true,
+      _count: true,
+      Address: true,
+      attendance: {
+        select: {
+          subject: { select: { name: true } },
+          attendedClasses: true,
+          totalClasses: true,
+          semester: { select: { name: true, year: true } }
+        }
+      },
+      grades: {
+        select: {
+          subject: { select: { name: true, credits: true } },
+          grade: true,
+          semester: { select: { name: true, year: true } }
+        }
+      },
+      BloodGroup: true,
+      PhoneNumber: true,
+      DateOfBirth: true,
+      FatherAddress: true,
+      FatherName: true,
+      FatherPhoneNumber: true,
+      MotherAddress: true,
+      MotherName: true,
+      MotherPhoneNumber: true,
+      FatherEmail: true,
+      MotherEmail: true,
+      FatherOccupation: true,
+      MotherOccupation: true,
+      isDisabled: true,
+      Year: true,
+      Branch: true,
+      Section: true,
+      Roomno: true,
+      createdAt: true,
+      updatedAt: true
+    },
   });
-  
-  return Promise.all(users.map(async user => ({
-  id: user.id,
+
+  return users.map(user => ({
+    id: user.id,
     username: user.Username,
     name: user.Name,
     gender: user.Gender,
@@ -132,8 +176,18 @@ export const getUsers = async () => {
     roomno: user.Roomno,
     has_pending_requests: user.isApplicationPending,
     is_in_campus: user.isPresentInCampus,
-    grades: user.grades.map(g => ({ subject: g.subject.name, credits: g.subject.credits, grade: g.grade, semester: `${g.semester.year} ${g.semester.name}` })),
-    attendance: user.attendance.map(a => ({ subject: a.subject.name, attendedClasses: a.attendedClasses, totalClasses: a.totalClasses, semester: `${a.semester.year} ${a.semester.name}` })),
+    grades: user.grades.map(g => ({
+      subject: g.subject.name,
+      credits: g.subject.credits,
+      grade: g.grade,
+      semester: `${g.semester.year} ${g.semester.name}`
+    })),
+    attendance: user.attendance.map(a => ({
+      subject: a.subject.name,
+      attendedClasses: a.attendedClasses,
+      totalClasses: a.totalClasses,
+      semester: `${a.semester.year} ${a.semester.name}`
+    })),
     blood_group: user.BloodGroup,
     phone_number: user.PhoneNumber,
     count: user._count,
@@ -151,8 +205,9 @@ export const getUsers = async () => {
     father_occupation: user.FatherOccupation,
     mother_occupation: user.MotherOccupation,
     is_disabled: user.isDisabled,
-  })));
+  }));
 };
+
 
 export const requestOutpass = async (reason: string, id: string, from_date: Date, to_date: Date) => {
   if (from_date > to_date || from_date <= new Date()) {
@@ -395,12 +450,19 @@ export const getStudentSuggestions = async (username: string) => {
 };
 
 export const getStudentDetails = async (username: string) => {
-  const user = await client.student.findFirst({ where: { Username: username.toLowerCase() }, select: { id: true, Username: true, Email: true, isApplicationPending: true, isPresentInCampus: true, Name: true, Gender: true, Year: true, Branch: true, Section: true, Roomno: true, Address: true, BloodGroup: true, PhoneNumber: true, _count: true, createdAt: true, DateOfBirth: true, updatedAt: true, FatherAddress: true, FatherName: true, FatherPhoneNumber: true, MotherAddress: true, MotherName: true, MotherPhoneNumber: true, FatherEmail: true, MotherEmail: true, FatherOccupation: true, MotherOccupation: true, isDisabled: true } });
+  const user = await client.student.findFirst({ where: { Username: username.toLowerCase() }, 
+    select: { id: true, Username: true, Email: true, Name: true, Gender: true, isApplicationPending: true, isPresentInCampus: true, Outing: { select: { id: true, StudentId: true, reason: true, FromTime: true, ToTime: true, isExpired: true, RequestedTime: true, Hours: true, isApproved: true, isRejected: true, issuedBy: true, issuedTime: true, Message: true, rejectedBy: true, rejectedTime: true, inTime: true } }, Outpass: { select: { id: true, StudentId: true, Reason: true, FromDay: true, ToDay: true, isExpired: true, RequestedTime: true, Days: true, isApproved: true, isRejected: true, issuedBy: true, issuedTime: true, Message: true, rejectedBy: true, rejectedTime: true, inTime: true } },
+    _count : true,Address : true,attendance : {select : { subject : {select : {name : true}} ,attendedClasses : true, totalClasses : true, semester : {select : {name : true,year : true}}}},
+    grades : { select : { subject : {select : {name : true,credits : true}} ,grade : true, semester : {select : {name : true,year : true}}}},
+     BloodGroup : true, PhoneNumber : true, DateOfBirth : true, FatherAddress : true, FatherName : true, FatherPhoneNumber : true, MotherAddress : true, MotherName : true, MotherPhoneNumber : true, FatherEmail : true, MotherEmail : true, FatherOccupation : true, MotherOccupation : true, isDisabled: true,Year: true, Branch: true, Section: true, Roomno: true, createdAt: true, updatedAt: true },
+    });
   return user ? {
     _id: user.id,
     username: user.Username,
     name: user.Name,
     gender: user.Gender,
+    attendance : user.attendance,
+    grades : user.grades,
     email: user.Email,
     year: user.Year,
     branch: user.Branch,
