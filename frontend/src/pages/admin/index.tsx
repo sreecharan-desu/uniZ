@@ -12,6 +12,7 @@ import {
   Image,
   Mail,
   Zap,
+  University,
 } from "lucide-react";
 
 // Elegant Quick Action Button
@@ -114,6 +115,12 @@ export default function Admin() {
               title="Send Notifications"
               subtitle="Email students easily"
               Icon={Mail}
+            />
+            <QuickActionButton
+              onClick={() => navigate("/admin/curriculum")}
+              title="Manage Curriculum"
+              subtitle="Edit course content"
+              Icon={University}
             />
           </div>
         </div>

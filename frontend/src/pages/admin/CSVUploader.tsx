@@ -1,141 +1,114 @@
 import { useState } from "react";
-import { parseCSV } from "../../utils/csvUtils";
-import { pollProgress } from "../../utils/polling";
+import * as XLSX from "xlsx";
 import { BASE_URL } from "../../apis";
 
-interface CSVUploaderProps {
+interface Props {
   title: string;
   uploadUrl: string;
-  schema?: string[]; // optional validation
-  transformData?: (rows: any[], extra?: any) => any; // optional transform
-  extraInputs?: React.ReactNode; // UI for extra inputs (year/sem etc.)
+  schema: string[]; // required headers
 }
 
-
-export default function CSVUploader({
-  title,
-  uploadUrl,
-  schema,
-  transformData,
-  extraInputs,
-}: CSVUploaderProps) {
+export default function SpreadsheetUploader({ title, uploadUrl, schema }: Props) {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<any[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [progress, setProgress] = useState<any>(null);
-  const [status, setStatus] = useState<{ error?: string; success?: string }>({});
-  const [isUploading, setIsUploading] = useState(false);
-  const [extraData, _setExtraData] = useState<any>({}); // for year/sem etc.
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const token = localStorage.getItem("admin_token");
+
+  // Handle file select + parse
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-
-    if (!f.name.endsWith(".csv")) return setStatus({ error: "File must be CSV" });
-    if (f.size > 5 * 1024 * 1024) return setStatus({ error: "Max 5MB allowed" });
-
     setFile(f);
+    setError(null);
+
     try {
-      const rows = await parseCSV<any>(f);
-      setPreview(rows.slice(0, 5));
-      setHeaders(Object.keys(rows[0] || {}));
-    } catch {
-      setStatus({ error: "Failed to parse CSV" });
+      const buffer = await f.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+
+      // Always take first sheet
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      if (!json.length) throw new Error("Empty file");
+
+      // Validate headers
+      const fileHeaders = Object.keys(json[0] as object);
+      for (const required of schema) {
+        if (!fileHeaders.includes(required)) {
+          throw new Error(`Missing required column: ${required}`);
+        }
+      }
+
+      setData(json as any[]);
+    } catch (err: any) {
+      console.error("Parse error:", err);
+      setError(err.message || "Failed to parse file");
+      setFile(null);
     }
   };
 
-  const validateSchema = (rows: any[]): boolean => {
-    if (!schema || !schema.length) return true;
-    return schema.every((field) => Object.keys(rows[0] || {}).includes(field));
-  };
+  // Upload to backend
+  const handleUpload = async () => {
+    if (!data.length) return alert("No data to upload");
+    setLoading(true);
+    setError(null);
 
-  const upload = async () => {
-    if (!file) return;
-    setIsUploading(true);
-    setStatus({});
     try {
-      const rows = await parseCSV<any>(file);
-      if (!validateSchema(rows)) {
-        setStatus({ error: `CSV schema invalid. Required: ${schema?.join(", ")}` });
-        setIsUploading(false);
-        return;
-      }
-
-      const token = localStorage.getItem("admin_token");
-      const body = transformData ? transformData(rows, extraData) : { Students: rows };
-
       const res = await fetch(`${BASE_URL}${uploadUrl}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${JSON.parse(token!)}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(data),
       });
 
-      const data = await res.json();
-      if (data.success) {
-        setStatus({ success: "Processing started..." });
-        pollProgress(
-          `${BASE_URL}/admin/updatestudents-progress?processId=${data.processId}`,
-          token!,
-          setProgress,
-          () => setIsUploading(false)
-        );
-      } else {
-        setStatus({ error: data.msg });
-        setIsUploading(false);
-      }
-    } catch {
-      setStatus({ error: "Upload failed." });
-      setIsUploading(false);
+      const result = await res.json();
+      if (!result.success) throw new Error(result.msg || "Upload failed");
+
+      alert(`✅ ${result.msg}`);
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      setError(err.message || "Failed to upload");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl p-8 shadow-2xl">
-      <h1 className="text-3xl font-extrabold mb-4">{title}</h1>
+    <div className="bg-white shadow-xl rounded-2xl p-6">
+      <h2 className="text-xl font-bold mb-4">{title}</h2>
 
-      {status.error && <p className="text-red-600 mb-2">{status.error}</p>}
-      {status.success && <p className="text-green-600 mb-2">{status.success}</p>}
+      <input
+        type="file"
+        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+        onChange={handleFileUpload}
+        className="mb-4"
+      />
 
-      <div className="space-y-4">
-        {extraInputs && <div>{extraInputs}</div>}
+      {file && (
+        <p className="text-sm text-gray-600 mb-2">
+          Selected: <strong>{file.name}</strong> ({data.length} records)
+        </p>
+      )}
 
-        <input type="file" accept=".csv" onChange={handleFileChange} />
-
-        {preview.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full border text-sm">
-              <thead className="bg-gray-100">
-                <tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {preview.map((row, i) => (
-                  <tr key={i}>
-                    {headers.map((h) => <td key={h}>{row[h]}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <button
-          disabled={!file || isUploading}
-          onClick={upload}
-          className="w-full bg-black text-white py-2 rounded disabled:opacity-50"
-        >
-          {isUploading ? "Uploading..." : "Upload"}
-        </button>
-      </div>
-
-      {progress && (
-        <div className="mt-6">
-          <p>Status: {progress.status}</p>
-          <p>Progress: {progress.percentage}%</p>
+      {error && (
+        <div className="text-red-600 font-medium mb-3">
+          ⚠️ {error}
         </div>
       )}
+
+      <button
+        onClick={handleUpload}
+        disabled={loading || !data.length}
+        className={`px-4 py-2 rounded-lg text-white ${
+          loading ? "bg-gray-500" : "bg-black hover:bg-gray-800"
+        }`}
+      >
+        {loading ? "Uploading..." : "Upload"}
+      </button>
     </div>
   );
 }

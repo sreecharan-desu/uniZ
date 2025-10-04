@@ -13,6 +13,11 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.4",
+    "@mui/styled-engine": "^7.3.3",
+    "@mui/x-data-grid": "^8.13.1",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@vercel/analytics": "^1.4.1",
     "axios": "^1.9.0",
@@ -33,7 +38,8 @@
     "recharts": "^2.15.3",
     "recoil": "^0.7.7",
     "tailwind": "^2.3.1",
-    "tailwind-scrollbar-hide": "^1.1.7"
+    "tailwind-scrollbar-hide": "^1.1.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
@@ -52,7 +58,7 @@
     "tailwindcss": "^3.4.15",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^7.1.9"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",

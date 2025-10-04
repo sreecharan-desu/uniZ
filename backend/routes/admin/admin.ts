@@ -2,7 +2,7 @@ import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient } from "@prisma/client";
-import ExcelJS from "exceljs";
+import ExcelJS from "exceljs";import bcrypt from "bcryptjs";
 import { fetchAdmin, validateSigninInputs } from "./middlewares/middlewares";
 import { authMiddleware, validateResetPassInputs } from "../student/middlewares/middlewares";
 const client = new PrismaClient();
@@ -53,6 +53,7 @@ interface UploadProgress {
   status: "pending" | "completed" | "failed";
   startTime: Date;
   endTime?: Date;
+  percentage?: number; // for addgrades/addattendance
 }
 const progressStore: Map<string, UploadProgress> = new Map();
 /* ---------- Utils ---------- */
@@ -215,6 +216,56 @@ adminRouter.post("/searchstudent", authMiddleware, async (req, res) => {
   }
 });
 
+// ---------- GET /admin/get-curriculum ----------
+adminRouter.get("/get-curriculum", async (req, res) => {
+  try {
+    // Fetch all branches, semesters, and subjects (single queries)
+    const [branches, semesters, subjects] = await Promise.all([
+      client.branch.findMany({ select: { id: true, name: true } }),
+      client.semester.findMany({ select: { id: true, name: true, year: true } }),
+      client.subject.findMany({
+        select: { id: true, name: true, credits: true, branchId: true, semesterId: true },
+      }),
+    ]);
+
+    // Construct nested response
+    const subjectsData: Record<
+      string, // year
+      Record<
+        string, // semester name
+        Record<string, { names: string[]; credits: number[] }> // branch
+      >
+    > = {};
+
+    for (const sem of semesters) {
+      const { id: semesterId, year, name: semName } = sem;
+      if (!subjectsData[year]) subjectsData[year] = {};
+      if (!subjectsData[year][semName]) subjectsData[year][semName] = {};
+
+      for (const branch of branches) {
+        const branchSubs = subjects.filter(
+          (s) => s.branchId === branch.id && s.semesterId === semesterId
+        );
+
+        subjectsData[year][semName][branch.name] = {
+          names: branchSubs.map((s) => s.name),
+          credits: branchSubs.map((s) => s.credits),
+        };
+      }
+    }
+
+    res.json({
+      msg: "Curriculum fetched successfully",
+      success: true,
+      subjectsData,
+    });
+  } catch (err) {
+    console.error("GET /admin/get-curriculum error:", err);
+    res.status(500).json({ msg: "Internal Server Error", success: false });
+  }
+});
+
+
 /* ---------- populate-curriculum ---------- */
 adminRouter.post("/populate-curriculum", async (req, res) => {
   try {
@@ -223,74 +274,79 @@ adminRouter.post("/populate-curriculum", async (req, res) => {
       return res.status(400).json({ msg: "subjectsData is required in body", success: false });
     }
 
+    // Ensure branches exist
     const branches = ["CSE", "ECE", "EEE", "CIVIL", "MECH"];
-    for (const branchName of branches) {
-      await client.branch.upsert({
+    await Promise.all(branches.map(branchName =>
+      client.branch.upsert({
         where: { name: branchName },
         update: { name: branchName },
         create: { name: branchName },
-      });
-    }
+      })
+    ));
 
-    // // For generating neat table summary
-    // const curriculumSummary: Record<
-    //   string,
-    //   Record<string, Record<string, { subject: string; credits: number }[]>>
-    // > = {};
+    // Process all years in parallel
+    await Promise.all(
+      Object.keys(subjectsData).map(async (year) => {
+        const semesters = subjectsData[year];
 
-    // for (const year in subjectsData) {
-    //   curriculumSummary[year] = {};
-    //   for (const semesterName in subjectsData[year]) {
-    //     const semester = await client.semester.upsert({
-    //       where: { name_year: { name: semesterName, year } },
-    //       update: { name: semesterName, year },
-    //       create: { name: semesterName, year },
-    //     });
+        // Process all semesters in parallel
+        await Promise.all(
+          Object.keys(semesters).map(async (semesterName) => {
+            // Upsert semester
+            const semester = await client.semester.upsert({
+              where: { name_year: { name: semesterName, year } },
+              update: { name: semesterName, year },
+              create: { name: semesterName, year },
+            });
 
-    //     curriculumSummary[year][semesterName] = {};
+            const branchesData = semesters[semesterName];
 
-    //     for (const branchName in subjectsData[year][semesterName]) {
-    //       const branch = await client.branch.findUnique({ where: { name: branchName } });
-    //       if (!branch) throw new Error(`Branch ${branchName} not found`);
+            // Process all branches in parallel
+            await Promise.all(
+              Object.keys(branchesData).map(async (branchName) => {
+                const branch = await client.branch.findUnique({ where: { name: branchName } });
+                if (!branch) throw new Error(`Branch ${branchName} not found`);
 
-    //       const { names, credits } = subjectsData[year][semesterName][branchName];
-    //       const table: { subject: string; credits: number }[] = [];
+                const { names, credits } = branchesData[branchName];
 
-    //       for (let i = 0; i < names.length; i++) {
-    //         const subjectName = names[i];
-    //         const subjectCredits = credits[i];
-    //         if (!subjectName || subjectCredits === 0) continue;
+                // Upsert all subjects in parallel
+                const subjectPromises = names.map((subjectName, i) => {
+                  const subjectCredits = credits[i];
+                  if (!subjectName || subjectCredits === 0) return null;
 
-    //         await client.subject.upsert({
-    //           where: {
-    //             name_branchId_semesterId: {
-    //               name: subjectName,
-    //               branchId: branch.id,
-    //               semesterId: semester.id,
-    //             },
-    //           },
-    //           update: { name: subjectName, credits: subjectCredits },
-    //           create: { name: subjectName, credits: subjectCredits, branchId: branch.id, semesterId: semester.id },
-    //         });
+                  return client.subject.upsert({
+                    where: {
+                      name_branchId_semesterId: {
+                        name: subjectName,
+                        branchId: branch.id,
+                        semesterId: semester.id,
+                      },
+                    },
+                    update: { name: subjectName, credits: subjectCredits },
+                    create: {
+                      name: subjectName,
+                      credits: subjectCredits,
+                      branchId: branch.id,
+                      semesterId: semester.id,
+                    },
+                  });
+                });
 
-    //         table.push({ subject: subjectName, credits: subjectCredits });
-    //       }
+                await Promise.all(subjectPromises.filter(Boolean));
+              })
+            );
+          })
+        );
+      })
+    );
 
-    //       curriculumSummary[year][semesterName][branchName] = table;
-    //     }
-    //   }
-    // }
-
-    return res.json({
-      msg: "Curriculum data populated successfully",
-      success: true,
-      // curriculum: curriculumSummary, // neat table-like structure
-    });
+    return res.json({ msg: "Curriculum data populated successfully", success: true });
   } catch (err: any) {
     console.error("POST /populate-curriculum error:", err);
     return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
+
 
 /* ---------- GET /students/template ---------- */
 adminRouter.get("/students/template", authMiddleware, async (req, res) => {
@@ -350,10 +406,10 @@ adminRouter.post("/updatestudents", authMiddleware, async (req, res) => {
       if (typeof st !== "object")
         return res.status(400).json({ msg: "Each student must be an object", success: false });
 
-      for (const k of requiredKeys) {
-        if (!st[k] || typeof st[k] !== "string")
-          return res.status(400).json({ msg: `Missing or invalid key ${k}`, success: false });
-      }
+      // for (const k of requiredKeys) {
+      //   if (!st[k] || typeof st[k] !== "string")
+      //     return res.status(400).json({ msg: `Missing or invalid key ${k}`, success: false });
+      // }
 
       // Extra validations
       if (!validGenders.includes(st["GENDER"]))
@@ -361,15 +417,6 @@ adminRouter.post("/updatestudents", authMiddleware, async (req, res) => {
 
       if (!validBranches.includes(st["BRANCH"]))
         return res.status(400).json({ msg: `Invalid BRANCH for ${st["ID NUMBER"]}`, success: false });
-
-      if (!validBloodGroups.includes(st["BLOOD GROUP"]))
-        return res.status(400).json({ msg: `Invalid BLOOD GROUP for ${st["ID NUMBER"]}`, success: false });
-
-      if (!/^\d{10}$/.test(st["MOBILE NUMBER"]))
-        return res.status(400).json({ msg: `Invalid MOBILE NUMBER for ${st["ID NUMBER"]}`, success: false });
-
-      if (!/^\d{10}$/.test(st["PARENT'S NUMBER"]))
-        return res.status(400).json({ msg: `Invalid PARENT'S NUMBER for ${st["ID NUMBER"]}`, success: false });
     }
 
     // Track progress
@@ -446,22 +493,24 @@ adminRouter.post("/updatestudents", authMiddleware, async (req, res) => {
   }
 });
 
+
 /* ---------- POST /addgrades ---------- */
 adminRouter.post("/addgrades", authMiddleware, async (req, res) => {
   try {
     const data = req.body;
 
-    // Validate root structure
+    // --- Validate input ---
     const validationErrors = validateInput(data);
     if (validationErrors?.length)
       return res.status(400).json({ msg: "Invalid input", success: false, errors: validationErrors });
 
-    const [year, semName] = String(data.SemesterName || "").split("*");
-    if (!year || !semName)
-      return res.status(400).json({ msg: "Invalid SemesterName format (expected Year*SemName)", success: false });
+    // --- Parse SemesterName: "E2 Sem 1" ---
+    const [year, semWord, semNum] = String(data.SemesterName || "").split(" ");
+    if (!year || !semWord || !semNum)
+      return res.status(400).json({ msg: "Invalid SemesterName format (expected 'E2 Sem 1')", success: false });
 
     const semester = await client.semester.findFirst({
-      where: { year, name: semName },
+      where: { year, name: `${semWord} - ${semNum}` },
       select: { id: true },
     });
     if (!semester)
@@ -469,59 +518,138 @@ adminRouter.post("/addgrades", authMiddleware, async (req, res) => {
 
     const studentsInput = data.Students || [];
     const processId = uuidv4();
+
+    // --- Initialize progress ---
     progressStore.set(processId, {
       totalRecords: studentsInput.length,
       processedRecords: 0,
       errors: [],
       status: "pending",
       startTime: new Date(),
+      percentage: 0,
     });
 
-    // --- Background processor (same as your code, no big change) ---
-    (async () => {
-      let processedRecords = 0;
-      const errors: any[] = [];
-      try {
-        const chunks: any = chunkArray(studentsInput, 50);
+    // --- Grade mapping ---
+    const gradeMap: Record<string, number> = {
+      "Ex": 10,
+      "A": 9,
+      "B": 8,
+      "C": 7,
+      "D": 6,
+      "E": 5,
+      "R": 0,
+    };
 
-        for (const chunk of chunks) {
-          // all your chunk logic remains the same here...
-          // (student lookups, subject validation, upsert grades)
-          // update `processedRecords` and `errors`
-        }
+ (async () => {
+  let processedRecords = 0;
+  const errors: any[] = [];
 
-        const finalP = progressStore.get(processId);
-        if (finalP) {
-          finalP.status =
-            (finalP.errors && finalP.errors.length === studentsInput.length)
-              ? "failed"
-              : "completed";
-          finalP.endTime = new Date();
-          setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
-        }
+  for (const [index, studentData] of studentsInput.entries()) {
+    let studentProcessed = false; // flag to know if any grade was processed
 
-        console.log(`addgrades ${processId} done: processed ${processedRecords}, errors ${finalP?.errors?.length ?? 0}`);
-      } catch (err) {
-        console.error("Background addgrades error:", err);
-        const p = progressStore.get(processId);
-        if (p) {
-          p.status = "failed";
-          p.endTime = new Date();
+    // --- Student lookup ---
+    const student = await client.student.findFirst({
+      where: { id: studentData.Username },
+      select: { id: true, Branch: true },
+    });
+    if (!student) {
+      errors.push({ recordIndex: index, message: `Student ${studentData.Username} not found` });
+      updateProgress();
+      continue;
+    }
+
+    // --- Branch lookup ---
+    const branch = await client.branch.findFirst({
+      where: { name: student.Branch },
+      select: { id: true },
+    });
+    if (!branch) {
+      errors.push({ recordIndex: index, message: `Branch ${student.Branch} not found` });
+      updateProgress();
+      continue;
+    }
+
+    // --- Prefetch subjects ---
+    const existingSubjects = await client.subject.findMany({
+      where: { semesterId: semester.id, branchId: branch.id },
+      select: { id: true, name: true },
+    });
+    const subjMap = new Map(existingSubjects.map((s) => [s.name, s.id]));
+
+    // --- Process grades ---
+    for (const grade of studentData.Grades) {
+      let subjectId = subjMap.get(grade.SubjectName);
+      if (!subjectId) {
+        const isElective = grade.SubjectName.includes("Elective") || grade.SubjectName.includes("MOOC");
+        if (!isElective) {
+          errors.push({ recordIndex: index, message: `Subject ${grade.SubjectName} missing` });
+          continue;
         }
+        const subj = await getOrCreateSubject(grade.SubjectName, semester.id, branch.id, { names: [], credits: [] }, true);
+        if (!subj) {
+          errors.push({ recordIndex: index, message: `Failed to create elective ${grade.SubjectName}` });
+          continue;
+        }
+        subjectId = subj.id;
+        subjMap.set(grade.SubjectName, subjectId);
       }
-    })();
+
+      const numericGrade = gradeMap[grade.Grade];
+      if (numericGrade === undefined) {
+        errors.push({ recordIndex: index, message: `Invalid grade "${grade.Grade}" for ${grade.SubjectName}` });
+        continue;
+      }
+
+      // --- Upsert grade ---
+      try {
+        await client.grade.upsert({
+          where: { studentId_subjectId_semesterId: { studentId: student.id, subjectId, semesterId: semester.id } },
+          update: { grade: numericGrade },
+          create: { studentId: student.id, subjectId, semesterId: semester.id, grade: numericGrade },
+        });
+        studentProcessed = true; // at least one grade succeeded
+      } catch (err: any) {
+        errors.push({ recordIndex: index, message: `Failed to upsert grade for ${grade.SubjectName}: ${err.message ?? err}` });
+      }
+    }
+
+    if (studentProcessed) processedRecords++;
+
+    // --- Update progress ---
+    updateProgress();
+  }
+
+  // --- Finalize ---
+  const finalP: any = progressStore.get(processId);
+  if (finalP) {
+    finalP.status = processedRecords > 0 ? "completed" : "failed";
+    finalP.endTime = new Date();
+    setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
+  }
+
+  function updateProgress() {
+    const p = progressStore.get(processId);
+    if (p) {
+      p.processedRecords = processedRecords;
+      p.errors = errors;
+      p.percentage = studentsInput.length > 0 ? parseFloat(((processedRecords / studentsInput.length) * 100).toFixed(2)) : 0;
+    }
+  }
+})();
+
 
     return res.status(202).json({
       msg: `Processing ${studentsInput.length} grade records`,
       processId,
       success: true,
-      templateDownload: "/api/admin/grades/template", // provide template link
+      templateDownload: "/api/admin/grades/template",
     });
   } catch (err: any) {
     console.error("POST /addgrades error:", err);
     return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
+
 
 /* ---------- GET /grades/template ---------- */
 adminRouter.get("/grades/template", authMiddleware, async (req, res) => {
@@ -530,23 +658,15 @@ adminRouter.get("/grades/template", authMiddleware, async (req, res) => {
     const ws = workbook.addWorksheet("Grades Template");
 
     ws.columns = [
-      { header: "SemesterName", key: "SemesterName", width: 25 },
-      { header: "Username", key: "Username", width: 25 },
-      { header: "SubjectName", key: "SubjectName", width: 40 },
+      { header: "Username", key: "Username", width: 50 },
+      { header: "SubjectName", key: "SubjectName", width: 30 },
       { header: "Grade", key: "Grade", width: 10 },
     ];
 
-    // Example row (so admin understands format)
-    ws.addRow({
-      SemesterName: "E2*Sem - 1",
-      Username: "student123",
-      SubjectName: "Data Structures",
-      Grade: "A",
-    });
+    ws.addRow({ SemesterName: "E2 Sem 1", Username: "student123", SubjectName: "Data Structures", Grade: "A" });
 
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", "attachment; filename=grades_template.xlsx");
-
     await workbook.xlsx.write(res);
     res.end();
   } catch (err) {
@@ -555,146 +675,156 @@ adminRouter.get("/grades/template", authMiddleware, async (req, res) => {
   }
 });
 
-/* ---------- POST addattendance ---------- */
+/* ---------- POST /addattendance ---------- */
 adminRouter.post("/addattendance", authMiddleware, async (req, res) => {
   try {
-    const dataset = Array.isArray(req.body) ? req.body : [];
-    if (!dataset.length) {
-      return res.status(400).json({ msg: "No records provided", success: false });
+    const data = req.body;
+    if (!data || !Array.isArray(data.Students) || data.Students.length === 0) {
+      return res.status(400).json({ msg: "No student records provided", success: false });
     }
 
-    // Validate SemesterName format
-    const firstSem = String(dataset[0].SemesterName || "");
-    const [year, semName] = firstSem.split("*");
-    if (!year || !semName) {
-      return res.status(400).json({ msg: "Invalid SemesterName format", success: false });
+    const { SemesterName } = data;
+    if (!SemesterName || typeof SemesterName !== "string") {
+      return res.status(400).json({ msg: "SemesterName must be provided", success: false });
+    }
+
+    const [year, semWord, hyphen, semNumber] = SemesterName.split(" ");
+    if (!year || !semWord || !hyphen || !semNumber) {
+      return res.status(400).json({ msg: "Invalid SemesterName format (expected 'E2 Sem - 1')", success: false });
     }
 
     const semester = await client.semester.findFirst({
-      where: { year, name: semName },
+      where: { year, name: `${semWord} - ${semNumber}` },
       select: { id: true },
     });
-    if (!semester) {
-      return res.status(400).json({ msg: `Semester "${firstSem}" not found`, success: false });
-    }
+    if (!semester) return res.status(400).json({ msg: `Semester "${SemesterName}" not found`, success: false });
 
+    const studentsInput = data.Students;
     const processId = uuidv4();
+
+    // Initialize progress
     progressStore.set(processId, {
-      totalRecords: dataset.length,
+      totalRecords: studentsInput.length,
       processedRecords: 0,
       errors: [],
+      failedRecords: [],
       status: "pending",
       startTime: new Date(),
     });
 
+    // Helper to update progress
+    const updateProgress = (processedRecords: number, errors: any[]) => {
+      const p = progressStore.get(processId);
+      if (!p) return;
+      p.processedRecords = processedRecords;
+      p.errors = [...errors];
+      p.failedRecords = errors.map((e) => ({ id: e.recordIndex, reason: e.message }));
+    };
+
+    // Background processing
     (async () => {
       let processedRecords = 0;
       const errors: any[] = [];
 
-      for (const [index, record] of dataset.entries()) {
+      for (const [index, studentData] of studentsInput.entries()) {
         try {
-          const SemesterName = String(record.SemesterName || "");
-          const IdNumber = String(record.IdNumber || "").toLowerCase();
-          const subjectName = String(record.SubjectName || "");
-          const totalClasses = Number(record.ClassesHappened) || 0;
-          const attendedClasses = Number(record.ClassesAttended) || 0;
-
-          if (!SemesterName || !IdNumber || !subjectName) {
-            errors.push({ recordIndex: index, message: "Missing required fields" });
-            continue;
-          }
-
-          if (attendedClasses > totalClasses) {
-            errors.push({ recordIndex: index, idNumber: IdNumber, message: `Attended classes (${attendedClasses}) > total classes (${totalClasses}) for ${subjectName}` });
-            continue;
-          }
-
+          // Lookup student
           const student = await client.student.findFirst({
-            where: { id: IdNumber },
+            where: { id: studentData.IdNumber },
             select: { id: true, Branch: true },
           });
           if (!student) {
-            errors.push({ recordIndex: index, idNumber: IdNumber, message: `Student "${IdNumber}" not found` });
+            errors.push({ recordIndex: index, message: `Student "${studentData.IdNumber}" not found` });
+            updateProgress(processedRecords, errors);
             continue;
           }
 
+          // Lookup branch
           const branch = await client.branch.findFirst({
             where: { name: student.Branch },
             select: { id: true },
           });
           if (!branch) {
-            errors.push({ recordIndex: index, idNumber: IdNumber, message: `Branch ${student.Branch} not found` });
+            errors.push({ recordIndex: index, message: `Branch "${student.Branch}" not found` });
+            updateProgress(processedRecords, errors);
             continue;
           }
 
-          // Prefetch subjects for this branch+semester
+          // Prefetch subjects
           const existingSubjects = await client.subject.findMany({
             where: { semesterId: semester.id, branchId: branch.id },
             select: { id: true, name: true },
           });
           const subjMap = new Map(existingSubjects.map((s) => [s.name, s.id]));
 
-          let subjectId = subjMap.get(subjectName);
-          if (!subjectId) {
-            const isElective = subjectName.includes("Elective") || subjectName.includes("MOOC");
-            if (!isElective) {
-              errors.push({ recordIndex: index, idNumber: IdNumber, message: `Subject ${subjectName} missing` });
-              continue;
-            }
-            const subj = await getOrCreateSubject(subjectName, semester.id, branch.id, {
-              names: [],
-              credits: []
-            }, true);
-            if (!subj) {
-              errors.push({ recordIndex: index, idNumber: IdNumber, message: `Failed to create elective ${subjectName}` });
-              continue;
-            }
-            subjectId = subj.id;
-            subjMap.set(subjectName, subjectId);
-          }
+          // Process each attendance record
+          for (const record of studentData.Attendance) {
+            const { SubjectName, ClassesHappened, ClassesAttended } = record;
 
-          try {
-            await client.attendance.upsert({
-              where: {
-                studentId_subjectId_semesterId: {
-                  studentId: student.id,
-                  subjectId,
-                  semesterId: semester.id,
-                },
-              },
-              update: { totalClasses, attendedClasses },
-              create: { studentId: student.id, subjectId, semesterId: semester.id, totalClasses, attendedClasses },
-            });
-          } catch (err: any) {
-            errors.push({ recordIndex: index, idNumber: IdNumber, message: `Failed upsert attendance ${subjectName}: ${err.message ?? err}` });
-            continue;
+            if (!SubjectName || ClassesHappened == null || ClassesAttended == null) {
+              errors.push({ recordIndex: index, message: `Missing fields for subject "${SubjectName}"` });
+              updateProgress(processedRecords, errors);
+              continue;
+            }
+
+            if (ClassesAttended > ClassesHappened) {
+              errors.push({ recordIndex: index, message: `Attended classes (${ClassesAttended}) exceed total (${ClassesHappened}) for "${SubjectName}"` });
+              updateProgress(processedRecords, errors);
+              continue;
+            }
+
+            // Get or create subject
+            let subjectId = subjMap.get(SubjectName);
+            if (!subjectId) {
+              const isElective = SubjectName.includes("Elective") || SubjectName.includes("MOOC");
+              if (!isElective) {
+                errors.push({ recordIndex: index, message: `Subject "${SubjectName}" missing` });
+                updateProgress(processedRecords, errors);
+                continue;
+              }
+              const subj = await getOrCreateSubject(SubjectName, semester.id, branch.id, { names: [], credits: [] }, true);
+              if (!subj) {
+                errors.push({ recordIndex: index, message: `Failed to create elective "${SubjectName}"` });
+                updateProgress(processedRecords, errors);
+                continue;
+              }
+              subjectId = subj.id;
+              subjMap.set(SubjectName, subjectId);
+            }
+
+            try {
+              await client.attendance.upsert({
+                where: { studentId_subjectId_semesterId: { studentId: student.id, subjectId, semesterId: semester.id } },
+                update: { totalClasses: ClassesHappened, attendedClasses: ClassesAttended },
+                create: { studentId: student.id, subjectId, semesterId: semester.id, totalClasses: ClassesHappened, attendedClasses: ClassesAttended },
+              });
+            } catch (err: any) {
+              errors.push({ recordIndex: index, message: `Failed to upsert "${SubjectName}": ${err.message ?? err}` });
+            }
           }
 
           processedRecords++;
-        } catch (innerErr: any) {
-          console.error("Error processing attendance record:", innerErr);
-          errors.push({ recordIndex: index, message: innerErr?.message ?? innerErr });
-        }
-
-        // update progress after each record
-        const p = progressStore.get(processId);
-        if (p) {
-          p.processedRecords = processedRecords;
-          p.errors = errors;
+          updateProgress(processedRecords, errors);
+        } catch (err: any) {
+          errors.push({ recordIndex: index, message: err.message ?? err });
+          updateProgress(processedRecords, errors);
         }
       }
 
+      // Finalize
       const finalP = progressStore.get(processId);
       if (finalP) {
-        finalP.status = (finalP.errors && finalP.errors.length === dataset.length) ? "failed" : "completed";
+        finalP.status = processedRecords === 0 || errors.length === studentsInput.length ? "failed" : "completed";
         finalP.endTime = new Date();
         setTimeout(() => progressStore.delete(processId), 10 * 60 * 1000);
       }
-
-      console.log(`addattendance ${processId} finished processed=${processedRecords} errors=${finalP?.errors?.length ?? 0}`);
     })();
 
-    return res.status(202).json({ msg: `Processing ${dataset.length} attendance records`, processId, success: true });
+    return res.status(202).json({
+      msg: `Processing ${studentsInput.length} attendance records`,
+      processId,
+      success: true,
+    });
   } catch (err: any) {
     console.error("POST /addattendance error:", err);
     return res.status(500).json({ msg: "Internal Server Error", success: false });
@@ -710,16 +840,14 @@ adminRouter.get("/attendance/template", authMiddleware, async (req, res) => {
 
     // Columns
     ws.columns = [
-      { header: "SemesterName", key: "SemesterName", width: 25 },
       { header: "IdNumber", key: "IdNumber", width: 20 },
       { header: "SubjectName", key: "SubjectName", width: 40 },
       { header: "ClassesHappened", key: "ClassesHappened", width: 20 },
       { header: "ClassesAttended", key: "ClassesAttended", width: 20 },
     ];
 
-    // Example rows so admin understands
+    // Example rows
     ws.addRow({
-      SemesterName: "E2*Sem - 1",
       IdNumber: "stu123",
       SubjectName: "Data Structures",
       ClassesHappened: 40,
@@ -727,11 +855,24 @@ adminRouter.get("/attendance/template", authMiddleware, async (req, res) => {
     });
 
     ws.addRow({
-      SemesterName: "E2*Sem - 1",
       IdNumber: "stu123",
       SubjectName: "Operating Systems",
       ClassesHappened: 42,
       ClassesAttended: 38,
+    });
+
+    ws.addRow({
+      IdNumber: "stu124",
+      SubjectName: "Data Structures",
+      ClassesHappened: 40,
+      ClassesAttended: 36,
+    });
+
+    ws.addRow({
+      IdNumber: "stu124",
+      SubjectName: "Operating Systems",
+      ClassesHappened: 42,
+      ClassesAttended: 39,
     });
 
     res.setHeader(
@@ -751,14 +892,25 @@ adminRouter.get("/attendance/template", authMiddleware, async (req, res) => {
   }
 });
 
+
 /* ---------- progress endpoint (generic) ---------- */
 adminRouter.get("/progress", authMiddleware, async (req, res) => {
   try {
     const { processId } = req.query;
-    if (!processId || typeof processId !== "string") return res.status(400).json({ msg: "Missing or invalid processId", success: false });
+    if (!processId || typeof processId !== "string") {
+      return res.status(400).json({ msg: "Missing or invalid processId", success: false });
+    }
     const progress = progressStore.get(processId);
-    if (!progress) return res.status(404).json({ msg: `No upload process found for processId: ${processId}`, success: false });
-    const percentage = progress.totalRecords > 0 ? parseFloat(((progress.processedRecords / progress.totalRecords) * 100).toFixed(2)) : 0;
+    if (!progress) {
+      return res.status(404).json({ msg: `No upload process found for processId: ${processId}`, success: false });
+    }
+    // Always show 100% if all records processed, even if only 1 record
+    let percentage = 0;
+    if (progress.totalRecords > 0) {
+      percentage = progress.processedRecords >= progress.totalRecords
+        ? 100
+        : parseFloat(((progress.processedRecords / progress.totalRecords) * 100).toFixed(2));
+    }
     return res.status(200).json({
       processId,
       totalRecords: progress.totalRecords,
@@ -769,7 +921,7 @@ adminRouter.get("/progress", authMiddleware, async (req, res) => {
       status: progress.status,
       success: true,
     });
-  } catch (err:any) {
+  } catch (err: any) {
     console.error("GET /progress error:", err);
     return res.status(500).json({ msg: "Unexpected error", success: false });
   }
@@ -884,6 +1036,74 @@ adminRouter.post('/banners/:id/publish', authMiddleware, requirePermission('mana
 
 // --- Roles & Permissions management routes ---
 // Get available roles & default permissions
+
+// POST /admin/addadmin
+adminRouter.post('/addadmin', authMiddleware, requireAnyRole('director', 'webmaster'), async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+    if (!username || !password || !role)
+      return res.status(400).json({ msg: 'username, password, and role required', success: false });
+
+    if (!['webmaster', 'dean', 'director'].includes(role))
+      return res.status(400).json({ msg: 'Invalid role', success: false });
+
+    const existing = await client.admin.findUnique({ where: { Username: username } });
+    if (existing) return res.status(409).json({ msg: 'Admin already exists', success: false });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const admin = await client.admin.create({
+      data: { id: uuidv4(), Username: username, Password: hashedPassword, role },
+    });
+
+    res.json({ msg: `Admin ${username} added successfully`, admin, success: true });
+  } catch (err) {
+    console.error('Add admin error:', err);
+    res.status(500).json({ msg: 'Error adding admin', success: false });
+  }
+});
+
+adminRouter.delete('/deleteadmin/:username', authMiddleware, requireAnyRole('director'), async (req, res) => {
+  try {
+    const { username } = req.params;
+    const deleted = await client.admin.deleteMany({ where: { Username: username } });
+    if (deleted.count === 0) return res.status(404).json({ msg: 'Admin not found', success: false });
+    res.json({ msg: `${username} removed`, success: true });
+  } catch (err) {
+    console.error('Delete admin error:', err);
+    res.status(500).json({ msg: 'Error deleting admin', success: false });
+  }
+});
+
+
+adminRouter.put('/admin/:username/permissions', authMiddleware, requireAnyRole('director', 'webmaster'), async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { permissions } = req.body;
+    if (!Array.isArray(permissions)) return res.status(400).json({ msg: 'Invalid permissions', success: false });
+
+    const admin = await client.admin.updateMany({
+      where: { Username: username },
+      data: {},
+    });
+
+    if (admin.count === 0) return res.status(404).json({ msg: 'Admin not found', success: false });
+    res.json({ msg: `Permissions updated for ${username}`, success: true });
+  } catch (err) {
+    console.error('Update admin permissions error:', err);
+    res.status(500).json({ msg: 'Error updating permissions', success: false });
+  }
+});
+
+
+adminRouter.get('/searchadmin', authMiddleware, requireAnyRole('director', 'webmaster'), async (req, res) => {
+  const q = req.query.q || '';
+  const admins = await client.admin.findMany({
+    where: { Username: { contains: q as string, mode: 'insensitive' } },
+    select: { id: true, Username: true, role: true },
+  });
+  res.json({ admins, success: true });
+});
+
 
 // GET /admin/getadmins
 adminRouter.get('/getadmins', authMiddleware, requireAnyRole('dean', 'director', 'webmaster'), async (req, res) => {

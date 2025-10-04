@@ -1,547 +1,261 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
-import Papa from 'papaparse';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { Upload, FileDown, Loader2, AlertCircle, CheckCircle2, Search } from "lucide-react";
+import { BASE_URL } from "../../apis";
 
 export default function AddAttendance() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("admin_token");
+
   const [file, setFile] = useState<File | null>(null);
+  const [rows, setRows] = useState<any[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [year, setYear] = useState("E1");
+  const [sem, setSem] = useState("Sem - 1");
   const [processId, setProcessId] = useState<string | null>(null);
   const [progress, setProgress] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [year, setYear] = useState<string>('E1');
-  const [sem, setSem] = useState<string>('Sem - 1');
-  const [previewData, setPreviewData] = useState<any[]>([]);
-  const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
-  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    setError(null);
-    setSuccessMsg(null);
-    setProgress(null);
-    setProcessId(null);
-    setPreviewData([]);
-    setPreviewHeaders([]);
-
-    if (selectedFile) {
-      // Validate file type
-      if (!selectedFile.name.endsWith('.csv')) {
-        setError('Please select a valid CSV file.');
-        return;
-      }
-
-      setFile(selectedFile);
-
-      // Parse file for preview
-      Papa.parse(selectedFile, {
-        header: true,
-        skipEmptyLines: true,
-        preview: 5, // Limit to 5 rows for preview
-        complete: (results) => {
-          const validData = results.data.filter(
-            (row: any) => row && typeof row === 'object' && row.IdNumber
-          );
-          if (validData.length === 0) {
-            setError('No valid data found in the CSV file.');
-            return;
-          }
-          setPreviewData(validData);
-          // Extract headers, simplify complex ones (e.g., no_of_classes_happened/0/SubjectName -> SubjectName)
-          const headers = Object.keys(validData[0] || {}).map((key) => {
-            const parts = key.split('/');
-            return parts[parts.length - 1];
-          });
-          setPreviewHeaders(headers);
-        },
-        error: () => {
-          setError('Error parsing CSV file for preview.');
-        },
-      });
-    }
-  };
-
-  const validateAttendanceData = (data: any[]) => {
-    if (!Array.isArray(data) || data.length === 0 || !data[0] || typeof data[0] !== 'object') {
-      return { valid: false, message: 'CSV file is empty or invalid' };
-    }
-
-    const requiredKeys = [
-      'IdNumber',
-      'no_of_classes_happened/0/SubjectName',
-      'no_of_classes_happened/0/Classes',
-      'no_of_classes_attended/0/SubjectName',
-      'no_of_classes_attended/0/Classes',
-    ];
-    const missingKeys = requiredKeys.filter(
-      (key) => !Object.prototype.hasOwnProperty.call(data[0], key)
-    );
-    if (missingKeys.length > 0) {
-      return { valid: false, message: `Missing columns: ${missingKeys.join(', ')}` };
-    }
-
-    return { valid: true };
-  };
-
-  function transformAttendanceJson(inputJson: any[], semesterName: string) {
-    if (!Array.isArray(inputJson)) {
-      throw new Error('Input must be an array');
-    }
-    if (!semesterName || typeof semesterName !== 'string') {
-      throw new Error('SemesterName must be a non-empty string');
-    }
-
-    const output: any = {
-      SemesterName: semesterName,
-      data: [],
-    };
-
-    inputJson.forEach((student, index) => {
-      if (!student.IdNumber) {
-        throw new Error(`Student at index ${index} missing IdNumber`);
-      }
-
-      const studentData: any = {
-        IdNumber: student.IdNumber,
-        no_of_classes_happened: [],
-        no_of_classes_attended: [],
-      };
-
-      const happenedKeys: any = Object.keys(student).filter((key) =>
-        key.startsWith('no_of_classes_happened/')
-      );
-      const attendedKeys: any = Object.keys(student).filter((key) =>
-        key.startsWith('no_of_classes_attended/')
-      );
-
-      const happenedByIndex: any = {};
-      const attendedByIndex: any = {};
-
-      happenedKeys.forEach((key: any) => {
-        const match = key.match(/no_of_classes_happened\/(\d+)\/(.+)/);
-        if (!match) {
-          throw new Error(`Invalid class key format: ${key}`);
-        }
-        const [, index, property] = match;
-        if (!happenedByIndex[index]) {
-          happenedByIndex[index] = {};
-        }
-        happenedByIndex[index][property] = student[key];
-      });
-
-      attendedKeys.forEach((key: any) => {
-        const match = key.match(/no_of_classes_attended\/(\d+)\/(.+)/);
-        if (!match) {
-          throw new Error(`Invalid class key format: ${key}`);
-        }
-        const [, index, property] = match;
-        if (!attendedByIndex[index]) {
-          attendedByIndex[index] = {};
-        }
-        attendedByIndex[index][property] = student[key];
-      });
-
-      studentData.no_of_classes_happened = Object.keys(happenedByIndex)
-        .sort((a, b) => parseInt(a) - parseInt(b))
-        .map((index) => {
-          const classData = happenedByIndex[index];
-          if (!classData.SubjectName || !classData.Classes) {
-            throw new Error(
-              `Incomplete no_of_classes_happened data for student ${student.IdNumber} at index ${index}`
-            );
-          }
-          return {
-            SubjectName: classData.SubjectName,
-            Classes: parseInt(classData.Classes),
-          };
-        });
-
-      studentData.no_of_classes_attended = Object.keys(attendedByIndex)
-        .sort((a, b) => parseInt(a) - parseInt(b))
-        .map((index) => {
-          const classData = attendedByIndex[index];
-          if (!classData.SubjectName || !classData.Classes) {
-            throw new Error(
-              `Incomplete no_of_classes_attended data for student ${student.IdNumber} at index ${index}`
-            );
-          }
-          return {
-            SubjectName: classData.SubjectName,
-            Classes: parseInt(classData.Classes),
-          };
-        });
-
-      output.data.push(studentData);
-    });
-
-    return output;
-  }
-
-  const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a CSV file.');
-      return;
-    }
-
-    setIsUploading(true);
-    setError(null);
-    setSuccessMsg(null);
-    setPreviewData([]);
-    setPreviewHeaders([]);
-
-    try {
-      const results = await new Promise<any>((resolve, reject) => {
-        Papa.parse(file, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => resolve(results),
-          error: (err) => reject(err),
-        });
-      });
-
-      const validData = results.data.filter(
-        (row: any) => row && typeof row === 'object' && row.IdNumber
-      );
-
-      const validation = validateAttendanceData(validData);
-      if (!validation.valid) {
-        setError(
-          `${validation.message}. Ensure all required columns are present. Download sample CSV.`
-        );
-        setIsUploading(false);
-        return;
-      }
-
-      const token = localStorage.getItem('admin_token');
-      if (!token) {
-        setError('Authentication token not found. Please log in again.');
-        setIsUploading(false);
-        return;
-      }
-
-      const jsonData = transformAttendanceJson(validData, `${year}*${sem}`);
-      const response = await fetch('https://uni-z-api.vercel.app/api/v1/admin/addattendance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${JSON.parse(token)}`,
-        },
-        body: JSON.stringify(jsonData),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setProcessId(data.processId);
-        setSuccessMsg(data.msg || 'Processing started successfully.');
-      } else {
-        setError(data.msg || 'Failed to initiate upload. Please try again.');
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError('Error uploading CSV. Check your network or try again later.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
+  // --- Poll progress ---
   useEffect(() => {
     if (!processId) return;
-
     const interval = setInterval(async () => {
       try {
-        const token = localStorage.getItem('admin_token');
-        if (!token) {
-          setError('Authentication token not found. Please log in again.');
-          clearInterval(interval);
-          return;
-        }
-
-        const response = await fetch(
-          `https://uni-z-api.vercel.app/api/v1/admin/updatestudents-progress?processId=${processId}`,
-          {
-            headers: { Authorization: `Bearer ${JSON.parse(token)}` },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const res = await fetch(`${BASE_URL}/admin/progress?processId=${processId}`, {
+          headers: { Authorization: `Bearer ${JSON.parse(token!)}` },
+        });
+        const data = await res.json();
         if (data.success) {
           setProgress(data);
-          if (data.status === 'completed' || data.status === 'failed') {
-            clearInterval(interval);
-            if (data.status === 'completed') {
-              setSuccessMsg('All attendance records processed successfully!');
-            } else if (data.status === 'failed') {
-              setError('Processing failed. Check failed records for details.');
-            }
-          }
+          if (["completed", "failed"].includes(data.status)) clearInterval(interval);
         } else {
-          setError(data.msg || 'Failed to fetch progress.');
+          setError(data.msg || "Failed to fetch progress");
           clearInterval(interval);
         }
       } catch (err) {
-        console.error('Progress fetch error:', err);
-        setError('Error fetching progress. Check your network or try again.');
+        console.error("Progress poll error", err);
+        setError("Error fetching progress");
         clearInterval(interval);
       }
-    }, 3000); // Poll every 1 second
-
+    }, 1000);
     return () => clearInterval(interval);
   }, [processId]);
 
-  return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={() => navigate('/admin')}
-          className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 transition-colors mb-6"
-        >
-          <svg
-            className="w-5 h-5 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Back
-        </button>
-        <div className="bg-white shadow-2xl rounded-2xl p-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Add Attendance</h1>
-<p className="text-sm text-gray-600 mb-6 leading-relaxed">
-  Upload a CSV file with attendance data. Ensure the file matches the required format.
-  <br />
-  <a
-    href="/assets/samples/addattendance.csv"
-    download
-    className="inline-block mt-2 text-blue-600 underline hover:text-blue-800 transition-colors duration-200"
-  >
-    Download Sample CSV
-  </a>
-</p>
+  // --- File parser ---
+  const handleFile = async (f: File) => {
+    try {
+      setFile(f);
+      setError(null);
+      setProgress(null); // clear previous progress
+      const buffer = await f.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      if (!json.length) throw new Error("Empty file");
+      setHeaders(Object.keys(json[0] as object));
+      setRows(json.map((r, i) => ({ id: i + 1, ...(typeof r === "object" && r !== null ? r : {}) })));
+    } catch (err: any) {
+      console.error("Parse error", err);
+      setError(err.message || "Failed to parse file");
+      setFile(null);
+      setRows([]);
+      setProgress(null);
+    }
+  };
 
-          {successMsg && (
-            <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-lg flex items-center">
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              {successMsg}
+  // --- Build payload ---
+  const buildPayload = () => {
+    const studentsMap: Record<string, { IdNumber: string; Attendance: any[] }> = {};
+    rows.forEach((r) => {
+      if (!r.IdNumber) return;
+      if (!studentsMap[r.IdNumber]) studentsMap[r.IdNumber] = { IdNumber: r.IdNumber, Attendance: [] };
+      studentsMap[r.IdNumber].Attendance.push({
+        SubjectName: r.SubjectName,
+        ClassesHappened: Number(r.ClassesHappened) || 0,
+        ClassesAttended: Number(r.ClassesAttended) || 0,
+      });
+    });
+    return {
+      SemesterName: `${year} ${sem}`,
+      Students: Object.values(studentsMap),
+    };
+  };
+
+  // --- Upload ---
+  const handleUpload = async () => {
+    if (!rows.length) return setError("Please select a valid file first");
+    setUploading(true);
+    setError(null);
+    setProgress(null); // clear progress for realtime feel
+    setProcessId(null);
+
+    try {
+      const payload = buildPayload();
+      const res = await fetch(`${BASE_URL}/admin/addattendance`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JSON.parse(token!)}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) setProcessId(data.processId);
+      else setError(data.msg || "Upload failed");
+    } catch (err: any) {
+      console.error("Upload error", err);
+      setError("Unexpected error during upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // --- Download template ---
+  const downloadTemplate = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/attendance/template`, {
+        headers: { Authorization: `Bearer ${JSON.parse(token!)}` },
+      });
+      if (!res.ok) throw new Error("Failed to download template");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "attendance_template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Template download error", err);
+      alert("Failed to download template");
+    }
+  };
+
+  // --- Filter rows ---
+  const filteredRows = useMemo(() => {
+    if (!search.trim()) return rows;
+    return rows.filter((r) =>
+      Object.values(r).join(" ").toLowerCase().includes(search.toLowerCase())
+    );
+  }, [rows, search]);
+
+  // --- Inline edit ---
+  const handleEdit = (id: number, field: string, value: string) => {
+    setRows((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
+  };
+
+  return (
+    <div className="min-h-screen bg-white text-black flex flex-col">
+      <div className="flex items-center justify-between px-8 py-4 border-b border-gray-300">
+        <h1 className="text-2xl font-bold">Attendance Upload Manager</h1>
+        <button onClick={() => navigate("/admin")} className="text-sm underline hover:opacity-70">← Back</button>
+      </div>
+
+      <div className="flex-1 flex flex-col p-8 space-y-6">
+        <p className="text-sm text-gray-700">
+          Upload attendance CSV/XLSX. Preview, edit, filter, and search before uploading.
+        </p>
+
+        {/* Semester select */}
+        <div className="flex items-center gap-4">
+          <select value={year} onChange={(e) => setYear(e.target.value)} className="border border-black rounded px-3 py-2 text-sm focus:ring-1 focus:ring-black">
+            {["E1","E2","E3","E4"].map((y) => <option key={y}>{y}</option>)}
+          </select>
+          <select value={sem} onChange={(e) => setSem(e.target.value)} className="border border-black rounded px-3 py-2 text-sm focus:ring-1 focus:ring-black">
+            <option>Sem - 1</option>
+            <option>Sem - 2</option>
+          </select>
+        </div>
+
+        {/* File input */}
+        <div className="border-2 border-dashed border-black rounded-lg p-8 text-center">
+          <input type="file" accept=".csv,.xlsx,.xls" onChange={(e) => e.target.files && handleFile(e.target.files[0])} className="hidden" id="attendanceFileInput" />
+          <label htmlFor="attendanceFileInput" className="cursor-pointer flex flex-col items-center gap-2">
+            <Upload className="w-8 h-8" />
+            {file ? <span className="font-medium">{file.name}</span> : <span>Select or Drag & Drop Spreadsheet</span>}
+          </label>
+        </div>
+
+        {/* Search */}
+        {rows.length > 0 && (
+          <div className="flex items-center gap-2 border border-black rounded px-3 py-2 w-full">
+            <Search className="w-5 h-5 text-gray-600" />
+            <input type="text" placeholder="Search attendance..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 outline-none text-sm bg-transparent" />
+          </div>
+        )}
+
+        {/* Table */}
+        {rows.length > 0 && (
+          <div className="flex-1 overflow-auto border border-black rounded">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-100 sticky top-0 border-b border-black">
+                <tr>{headers.map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filteredRows.map((row) => (
+                  <tr key={row.id} className="border-b border-gray-300 hover:bg-gray-50">
+                    {headers.map((h) => (
+                      <td key={h} className="px-3 py-2">
+                        <input value={row[h] || ""} onChange={(e) => handleEdit(row.id, h, e.target.value)} className="w-full border border-gray-400 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black" />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-4 mt-4">
+          <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 border border-black rounded hover:bg-black hover:text-white transition">
+            <FileDown className="w-5 h-5" /> Download Template
+          </button>
+          <button onClick={handleUpload} disabled={uploading || !rows.length} className={`flex items-center gap-2 px-4 py-2 rounded text-white ${uploading || !rows.length ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"}`}>
+            {uploading && <Loader2 className="w-5 h-5 animate-spin" />}
+            Upload & Process
+          </button>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="flex items-center gap-2 text-red-600 text-sm">
+            <AlertCircle className="w-5 h-5" /> {error}
+          </div>
+        )}
+
+        {/* Progress */}
+        {progress && (
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span>Status: <b className={progress.status === "completed" ? "text-black" : progress.status === "failed" ? "text-red-600" : "text-gray-700"}>{progress.status}</b></span>
+              <span>{progress.percentage}% done</span>
             </div>
-          )}
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 text-red-600 rounded-lg flex items-center">
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {error}
-              {error.includes('Download sample CSV') && (
-                <a
-                  href="/assets/samples/addattendance.csv"
-                  download
-                  className="ml-2 text-black underline hover:text-gray-800"
-                >
-                  Download Sample CSV
-                </a>
-              )}
+            <div className="w-full bg-gray-200 h-3 rounded">
+              <div className={`h-3 transition-all duration-300 ${progress.status === "failed" ? "bg-red-600" : progress.status === "completed" ? "bg-black" : "bg-gray-600"}`} style={{ width: `${progress.percentage}%` }} />
             </div>
-          )}
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Year</label>
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
-                disabled={isUploading}
-              >
-                <option value="E1">E1</option>
-                <option value="E2">E2</option>
-                <option value="E3">E3</option>
-                <option value="E4">E4</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Semester</label>
-              <select
-                value={sem}
-                onChange={(e) => setSem(e.target.value)}
-                className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
-                disabled={isUploading}
-              >
-                <option value="Sem - 1">Sem - 1</option>
-                <option value="Sem - 2">Sem - 2</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">CSV File</label>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-900 hover:file:bg-gray-200 disabled:opacity-50"
-                disabled={isUploading}
-              />
-            </div>
-            {previewData.length > 0 && (
-              <div className="mt-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                  File Preview ({previewData.length} rows)
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        {previewHeaders.map((header, index) => (
-                          <th
-                            key={index}
-                            className="px-4 py-2 text-left text-sm font-medium text-gray-500 border-b border-gray-200"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewData.map((row, rowIndex) => (
-                        <tr key={rowIndex} className="border-b border-gray-200">
-                          {previewHeaders.map((header, colIndex) => {
-                            const originalKey = Object.keys(row).find((key) =>
-                              key.endsWith(`/${header}`)
-                            ) || header;
-                            return (
-                              <td
-                                key={colIndex}
-                                className="px-4 py-2 text-sm text-gray-600"
-                              >
-                                {row[originalKey] || '-'}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {previewData.length === 5 && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    Showing first 5 rows. Upload to process all records.
-                  </p>
-                )}
+
+            {/* Show errors */}
+            {progress.errors?.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-semibold flex items-center gap-2"><AlertCircle className="w-4 h-4 text-red-600" /> Errors ({progress.errors.length})</h3>
+                <ul className="list-disc list-inside text-sm mt-1 max-h-40 overflow-y-auto">
+                  {progress.errors.map((err: any, idx: number) => (
+                    <li key={idx}>{err.recordIndex != null ? `Record ${err.recordIndex}: ` : ""}{err.message}</li>
+                  ))}
+                </ul>
               </div>
             )}
-            <button
-              onClick={handleUpload}
-              disabled={isUploading || !file}
-              className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {isUploading ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2 text-white"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z"
-                    />
-                  </svg>
-                  Uploading...
-                </>
-              ) : (
-                'Upload'
-              )}
-            </button>
-            {progress && (
-              <div className="mt-6 space-y-4">
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className={`h-2.5 rounded-full ${
-                      progress.status === 'failed'
-                        ? 'bg-red-600'
-                        : progress.status === 'completed'
-                        ? 'bg-green-600'
-                        : 'bg-black'
-                    }`}
-                    style={{ width: `${progress.percentage}%` }}
-                  />
-                </div>
-                <div className="text-gray-600">
-                  <p>
-                    Progress: {progress.percentage}% (
-                    {progress.processedRecords}/{progress.totalRecords} records)
-                  </p>
-                  <p>
-                    Status:{' '}
-                    <span
-                      className={`capitalize ${
-                        progress.status === 'failed'
-                          ? 'text-red-600'
-                          : progress.status === 'completed'
-                          ? 'text-green-600'
-                          : 'text-gray-600'
-                      }`}
-                    >
-                      {progress.status}
-                    </span>
-                  </p>
-                  {progress.failedRecords?.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-red-600">
-                        {progress.failedRecords.length} record(s) failed:
-                      </p>
-                      <ul className="list-disc pl-5 text-sm text-red-600">
-                        {progress.failedRecords.map((record: any, index: number) => (
-                          <li key={index}>
-                            IdNumber: {record.id || 'Unknown'} - {record.reason || 'No reason provided'}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
+
+            {progress.status === "completed" && progress.errors?.length === 0 && (
+              <div className="flex items-center gap-2 text-black text-sm"><CheckCircle2 className="w-5 h-5" /> All attendance processed successfully</div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

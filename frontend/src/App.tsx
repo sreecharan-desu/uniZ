@@ -13,6 +13,7 @@ import Settings from "./pages/admin/Settings";
 import RoleManagement from "./pages/admin/RoleManagement";
 import BannerManager from "./pages/admin/BannerManager";
 import EmailNotification from "./pages/admin/EmailNotification";
+import CurriculumManager from "./pages/admin/Curriculum";
 
 
 // Lazy load components
@@ -236,6 +237,9 @@ function App() {
 } />
         <Route path="/admin/settings" element={                <PageTransition>
 <Settings />                </PageTransition>
+} />
+    <Route path="/admin/curriculum" element={                <PageTransition>
+<CurriculumManager />                </PageTransition>
 } />
 <Route
   path="/admin/roles"
