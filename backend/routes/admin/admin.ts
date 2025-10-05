@@ -740,12 +740,13 @@ adminRouter.post("/addattendance", authMiddleware, async (req, res) => {
       return res.status(400).json({ msg: "No student records provided", success: false });
     }
 
-    const { SemesterName } = data;
+    const { year, SemesterName } = data;
     if (!SemesterName || typeof SemesterName !== "string") {
       return res.status(400).json({ msg: "SemesterName must be provided", success: false });
     }
 
-    const [year, semWord, hyphen, semNumber] = SemesterName.split(" ");
+    const [semWord, hyphen, semNumber] = SemesterName.split(" ");
+    console.log({ year, semWord, hyphen, semNumber });
     if (!year || !semWord || !hyphen || !semNumber) {
       return res.status(400).json({ msg: "Invalid SemesterName format (expected 'E2 Sem - 1')", success: false });
     }
@@ -1071,74 +1072,6 @@ function requirePermission(permission: Permission) {
   };
 }
 
-// --- Banners CRUD & publish routes ---
-adminRouter.post('/banners', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
-  try {
-    const { title, text, imageUrl, isPublished = false } = req.body;
-    if (!title) return res.status(400).json({ msg: 'Title is required', success: false });
-    const createdBy = (req as any).admin?.username || null;
-    const banner = await client.banner.create({
-      data: { id: uuidv4(), title, text: text ?? '', imageUrl: imageUrl ?? null, isPublished, createdBy },
-    });
-    res.json({ banner, success: true, msg: 'Banner created' });
-  } catch (err:any) {
-    console.error('Create banner error', err);
-    res.status(500).json({ msg: 'Error creating banner', success: false });
-  }
-});
-
-adminRouter.get('/banners', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
-  try {
-    const onlyPublished = req.query.published === 'true';
-    const banners = await client.banner.findMany({
-      where: onlyPublished ? { isPublished: true } : {},
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json({ banners, success: true });
-  } catch (err:any) {
-    console.error('Get banners error', err);
-    res.status(500).json({ msg: 'Error fetching banners', success: false });
-  }
-});
-
-adminRouter.put('/banners/:id', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, text, imageUrl } = req.body;
-    const banner = await client.banner.update({
-      where: { id },
-      data: { title, text, imageUrl, updatedAt: new Date() },
-    });
-    res.json({ banner, success: true, msg: 'Banner updated' });
-  } catch (err:any) {
-    console.error('Update banner error', err);
-    res.status(500).json({ msg: 'Error updating banner', success: false });
-  }
-});
-
-adminRouter.delete('/banners/:id', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
-  try {
-    const { id } = req.params;
-    await client.banner.delete({ where: { id } });
-    res.json({ msg: 'Banner deleted', success: true });
-  } catch (err:any) {
-    console.error('Delete banner error', err);
-    res.status(500).json({ msg: 'Error deleting banner', success: false });
-  }
-});
-
-adminRouter.post('/banners/:id/publish', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { publish } = req.body; // boolean true/false
-    const banner = await client.banner.update({ where: { id }, data: { isPublished: !!publish } });
-    res.json({ banner, success: true, msg: publish ? 'Banner published' : 'Banner unpublished' });
-  } catch (err) {
-    console.error('Publish banner error', err);
-    res.status(500).json({ msg: 'Error changing publish status', success: false });
-  }
-});
-
 // --- Roles & Permissions management routes ---
 // Get available roles & default permissions
 
@@ -1210,6 +1143,8 @@ adminRouter.get('/searchadmin', authMiddleware, requireAnyRole('director', 'webm
 });
 
 
+
+
 // GET /admin/getadmins
 adminRouter.get('/getadmins', authMiddleware, requireAnyRole('dean', 'director', 'webmaster'), async (req, res) => {
   try {
@@ -1260,6 +1195,77 @@ adminRouter.put('/roles/:role/permissions', authMiddleware, requirePermission('a
     res.status(500).json({ msg: 'Error updating permissions', success: false });
   }
 });
+
+
+
+// --- Banners CRUD & publish routes ---
+adminRouter.post('/banners', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { title, text, imageUrl, isPublished = false } = req.body;
+    if (!title) return res.status(400).json({ msg: 'Title is required', success: false });
+    const createdBy = (req as any).admin?.username || null;
+    const banner = await client.banner.create({
+      data: { id: uuidv4(), title, text: text ?? '', imageUrl: imageUrl ?? null, isPublished, createdBy },
+    });
+    res.json({ banner, success: true, msg: 'Banner created' });
+  } catch (err:any) {
+    console.error('Create banner error', err);
+    res.status(500).json({ msg: 'Error creating banner', success: false });
+  }
+});
+
+adminRouter.get('/banners', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const onlyPublished = req.query.published === 'true';
+    const banners = await client.banner.findMany({
+      where: onlyPublished ? { isPublished: true } : {},
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ banners, success: true });
+  } catch (err:any) {
+    console.error('Get banners error', err);
+    res.status(500).json({ msg: 'Error fetching banners', success: false });
+  }
+});
+
+adminRouter.put('/banners/:id', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, text, imageUrl } = req.body;
+    const banner = await client.banner.update({
+      where: { id },
+      data: { title, text, imageUrl, updatedAt: new Date() },
+    });
+    res.json({ banner, success: true, msg: 'Banner updated' });
+  } catch (err:any) {
+    console.error('Update banner error', err);
+    res.status(500).json({ msg: 'Error updating banner', success: false });
+  }
+});
+
+adminRouter.delete('/banners/:id', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    await client.banner.delete({ where: { id } });
+    res.json({ msg: 'Banner deleted', success: true });
+  } catch (err:any) {
+    console.error('Delete banner error', err);
+    res.status(500).json({ msg: 'Error deleting banner', success: false });
+  }
+});
+
+adminRouter.post('/banners/:id/publish', authMiddleware, requirePermission('manage_banners'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { publish } = req.body; // boolean true/false
+    const banner = await client.banner.update({ where: { id }, data: { isPublished: !!publish } });
+    res.json({ banner, success: true, msg: publish ? 'Banner published' : 'Banner unpublished' });
+  } catch (err) {
+    console.error('Publish banner error', err);
+    res.status(500).json({ msg: 'Error changing publish status', success: false });
+  }
+});
+
 
 // --- Email notifications routes ---
 // Assumptions:
