@@ -1,22 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useDebounce } from '../../customhooks/useDebounce';
-import { useIsAuth } from '../../customhooks/is_authenticated';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, User } from 'lucide-react';
-import { SEARCH_STUDENTS } from '../../apis';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import { useDebounce } from "../../customhooks/useDebounce";
+import { useIsAuth } from "../../customhooks/is_authenticated";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Search, User, AlertCircle } from "lucide-react";
+import { SEARCH_STUDENTS } from "../../apis";
 
 const StudentCardSkeleton = () => (
-  <div className="animate-pulse m-5 p-5 bg-gray-100 rounded-xl shadow-md">
-    <div className="flex items-center space-x-4 mb-4">
-      <div className="h-12 w-12 bg-gray-300 rounded-full"></div>
-      <div className="flex-1 space-y-2">
-        <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-        <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+  <div className="animate-pulse m-5 p-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">
+    <div className="flex items-center space-x-4 mb-6">
+      <div className="h-14 w-14 bg-gray-300 rounded-full" />
+      <div className="flex-1 space-y-3">
+        <div className="h-4 bg-gray-300 rounded w-3/4" />
+        <div className="h-3 bg-gray-300 rounded w-1/2" />
       </div>
     </div>
-    <div className="space-y-4">
+    <div className="space-y-3">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-4 bg-gray-300 rounded w-full"></div>
+        <div key={i} className="h-3 bg-gray-300 rounded w-full" />
       ))}
     </div>
   </div>
@@ -52,37 +53,35 @@ interface StudentProps {
 
 export default function SearchStudents() {
   useIsAuth();
-  const [string, setString] = useState('');
+  const [string, setString] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<StudentProps[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentProps | null>(null);
   const debouncedValue = useDebounce(string, 500);
   const navigate = useNavigate();
 
   const fetchStudents = async (query: string) => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      setError('Authentication token not found');
-      return;
-    }
+    const token = localStorage.getItem("admin_token");
+    if (!token) return setError("Authentication token not found");
 
     try {
       setIsLoading(true);
-      const cleanToken = token.replace(/^["'](.+(?=["']$))["']$/, '$1');
+      setError("");
+      const cleanToken = token.replace(/^["'](.+(?=["']$))["']$/, "$1");
       const res = await fetch(SEARCH_STUDENTS, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${cleanToken}`,
         },
         body: JSON.stringify({ username: query.toLowerCase() }),
       });
+
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
-
       if (!data.success) {
-        setError(data.msg || 'Failed to fetch students');
+        setError(data.msg || "Failed to fetch students");
         setSuggestions([]);
         setSelectedStudent(null);
         return;
@@ -91,18 +90,13 @@ export default function SearchStudents() {
       const suggs = data.suggestions || [];
       setSuggestions(suggs);
 
-      // If only one suggestion or exact student exists, select automatically
       if (suggs.length === 1 || data.student) {
         setSelectedStudent(data.student || suggs[0]);
-        setSuggestions([]); // hide dropdown
-      } else {
-        setSelectedStudent(null);
-      }
-
-      setError('');
+        setSuggestions([]);
+      } else setSelectedStudent(null);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch students. Please try again.');
+      setError("Something went wrong while fetching students. Please try again.");
       setSuggestions([]);
       setSelectedStudent(null);
     } finally {
@@ -110,22 +104,19 @@ export default function SearchStudents() {
     }
   };
 
-  // Fetch suggestions as user types
   useEffect(() => {
     if (!debouncedValue) {
       setSuggestions([]);
       setSelectedStudent(null);
-      setError('');
+      setError("");
       return;
     }
-
-    if (!debouncedValue.toLowerCase().startsWith('o')) {
+    if (!debouncedValue.toLowerCase().startsWith("o")) {
       setSuggestions([]);
       setSelectedStudent(null);
       setError("Student ID must start with 'o'");
       return;
     }
-
     fetchStudents(debouncedValue);
   }, [debouncedValue]);
 
@@ -138,8 +129,8 @@ export default function SearchStudents() {
     <div className="max-w-7xl mx-auto px-4 py-8 mt-16 space-y-8">
       {/* Back Button */}
       <button
-        onClick={() => navigate('/admin')}
-        className="inline-flex items-center px-4 py-2 bg-white bg-opacity-90 backdrop-blur-sm border border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 shadow transition-colors"
+        onClick={() => navigate("/admin")}
+        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-900 hover:bg-gray-50 transition-all"
       >
         <ArrowLeft className="w-5 h-5 mr-2" />
         Back
@@ -149,7 +140,7 @@ export default function SearchStudents() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Search Portal</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Search detailed student information including personal details, grades, and attendance records
+          Search detailed student information including personal details, grades, and attendance records.
         </p>
       </div>
 
@@ -158,22 +149,28 @@ export default function SearchStudents() {
         <input
           type="text"
           placeholder="Enter student ID (e.g., o210008)"
-          className="w-full h-12 pl-5 pr-12 text-lg border-2 border-gray-300 rounded-lg focus:border-gray-500 focus:ring-2 focus:ring-gray-200 transition-all duration-300"
+          className="w-full h-12 pl-5 pr-12 text-lg border-2 border-gray-200 rounded-xl focus:border-gray-500 focus:ring-2 focus:ring-gray-200 outline-none transition-all"
           onChange={(e) => {
             setString(e.target.value);
-            setError('');
-            setSelectedStudent(null); // clear selection when typing
+            setError("");
+            setSelectedStudent(null);
           }}
           value={string}
         />
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-500 text-white p-2 rounded-full">
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
           <Search className="w-6 h-6" />
         </div>
-        {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
 
-        {/* Suggestions Dropdown */}
+        {error && (
+          <div className="mt-3 flex items-center text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-lg text-sm">
+            <AlertCircle className="w-4 h-4 mr-2" />
+            {error}
+          </div>
+        )}
+
+        {/* Suggestions */}
         {suggestions.length > 0 && !selectedStudent && (
-          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+          <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg animate-fade-in">
             {suggestions.map((s) => (
               <div
                 key={s._id}
@@ -191,13 +188,17 @@ export default function SearchStudents() {
         )}
       </div>
 
-      {/* Student Details */}
-      {isLoading ? (
-        <StudentCardSkeleton />
-      ) : selectedStudent ? (
-        <div className="bg-white bg-opacity-90 backdrop-blur-sm shadow-2xl rounded-2xl overflow-hidden mt-6">
+      {/* Content */}
+      {isLoading && <StudentCardSkeleton />}
+
+      {!isLoading && !selectedStudent && !error && string && suggestions.length === 0 && (
+        <p className="text-center text-gray-500 mt-6">No matching students found.</p>
+      )}
+
+      {selectedStudent && !isLoading && (
+        <div className="bg-white bg-opacity-90 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden mt-8 border border-gray-200">
           <div className="bg-gray-800 px-6 py-4 flex items-center space-x-4">
-            <div className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl">
+            <div className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl shadow">
               {selectedStudent.name.charAt(0)}
             </div>
             <div className="text-white">
@@ -206,15 +207,14 @@ export default function SearchStudents() {
             </div>
           </div>
 
-          {/* Info Grid */}
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-gray-800">
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-gray-800">
             {[
-              ['Email', selectedStudent.email],
-              ['Gender', selectedStudent.gender],
-              ['Year', selectedStudent.year],
-              ['Branch', selectedStudent.branch],
-              ['Blood Group', selectedStudent.blood_group],
-              ['Phone Number', selectedStudent.phone_number],
+              ["Email", selectedStudent.email],
+              ["Gender", selectedStudent.gender],
+              ["Year", selectedStudent.year],
+              ["Branch", selectedStudent.branch],
+              ["Blood Group", selectedStudent.blood_group],
+              ["Phone Number", selectedStudent.phone_number],
               ["Father's Name", selectedStudent.father_name],
               ["Father's Phone", selectedStudent.father_phonenumber],
               ["Father's Email", selectedStudent.father_email],
@@ -225,16 +225,16 @@ export default function SearchStudents() {
               ["Mother's Email", selectedStudent.mother_email],
               ["Mother's Occupation", selectedStudent.mother_occupation],
               ["Mother's Address", selectedStudent.mother_address],
-              ['Disability Status', selectedStudent.is_disabled ? 'Yes' : 'No'],
+              ["Disability Status", selectedStudent.is_disabled ? "Yes" : "No"],
             ].map(([label, value]) => (
               <div key={label}>
                 <label className="text-sm text-gray-500">{label}</label>
-                <p className="font-medium">{value}</p>
+                <p className="font-medium">{value || "—"}</p>
               </div>
             ))}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

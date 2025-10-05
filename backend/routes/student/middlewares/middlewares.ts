@@ -81,14 +81,24 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       select: { id: true, Username: true, role: true },
     });
 
-    if (!admin) return res.status(401).json({ msg: "AUTH_ERROR : Admin not found", success: false });
+        // attach admin object to request
+        if (admin) {
+          (req as any).admin = {
+            _id: admin.id,
+            username: admin.Username,
+            role: admin.role,
+          };
+        }
 
-    // attach admin object to request
-    (req as any).admin = {
-      _id: admin.id,
-      username: admin.Username,
-      role: admin.role,
-    };
+    if (!admin) {
+        const student = await client.student.findUnique({
+        where: { Username: decoded_username },
+        select: { id: true, Username: true },
+      });
+      if (!student) return res.status(401).json({ msg: "AUTH_ERROR", success: false });
+    }
+
+
 
     next();
   } catch (err) {

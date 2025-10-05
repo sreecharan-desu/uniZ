@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../../apis";
@@ -9,6 +10,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Search,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function AddGrades() {
@@ -19,7 +21,8 @@ export default function AddGrades() {
   const [rows, setRows] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [year, setYear] = useState("E1");
-  const [sem, setSem] = useState("Sem 1");
+  const [sem, setSem] = useState("Sem-1");
+  const [branch, setBranch] = useState("CSE");
   const [processId, setProcessId] = useState<string | null>(null);
   const [progress, setProgress] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -31,9 +34,10 @@ export default function AddGrades() {
     if (!processId) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${BASE_URL}/admin/progress?processId=${processId}`, {
-          headers: { Authorization: `Bearer ${JSON.parse(token!)}` },
-        });
+        const res = await fetch(
+          `${BASE_URL}/admin/progress?processId=${processId}`,
+          { headers: { Authorization: `Bearer ${JSON.parse(token!)}` } }
+        );
         const data = await res.json();
         if (data.success) {
           setProgress(data);
@@ -51,7 +55,7 @@ export default function AddGrades() {
     return () => clearInterval(interval);
   }, [processId]);
 
-  // --- File parser ---
+  // --- Parse uploaded file ---
   const handleFile = async (f: File) => {
     try {
       setFile(f);
@@ -62,7 +66,7 @@ export default function AddGrades() {
       const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
       if (!json.length) throw new Error("Empty file");
       setHeaders(Object.keys(json[0] as object));
-      setRows(json.map((r, i) => ({ id: i + 1, ...(typeof r === "object" && r !== null ? r : {}) })));
+      setRows(json.map((r, i) => ({ id: i + 1, ...(r as object) })));
     } catch (err: any) {
       console.error("Parse error", err);
       setError(err.message || "Failed to parse file");
@@ -71,18 +75,22 @@ export default function AddGrades() {
     }
   };
 
-  // --- Build payload for API ---
+  // --- Build payload ---
   const buildPayload = () => {
     const studentsMap: Record<string, { Username: string; Grades: any[] }> = {};
     rows.forEach((r) => {
       if (!r.Username) return;
-      if (!studentsMap[r.Username]) studentsMap[r.Username] = { Username: r.Username, Grades: [] };
-      studentsMap[r.Username].Grades.push({ SubjectName: r.SubjectName, Grade: r.Grade });
+      if (!studentsMap[r.Username])
+        studentsMap[r.Username] = { Username: r.Username, Grades: [] };
+      studentsMap[r.Username].Grades.push({
+        SubjectName: r.SubjectName,
+        Grade: r.Grade,
+      });
     });
-    return { SemesterName: `${year} ${sem}`, Students: Object.values(studentsMap) };
+    return { year, semester: sem, branch, Students: Object.values(studentsMap) };
   };
 
-  // --- Upload ---
+  // --- Upload to backend ---
   const handleUpload = async () => {
     if (!rows.length) return setError("Please select a valid file first");
     setUploading(true);
@@ -113,14 +121,20 @@ export default function AddGrades() {
   const downloadTemplate = async () => {
     try {
       const res = await fetch(`${BASE_URL}/admin/grades/template`, {
-        headers: { Authorization: `Bearer ${JSON.parse(token!)}` },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JSON.parse(token!)}`,
+        },
+        body: JSON.stringify({ year, semester: sem, branch }),
       });
       if (!res.ok) throw new Error("Failed to download template");
+
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "grades_template.xlsx";
+      a.download = `${year}_${sem}_${branch}_grades_template.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -131,7 +145,7 @@ export default function AddGrades() {
     }
   };
 
-  // --- Filter rows ---
+  // --- Search Filter ---
   const filteredRows = useMemo(() => {
     if (!search.trim()) return rows;
     return rows.filter((r) =>
@@ -139,66 +153,125 @@ export default function AddGrades() {
     );
   }, [rows, search]);
 
-  // --- Inline edit ---
   const handleEdit = (id: number, field: string, value: string) => {
-    setRows((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
+    setRows((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+    );
   };
 
   return (
-    <div className="min-h-screen bg-white text-black flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-8 py-4 border-b border-gray-300">
-        <h1 className="text-2xl font-bold">Grade Upload Manager</h1>
-        <button onClick={() => navigate("/admin")} className="text-sm underline hover:opacity-70">← Back</button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 flex flex-col items-center justify-start relative overflow-hidden">
+      {/* Subtle Glass Blur Background */}
+      <div className="absolute inset-0 backdrop-blur-2xl bg-white/30" />
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col p-8 space-y-6">
+      {/* Main Container */}
+      <div className="relative w-full max-w-6xl mt-10 mb-16 rounded-3xl bg-white/40 shadow-2xl border border-white/40 backdrop-blur-lg p-10 space-y-6 text-gray-900">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/admin")}
+              className="p-2 rounded-full hover:bg-white/30 transition"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Grade Upload Manager
+            </h1>
+          </div>
+        </div>
+
         <p className="text-sm text-gray-700">
-          Supports <b>CSV, XLSX, XLS</b>. You can <b>preview, edit, filter, and search</b> before uploading.
+          Upload or download grade templates for any{" "}
+          <b>Year, Semester, and Branch</b>. You can{" "}
+          <b>preview, search, and edit</b> before uploading.
         </p>
 
-        {/* Semester Select */}
-        <div className="flex items-center gap-4">
-          <select value={year} onChange={(e) => setYear(e.target.value)} className="border border-black rounded px-3 py-2 text-sm focus:ring-1 focus:ring-black">
-            {["E1", "E2", "E3", "E4"].map((y) => <option key={y}>{y}</option>)}
+        {/* Controls */}
+        <div className="flex flex-wrap gap-4">
+          <select
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="glass-select"
+          >
+            {["E1", "E2", "E3", "E4"].map((y) => (
+              <option key={y}>{y}</option>
+            ))}
           </select>
-          <select value={sem} onChange={(e) => setSem(e.target.value)} className="border border-black rounded px-3 py-2 text-sm focus:ring-1 focus:ring-black">
-            <option>Sem 1</option>
-            <option>Sem 2</option>
+
+          <select value={sem} onChange={(e) => setSem(e.target.value)} className="glass-select">
+            <option value="Sem-1">Sem-1</option>
+            <option value="Sem-2">Sem-2</option>
+          </select>
+
+          <select value={branch} onChange={(e) => setBranch(e.target.value)} className="glass-select">
+            {["CSE", "ECE", "EEE", "CIVIL", "MECH"].map((b) => (
+              <option key={b}>{b}</option>
+            ))}
           </select>
         </div>
 
-        {/* File Input */}
-        <div className="border-2 border-dashed border-black rounded-lg p-8 text-center">
-          <input type="file" accept=".csv,.xlsx,.xls" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} className="hidden" id="spreadsheetInput" />
-          <label htmlFor="spreadsheetInput" className="cursor-pointer flex flex-col items-center gap-2">
-            <Upload className="w-8 h-8" />
-            {file ? <span className="font-medium">{file.name}</span> : <span>Select or Drag & Drop Spreadsheet</span>}
+        {/* Upload Box */}
+        <div className="glass-card border-dashed text-center py-10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/50 transition">
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+            }}
+            className="hidden"
+            id="spreadsheetInput"
+          />
+          <label htmlFor="spreadsheetInput" className="flex flex-col items-center gap-3 cursor-pointer">
+            <Upload className="w-10 h-10 text-gray-700" />
+            {file ? (
+              <span className="font-semibold">{file.name}</span>
+            ) : (
+              <span className="text-gray-700 font-medium">
+                Select or Drag & Drop Spreadsheet
+              </span>
+            )}
           </label>
         </div>
 
-        {/* Search */}
+        {/* Search Bar */}
         {rows.length > 0 && (
-          <div className="flex items-center gap-2 border border-black rounded px-3 py-2 w-full">
-            <Search className="w-5 h-5 text-gray-600" />
-            <input type="text" placeholder="Search grades..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 outline-none text-sm bg-transparent" />
+          <div className="glass-input flex items-center gap-2 px-3 py-2">
+            <Search className="w-5 h-5 text-gray-700" />
+            <input
+              type="text"
+              placeholder="Search grades..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent outline-none text-sm"
+            />
           </div>
         )}
 
         {/* Table */}
         {rows.length > 0 && (
-          <div className="border border-black rounded" style={{ maxHeight: "300px", overflowY: "auto" }}>
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-100 sticky top-0 border-b border-black">
-                <tr>{headers.map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr>
+          <div className="rounded-xl overflow-hidden border border-white/50 shadow-inner backdrop-blur-sm max-h-96 overflow-y-auto">
+            <table className="w-full text-sm text-left text-gray-900">
+              <thead className="sticky top-0 bg-white/70 backdrop-blur-md border-b border-gray-300">
+                <tr>
+                  {headers.map((h) => (
+                    <th key={h} className="px-3 py-2 font-semibold uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
               </thead>
               <tbody>
                 {filteredRows.map((row) => (
-                  <tr key={row.id} className="border-b border-gray-300 hover:bg-gray-50">
+                  <tr key={row.id} className="border-b border-gray-200 hover:bg-white/50">
                     {headers.map((h) => (
                       <td key={h} className="px-3 py-2">
-                        <input value={row[h] || ""} onChange={(e) => handleEdit(row.id, h, e.target.value)} className="w-full border border-gray-400 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black" />
+                        <input
+                          value={row[h] || ""}
+                          onChange={(e) => handleEdit(row.id, h, e.target.value)}
+                          className="w-full bg-white/60 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-black focus:outline-none"
+                        />
                       </td>
                     ))}
                   </tr>
@@ -209,52 +282,119 @@ export default function AddGrades() {
         )}
 
         {/* Actions */}
-        <div className="flex gap-4 mt-4">
-          <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 border border-black rounded hover:bg-black hover:text-white transition">
+        <div className="flex gap-4 flex-wrap justify-end">
+          <button
+            onClick={downloadTemplate}
+            className="glass-btn flex items-center gap-2"
+          >
             <FileDown className="w-5 h-5" /> Download Template
           </button>
-          <button onClick={handleUpload} disabled={uploading || !rows.length} className={`flex items-center gap-2 px-4 py-2 rounded text-white ${uploading || !rows.length ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"}`}>
+
+          <button
+            onClick={handleUpload}
+            disabled={uploading || !rows.length}
+            className={`glass-btn flex items-center gap-2 ${
+              uploading || !rows.length ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
             {uploading && <Loader2 className="w-5 h-5 animate-spin" />}
             Upload & Process
           </button>
         </div>
 
-        {/* Error */}
+        {/* Errors */}
         {error && (
-          <div className="flex items-center gap-2 text-red-600 text-sm">
+          <div className="flex items-center gap-2 text-red-600 bg-red-50/60 border border-red-300 rounded-lg p-3">
             <AlertCircle className="w-5 h-5" /> {error}
           </div>
         )}
 
-        {/* Progress & Errors */}
+        {/* Progress */}
         {progress && (
-          <div className="space-y-3">
+          <div className="space-y-3 bg-white/40 p-4 rounded-xl border border-white/60 backdrop-blur-sm">
             <div className="flex justify-between text-sm">
-              <span>Status: <b className={progress.status === "completed" ? "text-black" : progress.status === "failed" ? "text-red-600" : "text-gray-700"}>{progress.status}</b></span>
+              <span>
+                Status:{" "}
+                <b
+                  className={
+                    progress.status === "completed"
+                      ? "text-black"
+                      : progress.status === "failed"
+                      ? "text-red-600"
+                      : "text-gray-700"
+                  }
+                >
+                  {progress.status}
+                </b>
+              </span>
               <span>{progress.percentage}% done</span>
             </div>
-            <div className="w-full bg-gray-200 h-3 rounded">
-              <div className={`h-3 transition-all duration-500 ${progress.status === "failed" ? "bg-red-600" : progress.status === "completed" ? "bg-black" : "bg-gray-600"}`} style={{ width: `${progress.percentage}%` }} />
+            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+              <div
+                className={`h-3 transition-all duration-500 ${
+                  progress.status === "failed"
+                    ? "bg-red-600"
+                    : progress.status === "completed"
+                    ? "bg-black"
+                    : "bg-gray-700"
+                }`}
+                style={{ width: `${progress.percentage}%` }}
+              />
             </div>
 
-            {/* Display errors */}
             {progress.errors?.length > 0 && (
-              <div className="mt-4">
-                <h3 className="font-semibold flex items-center gap-2"><AlertCircle className="w-4 h-4 text-red-600" />Errors ({progress.errors.length})</h3>
-                <ul className="list-disc list-inside text-sm mt-1 max-h-40 overflow-y-auto">
+              <div className="mt-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600" /> Errors (
+                  {progress.errors.length})
+                </h3>
+                <ul className="list-disc list-inside text-sm max-h-32 overflow-y-auto">
                   {progress.errors.map((err: any, idx: number) => (
-                    <li key={idx}>{err.recordIndex != null ? `Record ${err.recordIndex}: ` : ""}{err.message}</li>
+                    <li key={idx}>
+                      {err.recordIndex != null
+                        ? `Record ${err.recordIndex}: `
+                        : ""}
+                      {err.message}
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {progress.status === "completed" && progress.errors?.length === 0 && (
-              <div className="flex items-center gap-2 text-black text-sm"><CheckCircle2 className="w-5 h-5" /> All grades processed successfully</div>
-            )}
+            {progress.status === "completed" &&
+              progress.errors?.length === 0 && (
+                <div className="flex items-center gap-2 text-green-700 text-sm">
+                  <CheckCircle2 className="w-5 h-5" /> All grades processed
+                  successfully
+                </div>
+              )}
           </div>
         )}
       </div>
     </div>
   );
+}
+
+/* ---------- Tailwind Glass Classes ---------- */
+const styles = `
+.glass-card {
+  @apply border border-white/50 rounded-2xl bg-white/30 backdrop-blur-lg shadow-lg;
+}
+.glass-select {
+  @apply bg-white/40 backdrop-blur-md border border-white/50 rounded-xl px-3 py-2 text-sm font-medium shadow-sm focus:ring-2 focus:ring-black focus:outline-none;
+}
+.glass-input {
+  @apply border border-white/50 bg-white/40 rounded-xl shadow-sm backdrop-blur-md;
+}
+.glass-btn {
+  @apply bg-white/30 border border-white/50 rounded-xl px-4 py-2 font-medium hover:bg-white/60 backdrop-blur-md transition shadow-sm;
+}
+`;
+
+// Inject glass styles once (for Tailwind JIT environments)
+if (typeof document !== "undefined" && !document.getElementById("glass-style")) {
+  const style = document.createElement("style");
+  style.id = "glass-style";
+  style.innerHTML = styles;
+  document.head.appendChild(style);
 }

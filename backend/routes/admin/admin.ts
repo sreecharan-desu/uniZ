@@ -650,27 +650,84 @@ adminRouter.post("/addgrades", authMiddleware, async (req, res) => {
   }
 });
 
-
-/* ---------- GET /grades/template ---------- */
-adminRouter.get("/grades/template", authMiddleware, async (req, res) => {
+/* ---------- POST /grades/template ---------- */
+adminRouter.post("/grades/template", authMiddleware, async (req, res) => {
   try {
+    const { year, semester, branch } = req.body;
+
+    if (!year || !semester || !branch)
+      return res.status(400).json({ msg: "year, semester, and branch are required", success: false });
+
+    // Transform semester string like "Sem-1" or "Sem - 1" to "Sem - 1"
+    const semesterFormatted = semester.replace(/Sem\s*-?\s*(\d+)/i, "Sem - $1");
+    console.log("Formatted semester:", semesterFormatted);
+    // 1️⃣ Find semester record
+    const semesterRecord = await client.semester.findUnique({
+      where: { name_year: { name: semesterFormatted, year } },
+    });
+
+    if (!semesterRecord)
+      return res.status(404).json({ msg: `Semester ${year} ${semesterFormatted} not found`, success: false });
+
+    // 2️⃣ Find branch record
+    const branchRecord = await client.branch.findUnique({
+      where: { name: branch },
+    });
+
+    if (!branchRecord)
+      return res.status(404).json({ msg: `Branch ${branch} not found`, success: false });
+
+    // 3️⃣ Get subjects for that semester + branch
+    const subjects = await client.subject.findMany({
+      where: {
+        branchId: branchRecord.id,
+        semesterId: semesterRecord.id,
+      },
+      select: { id: true, name: true },
+    });
+
+    if (!subjects.length)
+      return res.status(404).json({ msg: `No subjects found for ${branch} ${year} ${semester}`, success: false });
+
+    // 4️⃣ Get students of that year and branch
+    const students = await client.student.findMany({
+      where: { Year: year, Branch: branch },
+      select: { Username: true },
+    });
+
+    if (!students.length)
+      return res.status(404).json({ msg: `No students found for ${year} ${branch}`, success: false });
+
+    // 5️⃣ Build Excel template
     const workbook = new ExcelJS.Workbook();
-    const ws = workbook.addWorksheet("Grades Template");
+    const ws = workbook.addWorksheet(`${year}-${semester}-${branch}`);
 
     ws.columns = [
-      { header: "Username", key: "Username", width: 50 },
-      { header: "SubjectName", key: "SubjectName", width: 30 },
+      { header: "Username", key: "Username", width: 30 },
+      { header: "SubjectName", key: "SubjectName", width: 40 },
       { header: "Grade", key: "Grade", width: 10 },
     ];
 
-    ws.addRow({ SemesterName: "E2 Sem 1", Username: "student123", SubjectName: "Data Structures", Grade: "A" });
+    for (const student of students) {
+      for (const subject of subjects) {
+        ws.addRow({
+          Username: student.Username,
+          SubjectName: subject.name,
+          Grade: "",
+        });
+      }
+    }
 
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", "attachment; filename=grades_template.xlsx");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${year}_${semester}_${branch}_grades_template.xlsx`
+    );
+
     await workbook.xlsx.write(res);
     res.end();
   } catch (err) {
-    console.error("GET /grades/template error:", err);
+    console.error("POST /grades/template error:", err);
     res.status(500).json({ msg: "Failed to generate template", success: false });
   }
 });
@@ -832,65 +889,113 @@ adminRouter.post("/addattendance", authMiddleware, async (req, res) => {
 });
 
 
-/* ---------- GET /attendance/template ---------- */
-adminRouter.get("/attendance/template", authMiddleware, async (req, res) => {
+/* ---------- POST /attendance/template ---------- */
+adminRouter.post("/attendance/template", authMiddleware, async (req, res) => {
   try {
-    const workbook = new ExcelJS.Workbook();
-    const ws = workbook.addWorksheet("Attendance Template");
+    const { year, semester, branch } = req.body;
 
-    // Columns
+    if (!year || !semester || !branch)
+      return res.status(400).json({
+        msg: "year, semester, and branch are required",
+        success: false,
+      });
+
+    // Normalize semester format like "Sem-1" or "Sem 1" → "Sem - 1"
+    const semesterFormatted = semester.replace(/Sem\s*-?\s*(\d+)/i, "Sem - $1");
+    console.log("Formatted semester:", semesterFormatted);
+
+    // 1️⃣ Find semester record
+    const semesterRecord = await client.semester.findUnique({
+      where: { name_year: { name: semesterFormatted, year } },
+    });
+
+    if (!semesterRecord)
+      return res.status(404).json({
+        msg: `Semester ${year} ${semesterFormatted} not found`,
+        success: false,
+      });
+
+    // 2️⃣ Find branch record
+    const branchRecord = await client.branch.findUnique({
+      where: { name: branch },
+    });
+
+    if (!branchRecord)
+      return res.status(404).json({
+        msg: `Branch ${branch} not found`,
+        success: false,
+      });
+
+    // 3️⃣ Get all subjects for that semester and branch
+    const subjects = await client.subject.findMany({
+      where: {
+        branchId: branchRecord.id,
+        semesterId: semesterRecord.id,
+      },
+      select: { id: true, name: true },
+    });
+
+    if (!subjects.length)
+      return res.status(404).json({
+        msg: `No subjects found for ${branch} ${year} ${semesterFormatted}`,
+        success: false,
+      });
+
+    // 4️⃣ Get all students for that year and branch
+    const students = await client.student.findMany({
+      where: { Year: year, Branch: branch },
+      select: { Username: true },
+    });
+
+    if (!students.length)
+      return res.status(404).json({
+        msg: `No students found for ${year} ${branch}`,
+        success: false,
+      });
+
+    // 5️⃣ Build Excel template
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet(`${year}-${semesterFormatted}-${branch}`);
+
     ws.columns = [
-      { header: "IdNumber", key: "IdNumber", width: 20 },
+      { header: "Username", key: "Username", width: 30 },
       { header: "SubjectName", key: "SubjectName", width: 40 },
       { header: "ClassesHappened", key: "ClassesHappened", width: 20 },
       { header: "ClassesAttended", key: "ClassesAttended", width: 20 },
     ];
 
-    // Example rows
-    ws.addRow({
-      IdNumber: "stu123",
-      SubjectName: "Data Structures",
-      ClassesHappened: 40,
-      ClassesAttended: 35,
-    });
+    // Generate one row per (student × subject)
+    for (const student of students) {
+      for (const subject of subjects) {
+        ws.addRow({
+          Username: student.Username,
+          SubjectName: subject.name,
+          ClassesHappened: "",
+          ClassesAttended: "",
+        });
+      }
+    }
 
-    ws.addRow({
-      IdNumber: "stu123",
-      SubjectName: "Operating Systems",
-      ClassesHappened: 42,
-      ClassesAttended: 38,
-    });
-
-    ws.addRow({
-      IdNumber: "stu124",
-      SubjectName: "Data Structures",
-      ClassesHappened: 40,
-      ClassesAttended: 36,
-    });
-
-    ws.addRow({
-      IdNumber: "stu124",
-      SubjectName: "Operating Systems",
-      ClassesHappened: 42,
-      ClassesAttended: 39,
-    });
-
+    // 6️⃣ Send Excel file
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=attendance_template.xlsx"
+      `attachment; filename=${year}_${semesterFormatted}_${branch}_attendance_template.xlsx`
     );
 
     await workbook.xlsx.write(res);
     res.end();
   } catch (err) {
-    console.error("GET /attendance/template error:", err);
-    res.status(500).json({ msg: "Failed to generate template", success: false });
+    console.error("POST /attendance/template error:", err);
+    res
+      .status(500)
+      .json({ msg: "Failed to generate attendance template", success: false });
   }
 });
+
 
 
 /* ---------- progress endpoint (generic) ---------- */
