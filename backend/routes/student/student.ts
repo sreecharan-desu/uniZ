@@ -19,7 +19,7 @@ import {
 } from "../helper-functions";
 import { PrismaClient } from "@prisma/client";
 import { getOutingMailFormatForStudent, getOutingMailFormatForAdministration, getOutpassMailFormatForStudent, getOutpassMailFormatForAdministration, passwordResetFailed, passwordResetSuccess } from "./emails";
-const client = new PrismaClient();
+export const client = new PrismaClient();
 export const studentRouter = Router();
 
 studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, res) => {
@@ -184,6 +184,8 @@ studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
         res.json({ msg: "Internal Server Error Please Try again!", success: false });
     }
 });
+
+
 
 studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
   const {username,name,gender,fatherName,motherName,fatherOccupation,motherOccupation,fatherEmail,motherEmail,fatherAddress,motherAddress,bloodGroup,dateOfBirth,isDisabled,password,phoneNumber,fatherPhoneNumber,motherPhoneNumber,address,year,branch,section,roomno,} = req.body;
