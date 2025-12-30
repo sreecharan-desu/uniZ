@@ -1,7 +1,7 @@
 // import { useEffect } from "react";
 // import { useSetRecoilState } from "recoil";
 // import { offCampus } from "../store";
-// import { STUDENT_OUTSIDE_CAMPUS } from "../apis";
+// import { STUDENT_OUTSIDE_CAMPUS } from "../api/endpoints";
 
 // export function useOutsideCampus(){
 //     const setOffCampus = useSetRecoilState(offCampus);

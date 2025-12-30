@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSetRecoilState } from "recoil";
 import { outpasses } from "../store";
-import { GET_OUTPASS_REQUESTS } from "../apis";
+import { GET_OUTPASS_REQUESTS } from "../api/endpoints";
 
 export function useGetOutpasses(){
     const setOutpasses = useSetRecoilState(outpasses);

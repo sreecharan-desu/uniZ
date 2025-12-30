@@ -5,7 +5,7 @@ import "./index.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { PageTransition } from "./components/Transition";
-import { useIsAuth } from "./customhooks/is_authenticated";
+import { useIsAuth } from "./hooks/is_authenticated";
 import AddStudents from "./pages/admin/AddStudents";
 import AddGrades from "./pages/admin/AddGrades";
 import AddAttendance from "./pages/attendance/AddAttendance";
@@ -20,9 +20,9 @@ import CurriculumManager from "./pages/admin/Curriculum";
 const Home = lazy(() => import("./pages/home"));
 const Signin = lazy(() => import("./pages/auth/CommonSignin"));
 const Admin = lazy(() => import("./pages/admin/index"));
+const Sidebar = lazy(()=> import("./components/Sidebar")) 
 
 const SearchStudents = lazy(() => import("./pages/admin/searchstudents"));
-const Sidebar = lazy(() => import("./components/sidebar"));
 
 // Fallback UI
 const LoadingFallback = () => (

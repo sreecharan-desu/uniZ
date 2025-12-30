@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSetRecoilState } from "recoil";
 import { outings } from "../store";
-import { GET_OUTING_REQUESTS } from "../apis";
+import { GET_OUTING_REQUESTS } from "../api/endpoints";
 
 export function useGetOutings(){
     const setOutings = useSetRecoilState(outings);

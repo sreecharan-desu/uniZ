@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../../apis";
-import * as XLSX from "xlsx";
+import { BASE_URL } from "../../api/endpoints";
+import ExcelJS from "exceljs";
 import {
   Upload,
   FileDown,
@@ -61,12 +61,31 @@ export default function AddGrades() {
       setFile(f);
       setError(null);
       const buffer = await f.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(1);
+
+      const json: any[] = [];
+      const headerRow = worksheet?.getRow(1);
+      const headers_found: string[] = [];
+      
+      headerRow?.eachCell((cell, colNumber) => {
+        headers_found[colNumber] = cell.text;
+      });
+
+      worksheet?.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const rowData: any = {};
+        row.eachCell((cell, colNumber) => {
+          const header = headers_found[colNumber];
+          if (header) rowData[header] = cell.text;
+        });
+        json.push(rowData);
+      });
+
       if (!json.length) throw new Error("Empty file");
-      setHeaders(Object.keys(json[0] as object));
-      setRows(json.map((r, i) => ({ id: i + 1, ...(r as object) })));
+      setHeaders(headers_found.filter(Boolean));
+      setRows(json.map((r, i) => ({ id: i + 1, ...r })));
     } catch (err: any) {
       console.error("Parse error", err);
       setError(err.message || "Failed to parse file");

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import {
   Upload,
   FileDown,
@@ -10,7 +10,7 @@ import {
   Search,
   ClipboardCheck,
 } from "lucide-react";
-import { BASE_URL } from "../../apis";
+import { BASE_URL } from "../../api/endpoints";
 
 export default function AddAttendance() {
   const navigate = useNavigate();
@@ -52,12 +52,31 @@ export default function AddAttendance() {
       setFile(f);
       setError(null);
       const buffer = await f.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(1);
+
+      const json: any[] = [];
+      const headerRow = worksheet?.getRow(1);
+      const headers_found: string[] = [];
+      
+      headerRow?.eachCell((cell, colNumber) => {
+        headers_found[colNumber] = cell.text;
+      });
+
+      worksheet?.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const rowData: any = {};
+        row.eachCell((cell, colNumber) => {
+          const header = headers_found[colNumber];
+          if (header) rowData[header] = cell.text;
+        });
+        json.push(rowData);
+      });
+
       if (!json.length) throw new Error("Empty file");
-      setHeaders(Object.keys(json[0] as object));
-      setRows(json.map((r, i) => ({ id: i + 1, ...(typeof r === "object" && r !== null ? r : {}) })));
+      setHeaders(headers_found.filter(Boolean));
+      setRows(json.map((r, i) => ({ id: i + 1, ...r })));
     } catch (err: any) {
       setError(err.message);
       setFile(null);

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import { useDebounce } from "../../customhooks/useDebounce";
-import { useIsAuth } from "../../customhooks/is_authenticated";
+import { useDebounce } from "../../hooks/useDebounce";
+import { useIsAuth } from "../../hooks/is_authenticated";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, User, AlertCircle } from "lucide-react";
-import { SEARCH_STUDENTS } from "../../apis";
+import { SEARCH_STUDENTS } from "../../api/endpoints";
 
 const StudentCardSkeleton = () => (
   <div className="animate-pulse m-5 p-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">

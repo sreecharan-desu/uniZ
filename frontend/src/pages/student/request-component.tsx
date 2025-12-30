@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { Button } from "../../components/button";
-import { Input } from "../../components/input";
+import { Button } from "../../components/Button";
+import { Input } from "../../components/Input";
 import { useNavigate } from "react-router";
 import { useRecoilValue } from "recoil";
 import { student } from "../../store";
-import { useStudentData } from "../../customhooks/student_info";
-import { REQUEST_OUTING, REQUEST_OUTPASS } from "../..//apis";
-import { useIsAuth } from "../../customhooks/is_authenticated";
+import { useStudentData } from "../../hooks/student_info";
+import { REQUEST_OUTING, REQUEST_OUTPASS } from "../..//api/endpoints";
+import { useIsAuth } from "../../hooks/is_authenticated";
 
 type RequestCompProps = {
     type: "outpass" | "outing";

@@ -22,6 +22,7 @@
     "@vercel/analytics": "^1.4.1",
     "axios": "^1.9.0",
     "chart.js": "^4.4.9",
+    "exceljs": "^4.4.0",
     "framer-motion": "^11.14.0",
     "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",
@@ -39,9 +40,7 @@
     "recharts": "^2.15.3",
     "recoil": "^0.7.7",
     "slick-carousel": "^1.8.1",
-    "tailwind": "^2.3.1",
-    "tailwind-scrollbar-hide": "^1.1.7",
-    "xlsx": "^0.18.5"
+    "tailwind-scrollbar-hide": "^1.1.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
@@ -54,6 +53,7 @@
     "@types/react-slick": "^0.23.13",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
+    "baseline-browser-mapping": "^2.9.11",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",

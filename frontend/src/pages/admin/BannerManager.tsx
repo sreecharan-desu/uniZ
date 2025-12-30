@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../../apis";
+import { BASE_URL } from "../../api/endpoints";
 import {
   Trash2,
   PlusCircle,

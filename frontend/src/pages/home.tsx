@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useIsAuth } from "../customhooks/is_authenticated";
+import { useIsAuth } from "../hooks/is_authenticated";
 import { Award, BookOpen, Clock, GraduationCap, Lightbulb, MousePointerClick, PartyPopper, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router";
 

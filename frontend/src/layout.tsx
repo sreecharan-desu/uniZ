@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
-import { Footer } from "./components/footer";
+import { Footer } from "./components/Footer";
 
-const Navbar = React.lazy(() => import('./components/navbar'));
+const Navbar = React.lazy(() => import('./components/Navbar'));
 
 interface LayoutProps {
   children: React.ReactNode;

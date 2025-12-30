@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../../apis";
+import { BASE_URL } from "../../api/endpoints";
 import { Send, XCircle, ShieldCheck, Mail, Zap } from "lucide-react";
 
 type EmailProgress = {
@@ -105,7 +105,7 @@ export default function EmailNotification() {
           return;
         }
         try {
-          const progRes = await fetch(`${BASE_URL}/admin/notifications-progress?processId=${pid}`, {
+          const progRes = await fetch(`${BASE_URL}/admin/notify/progress?processId=${pid}`, {
             headers: { Authorization: `Bearer ${JSON.parse(token!)}` },
           });
           const progData = await progRes.json();

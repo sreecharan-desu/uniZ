@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRecoilValue } from "recoil";
 import { offCampus } from "../store";
-import { UPDATE_STUDENT_STATUS } from "../apis";
-import { Button } from "./button";
+import { UPDATE_STUDENT_STATUS } from "../api/endpoints";
+import { Button } from "./Button";
 import { useState, useEffect } from "react";
-import { useIsAuth } from "../customhooks/is_authenticated";
+import { useIsAuth } from "../hooks/is_authenticated";
 import { toast } from "react-toastify";
 
 // Add a skeleton component at the top

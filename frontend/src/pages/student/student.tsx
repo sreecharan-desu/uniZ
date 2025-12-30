@@ -14,12 +14,12 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { student } from '../../store';
-import { useIsAuth } from '../../customhooks/is_authenticated';
-import { useStudentData } from '../../customhooks/student_info';
+import { useIsAuth } from '../../hooks/is_authenticated';
+import { useStudentData } from '../../hooks/student_info';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { BASE_URL } from '../../apis';
+import { BASE_URL } from '../../api/endpoints';
 
 export const enableOutingsAndOutpasses = false;
 

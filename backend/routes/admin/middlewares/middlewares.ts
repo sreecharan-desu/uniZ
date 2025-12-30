@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import zod from "zod";
-import {currentAdminByUsername } from "../../helper-functions";
+import { findAdminByUsername } from "../../services/admin.service";
 import bcrypt from "bcrypt";
 
 export const validateSigninInputs = async (
@@ -42,11 +42,10 @@ export const fetchAdmin = async (
   next: NextFunction
 ) => {
   const { username, password } = req.body;
-  const adminResult = await currentAdminByUsername(username);
-  if (!adminResult.success || !adminResult.admin) {
+  const admin = await findAdminByUsername(username);
+  if (!admin) {
     return res.json({ msg: "Seems like you dont have an account yet!", success: false });
   }
-  const admin = adminResult.admin;
   if (!admin.Password) {
     return res.json({ msg: "Error fetching user details please try again!", success: false });
   }

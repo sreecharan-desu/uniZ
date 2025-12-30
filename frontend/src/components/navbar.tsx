@@ -1,8 +1,8 @@
 import { useRecoilState, useRecoilValue } from "recoil";
 import { is_authenticated, student } from "../store";
 import { useEffect} from "react";
-import { useStudentData } from "../customhooks/student_info";
-import { Button } from "./button";
+import { useStudentData } from "../hooks/student_info";
+import { Button } from "./Button";
 import { useState } from "react";
 import { isMaintenance } from "../App";
 

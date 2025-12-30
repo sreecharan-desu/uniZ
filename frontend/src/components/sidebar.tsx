@@ -1,7 +1,7 @@
 import { useRecoilState, useRecoilValue } from "recoil";
 import { is_authenticated, student } from "../store";
 import { useNavigate } from "react-router-dom"; // Fixed import
-import { useIsAuth } from "../customhooks/is_authenticated";
+import { useIsAuth } from "../hooks/is_authenticated";
 import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { motion } from "framer-motion";
 import { enableOutingsAndOutpasses } from "../pages/student/student"; // Fixed import path

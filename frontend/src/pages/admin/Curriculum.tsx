@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { BASE_URL } from "../../apis";
+import { BASE_URL } from "../../api/endpoints";
 
 type Branch = "CSE" | "ECE" | "EEE" | "CIVIL" | "MECH";
 type CurriculumData = Record<

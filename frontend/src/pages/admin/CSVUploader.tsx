@@ -1,6 +1,6 @@
 import { useState } from "react";
-import * as XLSX from "xlsx";
-import { BASE_URL } from "../../apis";
+import ExcelJS from "exceljs";
+import { BASE_URL } from "../../api/endpoints";
 
 interface Props {
   title: string;
@@ -25,23 +25,39 @@ export default function SpreadsheetUploader({ title, uploadUrl, schema }: Props)
 
     try {
       const buffer = await f.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet(1);
 
-      // Always take first sheet
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      const json: any[] = [];
+      const headerRow = worksheet?.getRow(1);
+      const headers_found: string[] = [];
+      
+      headerRow?.eachCell((cell, colNumber) => {
+        headers_found[colNumber] = cell.text;
+      });
+
+      worksheet?.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const rowData: any = {};
+        row.eachCell((cell, colNumber) => {
+          const header = headers_found[colNumber];
+          if (header) rowData[header] = cell.text;
+        });
+        json.push(rowData);
+      });
 
       if (!json.length) throw new Error("Empty file");
 
       // Validate headers
-      const fileHeaders = Object.keys(json[0] as object);
+      const fileHeaders = headers_found.filter(Boolean);
       for (const required of schema) {
         if (!fileHeaders.includes(required)) {
           throw new Error(`Missing required column: ${required}`);
         }
       }
 
-      setData(json as any[]);
+      setData(json);
     } catch (err: any) {
       console.error("Parse error:", err);
       setError(err.message || "Failed to parse file");

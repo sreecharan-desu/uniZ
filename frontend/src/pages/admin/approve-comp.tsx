@@ -1,11 +1,11 @@
 import { useRecoilValue } from "recoil";
-import { useGetOutings } from "../../customhooks/getoutings";
-import { useGetOutpasses } from "../../customhooks/getoutpassess";
+import { useGetOutings } from "../../hooks/getoutings";
+import { useGetOutpasses } from "../../hooks/getoutpassess";
 import { outings, outpasses } from "../../store";
-import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "../../apis";
+import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "../../api/endpoints";
 import { useState } from "react";
-import { Button } from "../../components/button";
-import { useIsAuth } from "../../customhooks/is_authenticated";
+import { Button } from "../../components/Button";
+import { useIsAuth } from "../../hooks/is_authenticated";
 import { calculateDuration, formatDuration, formatRequestTime } from '../../utils/timeUtils';
 import { toast } from "react-toastify";
 type ApproveProps = {

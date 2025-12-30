@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
-import { Button } from "../../components/button";
-import { Input } from "../../components/input";
+import { Button } from "../../components/Button";
+import { Input } from "../../components/Input";
 import { useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { student } from "../../store";
-import { useStudentData } from "../../customhooks/student_info";
-import { RESET_PASS } from "../../apis";
+import { useStudentData } from "../../hooks/student_info";
+import { RESET_PASS } from "../../api/endpoints";
 import { toast } from "react-toastify";
 
 interface ResetPasswordResponse {

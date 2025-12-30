@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import { Input } from "../../components/input";
-import { Button } from "../../components/button";
+import { Input } from "../../components/Input";
+import { Button } from "../../components/Button";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { adminUsername, is_authenticated } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { FORGOT_PASS_ENDPOINT, SET_NEW_PASS_ENDPOINT, SIGNIN } from "../../apis";
+import { FORGOT_PASS_ENDPOINT, SET_NEW_PASS_ENDPOINT, SIGNIN } from "../../api/endpoints";
 
 type SigninProps = {
   type: "student" | "admin";

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { student } from "../store";
-import { STUDENT_INFO } from "../apis";
+import { STUDENT_INFO } from "../api/endpoints";
 import { toast } from "react-toastify";
 
 interface StudentData {
