@@ -9,7 +9,7 @@ import { useIsAuth } from "../../hooks/is_authenticated";
 import { calculateDuration, formatDuration, formatRequestTime } from '../../utils/timeUtils';
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Clock, History, ArrowRight } from "lucide-react";
+import { CheckCircle, Clock, History } from "lucide-react";
 
 type ApproveProps = {
     type: "outing" | "outpass",
@@ -93,6 +93,9 @@ export default function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         if (!token) return;
 
+        const reason = prompt("Enter rejection reason:", "Rejected via Admin Console");
+        if (!reason) return;
+
         setloading(true);
         try {
             const res = await fetch(REJECT_OUTING, {
@@ -101,7 +104,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${JSON.parse(token)}`
                 },
-                body: JSON.stringify({ id, message: "Rejected via Admin Console" })
+                body: JSON.stringify({ id, message: reason })
             });
             const data = await res.json();
 
@@ -184,6 +187,9 @@ export default function ApproveComp({ type }: ApproveProps) {
         const token = localStorage.getItem('admin_token');
         if (!token) return;
 
+        const reason = prompt("Enter rejection reason:", "Rejected via Admin Console");
+        if (!reason) return;
+
         setloading(true);
         try {
             const res = await fetch(REJECT_OUTPASS, {
@@ -192,7 +198,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${JSON.parse(token)}`
                 },
-                body: JSON.stringify({ id, message: "Rejected via Admin Console" })
+                body: JSON.stringify({ id, message: reason })
             });
             const data = await res.json();
 
@@ -314,7 +320,7 @@ export default function ApproveComp({ type }: ApproveProps) {
                         <p className="text-gray-500">All caught up! New requests will appear here.</p>
                     </motion.div>
                 ) : (
-                    filteredRequests.map((request, index) => (
+                    filteredRequests.map((request) => (
                         <motion.div 
                             key={request._id}
                             variants={cardVariants}

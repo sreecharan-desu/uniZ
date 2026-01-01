@@ -57,6 +57,10 @@ export const approveOutpass = async (id: string, adminName: string, adminRole: s
       currentLevel: 'completed'
     }
   });
+
+  if (pass.Student?.Email) {
+      await sendEmail(pass.Student.Email, "Outpass Approved", `Your outpass request has been approved by ${adminName}.`);
+  }
   return { success: true, msg: "Outpass approved" };
 };
 
@@ -81,6 +85,10 @@ export const rejectOutpass = async (id: string, adminName: string, adminRole: st
       currentLevel: 'completed'
     }
   });
+
+  if (pass.Student?.Email) {
+      await sendEmail(pass.Student.Email, "Outpass Rejected", `Your outpass request has been rejected by ${adminName}. Reason: ${message}`);
+  }
   return { success: true, msg: "Outpass rejected" };
 };
 
@@ -129,6 +137,10 @@ export const approveOuting = async (id: string, adminName: string, adminRole: st
       currentLevel: 'completed'
     }
   });
+
+  if (outing.Student?.Email) {
+      await sendEmail(outing.Student.Email, "Outing Approved", `Your outing request has been approved by ${adminName}.`);
+  }
   return { success: true, msg: "Outing approved" };
 };
 
@@ -153,6 +165,10 @@ export const rejectOuting = async (id: string, adminName: string, adminRole: str
       currentLevel: 'completed'
     }
   });
+
+  if (outing.Student?.Email) {
+      await sendEmail(outing.Student.Email, "Outing Rejected", `Your outing request has been rejected by ${adminName}. Reason: ${message}`);
+  }
   return { success: true, msg: "Outing rejected" };
 };
 
@@ -295,6 +311,7 @@ export const getUsers = async (skip: number, take: number) => {
 };
 
 import { mapStudentSuggestionToLegacy } from "../utils/mappers";
+import { sendEmail } from "./email.service";
 
 export const getStudentSuggestions = async (q: string) => {
   const students = await prisma.student.findMany({
