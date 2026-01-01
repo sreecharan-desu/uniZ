@@ -3,6 +3,7 @@ import { studentRouter } from "./student";
 import { adminRouter } from "./admin";
 import prisma from "./services/prisma.service";
 import redis from "./services/redis.service";
+import { logger } from "../utils/logger";
 
 export const mainRoute = express.Router();
 mainRoute.use("/student", studentRouter);
@@ -19,7 +20,7 @@ mainRoute.get('/banners', async (req, res) => {
         return res.json({ banners: JSON.parse(cached), success: true });
       }
     } catch (e) {
-      console.warn('Redis cache read failed, falling back to db');
+      logger.warn('Redis cache read failed, falling back to db');
     }
 
     const banners = await prisma.banner.findMany({
@@ -30,12 +31,12 @@ mainRoute.get('/banners', async (req, res) => {
     try {
       await redis.set(cacheKey, JSON.stringify(banners), 'EX', 60 * 60); // 1 hour
     } catch (e) {
-      console.warn('Redis cache write failed');
+      logger.warn('Redis cache write failed');
     }
 
     res.json({ banners, success: true });
   } catch (err:any) {
-    console.error('Get banners error', err);
+    logger.error(`Get banners error: ${err.message || err}`);
     res.status(500).json({ msg: 'Error fetching banners', success: false });
   }
 });

@@ -27,6 +27,7 @@ import {
   passwordResetFailed,
   passwordResetSuccess,
 } from "./emails/email_templates";
+import { logger } from "../../utils/logger";
 
 export const studentRouter = Router();
 
@@ -59,12 +60,12 @@ studentRouter.post("/forgotpass", async (req, res) => {
       updated.Email,
       "Password Reset OTP",
       `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`
-    ).catch((err) => console.error("Error sending OTP email:", err));
+    ).catch((err) => logger.error(`Error sending OTP email: ${err.message || err}`));
 
     return res.status(200).json({ msg: "OTP sent to your registered email", success: true });
   } catch (error: any) {
     if (error?.code === "P2025") return res.status(404).json({ msg: "User not found", success: false });
-    console.error("Error sending OTP:", error);
+    logger.error(`Error sending OTP: ${error.message || error}`);
     return res.status(500).json({ msg: "Unexpected error. Try again later.", success: false });
   }
 });
@@ -100,12 +101,12 @@ studentRouter.post("/setnewpass", async (req, res) => {
     });
 
     sendEmail(user.Email, "Password Reset Successful", "Your password has been updated successfully.").catch((err) =>
-      console.error("Error sending success email:", err)
+      logger.error(`Error sending success email: ${err.message || err}`)
     );
 
     return res.status(200).json({ msg: "Password updated successfully! Please log in.", success: true });
-  } catch (error) {
-    console.error("Error setting new password:", error);
+  } catch (error: any) {
+    logger.error(`Error setting new password: ${error.message || error}`);
     return res.status(500).json({ msg: "Unexpected error. Try again later.", success: false });
   }
 });
@@ -126,8 +127,8 @@ studentRouter.put("/resetpass", validateResetPassInputs, fetchStudent, authMiddl
     
     await sendEmail(user.Email, "Regarding Reset-Password", passwordResetSuccess);
     res.status(200).json({ msg: "Password updated successfully!", success: true });
-  } catch (error) {
-    console.error("Error updating password:", error);
+  } catch (error: any) {
+    logger.error(`Error updating password: ${error.message || error}`);
     res.status(500).json({ msg: "An unexpected error occurred.", success: false });
   }
 });
@@ -148,8 +149,8 @@ studentRouter.post("/requestoutpass", isPresentInCampus, isApplicationPending, a
       }
     }
     res.json({ msg: result.msg, success: result.success });
-  } catch (error) {
-    console.error("Outpass Request Error:", error);
+  } catch (error: any) {
+    logger.error(`Outpass Request Error: ${error.message || error}`);
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
@@ -170,8 +171,8 @@ studentRouter.post("/requestouting", isPresentInCampus, isApplicationPending, au
       }
     }
     res.json({ msg: result.msg, success: result.success });
-  } catch (error) {
-    console.error("Outing Request Error:", error);
+  } catch (error: any) {
+    logger.error(`Outing Request Error: ${error.message || error}`);
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
@@ -188,15 +189,15 @@ studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
     if (cached) {
       return res.json({ student: JSON.parse(cached), success: true });
     }
-  } catch (e) {
-    console.warn("Redis cache read error", e);
+  } catch (e: any) {
+    logger.warn(`Redis cache read error: ${e.message || e}`);
   }
 
   try {
     const user = await getStudentDetails(username);
     if (user) {
       // Cache for 24 hours
-      redis.set(cacheKey, JSON.stringify(user), "EX", 86400).catch((err) => console.warn("Redis set error", err));
+      redis.set(cacheKey, JSON.stringify(user), "EX", 86400).catch((err) => logger.warn(`Redis set error: ${err.message || err}`));
       res.json({ student: user, success: true });
     } else {
       res.json({ msg: "Student not found", success: false });
@@ -236,7 +237,7 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
     });
 
     // Invalidate cache
-    redis.del(`student:profile:${username.toLowerCase()}`).catch((err) => console.warn("Redis del error", err));
+    redis.del(`student:profile:${username.toLowerCase()}`).catch((err) => logger.warn(`Redis del error: ${err.message || err}`));
 
     await sendEmail(updated.Email, "Account details updated", "Your account details have been updated successfully.");
 
@@ -244,8 +245,8 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
       student: { _id: updated.id, username: updated.Username, email: updated.Email, name: updated.Name },
       success: true,
     });
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    logger.error(`Update Details Error: ${error.message || error}`);
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
@@ -259,8 +260,8 @@ studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) return res.json(JSON.parse(cached));
-  } catch (e) {
-    console.warn("Redis read error", e);
+  } catch (e:any) {
+    logger.warn(`Redis read error: ${e.message || e}`);
   }
 
   try {
@@ -323,11 +324,11 @@ studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
       success: true,
     };
 
-    redis.set(cacheKey, JSON.stringify(responsePayload), "EX", 604800).catch((err) => console.warn("Redis set error", err));
+    redis.set(cacheKey, JSON.stringify(responsePayload), "EX", 604800).catch((err) => logger.warn(`Redis set error: ${err.message || err}`));
 
     res.json(responsePayload);
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    logger.error(`Get Grades Error: ${error.message || error}`);
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
@@ -341,8 +342,8 @@ studentRouter.post("/getattendance", authMiddleware, async (req, res) => {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) return res.json(JSON.parse(cached));
-  } catch (e) {
-    console.warn("Redis read error", e);
+  } catch (e:any) {
+    logger.warn(`Redis read error: ${e.message || e}`);
   }
 
   try {
@@ -388,11 +389,11 @@ studentRouter.post("/getattendance", authMiddleware, async (req, res) => {
     });
 
     const response = { attendance_data: attendanceData, success: true };
-    redis.set(cacheKey, JSON.stringify(response), "EX", 3600).catch((err) => console.warn("Redis set error", err)); // 1 hour
+    redis.set(cacheKey, JSON.stringify(response), "EX", 3600).catch((err) => logger.warn(`Redis set error: ${err.message || err}`)); // 1 hour
 
     res.json(response);
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    logger.error(`Get Attendance Error: ${error.message || error}`);
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
