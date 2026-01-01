@@ -313,6 +313,7 @@ export const getUsers = async (skip: number, take: number) => {
 import { mapStudentSuggestionToLegacy } from "../utils/mappers";
 import { sendEmail } from "./email.service";
 
+
 export const getStudentSuggestions = async (q: string) => {
   const students = await prisma.student.findMany({
     where: { Username: { contains: q.toLowerCase(), mode: 'insensitive' } },
