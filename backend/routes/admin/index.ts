@@ -19,10 +19,10 @@ export const adminRouter = Router();
 // Admin Signin
 adminRouter.post("/signin", validateSigninInputs, fetchAdmin, async (req, res) => {
   try {
-    const { username } = req.body;
+    const admin = (req as any).admin;
     if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
-    const token = jwt.sign(username, process.env.JWT_SECURITY_KEY);
-    res.json({ admin_token: token, success: true });
+    const token = jwt.sign({ username: admin.Username, role: admin.role || 'webmaster' }, process.env.JWT_SECURITY_KEY);
+    res.json({ admin_token: token, role: admin.role || 'webmaster', success: true });
   } catch (e) {
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }

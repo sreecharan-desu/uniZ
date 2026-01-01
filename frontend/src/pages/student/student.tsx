@@ -1,16 +1,8 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import {
-  FaUser,
-  FaVenusMars,
-  FaTint,
-  FaPhone,
-  FaEdit,
-  FaCheck,
-  FaTimes,
-  FaGraduationCap,
-  FaIdCard,
-  FaDoorOpen,
+  FaUser, FaVenusMars, FaTint, FaPhone, FaEdit,
+  FaGraduationCap, FaIdCard, FaDoorOpen
 } from 'react-icons/fa';
 import axios from 'axios';
 import { student } from '../../store';
@@ -20,6 +12,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { BASE_URL } from '../../api/endpoints';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const enableOutingsAndOutpasses = false;
 
@@ -28,59 +21,62 @@ const InfoCard = memo(({ icon, label, name, value, editable, isEditing, isLoadin
   const handleChange = (e: any) => onValueChange(name, e.target.value);
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 transition-all duration-300 hover:shadow-md">
-      <div className="flex items-center space-x-3 mb-2">
-        {icon}
-        <span className="text-gray-600 font-semibold">{label}</span>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+    >
+      <div className="flex items-center space-x-3 mb-3 text-gray-400">
+        <span className="text-lg">{icon}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
       </div>
       {isLoading ? (
-        <div className="bg-gray-100 rounded w-full h-6 animate-pulse"></div>
+        <div className="bg-gray-100 rounded w-3/4 h-6 animate-pulse"></div>
       ) : isEditing && editable ? (
         <input
           type={type}
           name={name}
           value={value}
           onChange={handleChange}
-          className="w-full bg-white text-black rounded-lg p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          className="w-full bg-gray-50 text-black text-lg font-medium rounded-lg p-2 border border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
           autoComplete="off"
         />
       ) : (
-        <p className="text-black text-lg font-medium">
-          {value || (
-            <span className="bg-gray-400 italic px-4 rounded-full text-xs font-bold py-0">
-              Will be updated soon
-            </span>
-          )}
+        <p className="text-black text-xl font-medium truncate">
+          {value || <span className="text-gray-300 font-normal italic text-sm">Not provided</span>}
         </p>
       )}
-    </div>
+    </motion.div>
   );
 });
 
-// Memoized InputField
+// Memoized InputField (For family details)
 const InputField = memo(({ label, name, value, isEditing, isLoading, onValueChange, type = 'text' }: any) => {
-  const handleChange = (e: any) => onValueChange(name, e.target.value);
-
-  return (
-    <div className="flex flex-col">
-      <span className="text-gray-600">{label}</span>
-      {isLoading ? (
-        <div className="bg-gray-100 rounded w-full h-6 animate-pulse"></div>
-      ) : isEditing ? (
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          className="w-full bg-white text-black rounded-lg p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-          autoComplete="off"
-        />
-      ) : (
-        <span className="text-black text-lg font-medium">{value || <span className="bg-gray-400 italic px-4 rounded-full text-xs font-bold py-0">Will be updated soon</span>}</span>
-      )}
-    </div>
-  );
-});
+    const handleChange = (e: any) => onValueChange(name, e.target.value);
+  
+    return (
+      <div className="flex flex-col group">
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-black transition-colors">{label}</span>
+        {isLoading ? (
+          <div className="bg-gray-100 rounded w-full h-8 animate-pulse"></div>
+        ) : isEditing ? (
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={handleChange}
+            className="w-full bg-gray-50 text-black rounded-lg p-2 border border-blue-500 focus:border-black focus:outline-none transition-all"
+            autoComplete="off"
+          />
+        ) : (
+          <span className="text-black text-lg font-medium border-b border-transparent group-hover:border-gray-100 py-1 transition-all">
+             {value || <span className="text-gray-300 text-sm font-normal italic">Not provided</span>}
+          </span>
+        )}
+      </div>
+    );
+  });
 
 export default function StudentProfilePage() {
   useIsAuth();
@@ -101,24 +97,13 @@ export default function StudentProfilePage() {
 
   // Single fields state
   const [fields, setFields] = useState<any>({
-    name: '',
-    gender: '',
-    bloodGroup: '',
-    phoneNumber: '',
-    dateOfBirth: '',
-    fatherName: '',
-    motherName: '',
-    fatherOccupation: '',
-    motherOccupation: '',
-    fatherEmail: '',
-    motherEmail: '',
-    fatherAddress: '',
-    motherAddress: '',
-    fatherPhoneNumber: '',
-    motherPhoneNumber: '',
+    name: '', gender: '', bloodGroup: '', phoneNumber: '', dateOfBirth: '',
+    fatherName: '', motherName: '', fatherOccupation: '', motherOccupation: '',
+    fatherEmail: '', motherEmail: '', fatherAddress: '', motherAddress: '',
+    fatherPhoneNumber: '', motherPhoneNumber: '',
   });
 
-  // Initialize fields from user
+  // Initialize fields
   useEffect(() => {
     if (user && Object.keys(user).length > 0) {
       setFields({
@@ -159,38 +144,36 @@ export default function StudentProfilePage() {
 
   const sliderSettings = { dots: true, infinite: true, speed: 500, slidesToShow: 1, slidesToScroll: 1, autoplay: true, autoplaySpeed: 4000 };
 
-  // Field change handler
   const handleFieldChange = useCallback((name: string, value: any) => {
     setFields((prev: any) => ({ ...prev, [name]: value }));
   }, []);
 
-  // Reset fields
   const resetFields = useCallback(() => {
     if (user) {
-      setFields({
-        name: user.name || '',
-        gender: user.gender || '',
-        bloodGroup: user.blood_group || '',
-        phoneNumber: user.phone_number || '',
-        dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
-        fatherName: user.father_name || '',
-        motherName: user.mother_name || '',
-        fatherOccupation: user.father_occupation || '',
-        motherOccupation: user.mother_occupation || '',
-        fatherEmail: user.father_email || '',
-        motherEmail: user.mother_email || '',
-        fatherAddress: user.father_address || '',
-        motherAddress: user.mother_address || '',
-        fatherPhoneNumber: user.father_phonenumber || '',
-        motherPhoneNumber: user.mother_phonenumber || '',
-      });
+         setFields({
+            name: user.name || '',
+            gender: user.gender || '',
+            bloodGroup: user.blood_group || '',
+            phoneNumber: user.phone_number || '',
+            dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
+            fatherName: user.father_name || '',
+            motherName: user.mother_name || '',
+            fatherOccupation: user.father_occupation || '',
+            motherOccupation: user.mother_occupation || '',
+            fatherEmail: user.father_email || '',
+            motherEmail: user.mother_email || '',
+            fatherAddress: user.father_address || '',
+            motherAddress: user.mother_address || '',
+            fatherPhoneNumber: user.father_phonenumber || '',
+            motherPhoneNumber: user.mother_phonenumber || '',
+          });
     }
   }, [user]);
 
-  // Validation
   const validateForm = () => {
     if (!fields.name.trim()) return 'Name is required';
-    if (!fields.phoneNumber.match(/^\d{10}$/)) return 'Phone number must be 10 digits';
+    const cleanPhone = String(fields.phoneNumber || "").trim();
+    if (!cleanPhone.match(/^\d{10}$/)) return 'Phone number must be 10 digits';
     if (fields.fatherEmail && !fields.fatherEmail.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) return 'Invalid father email format';
     if (fields.motherEmail && !fields.motherEmail.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) return 'Invalid mother email format';
     return null;
@@ -210,11 +193,7 @@ export default function StudentProfilePage() {
 
     try {
       const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
-      if (!token) {
-        setError('Authentication token is missing. Please log in again.');
-        setIsSubmitting(false);
-        return;
-      }
+      if (!token) throw new Error('Authentication token is missing.');
 
       const response = await axios.put(
         'https://uni-z-api.vercel.app/api/v1/student/updatedetails',
@@ -231,28 +210,26 @@ export default function StudentProfilePage() {
         setError(response.data.msg || 'Update failed');
       }
     } catch (err: any) {
-      setError(err.response?.data?.msg || 'An error occurred while updating');
+      setError(err.response?.data?.msg || err.message || 'An error occurred while updating');
     }
-
     setIsSubmitting(false);
   };
 
-  if (!user && !isLoading) return <div className="text-center text-red-600">Error: User data not available</div>;
+  if (!user && !isLoading) return <div className="text-center mt-20 text-gray-400">Loading user profile...</div>;
 
-  // Fields definitions for dynamic rendering
   const personalFields = [
-    { icon: <FaUser className="text-black" />, label: 'Full Name', name: 'name', editable: true },
-    { icon: <FaVenusMars className="text-black" />, label: 'Gender', name: 'gender', editable: true },
-    { icon: <FaTint className="text-black" />, label: 'Blood Group', name: 'bloodGroup', editable: true },
-    { icon: <FaPhone className="text-black" />, label: 'Phone Number', name: 'phoneNumber', editable: true },
+    { icon: <FaUser />, label: 'Full Name', name: 'name', editable: true },
+    { icon: <FaVenusMars />, label: 'Gender', name: 'gender', editable: true },
+    { icon: <FaTint />, label: 'Blood Group', name: 'bloodGroup', editable: true },
+    { icon: <FaPhone />, label: 'Phone Number', name: 'phoneNumber', editable: true },
   ];
 
   const academicFields = [
-    { icon: <FaIdCard className="text-black" />, label: 'Student ID', name: 'username', editable: false, value: user?.username },
-    { icon: <FaGraduationCap className="text-black" />, label: 'Year', name: 'year', editable: false, value: user?.year },
-    { icon: <FaGraduationCap className="text-black" />, label: 'Branch', name: 'branch', editable: false, value: user?.branch },
-    { icon: <FaGraduationCap className="text-black" />, label: 'Section', name: 'section', editable: false, value: user?.section },
-    { icon: <FaDoorOpen className="text-black" />, label: 'Room Number', name: 'roomno', editable: false, value: user?.roomno },
+    { icon: <FaIdCard />, label: 'Student ID', name: 'username', editable: false, value: user?.username },
+    { icon: <FaGraduationCap />, label: 'Year', name: 'year', editable: false, value: user?.year },
+    { icon: <FaGraduationCap />, label: 'Branch', name: 'branch', editable: false, value: user?.branch },
+    { icon: <FaGraduationCap />, label: 'Section', name: 'section', editable: false, value: user?.section },
+    { icon: <FaDoorOpen />, label: 'Room Number', name: 'roomno', editable: false, value: user?.roomno },
   ];
 
   const familyFields = {
@@ -261,148 +238,152 @@ export default function StudentProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-black -mt-10">
-      <div className="container mx-auto px-4 py-8">
-
+    <div className="min-h-screen bg-white font-sans text-black -mt-6">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        
         {/* Banners */}
-       {/* Banners */}
-{banners.length > 0 && !loadingBanners && (
-  <div className="mb-8">
-    <Slider {...sliderSettings} className="rounded-lg overflow-hidden">
-      {banners.map(b => (
-        <div key={b.id} className="relative">
-          <img src={b.imageUrl} alt={b.title} className="w-full h-64 md:h-80 object-cover rounded-lg" />
-          {b.title && (
-            <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded">
-              {b.title}
-            </div>
-          )}
-        </div>
-      ))}
-    </Slider>
-  </div>
-)}
+        {banners.length > 0 && !loadingBanners && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 rounded-2xl overflow-hidden shadow-sm md:shadow-md"
+          >
+            <Slider {...sliderSettings}>
+              {banners.map(b => (
+                <div key={b.id} className="relative outline-none">
+                  <img src={b.imageUrl} alt={b.title} className="w-full h-48 md:h-64 object-cover" />
+                  {b.title && (
+                    <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 pt-12">
+                      <h3 className="text-white font-bold text-xl">{b.title}</h3>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </Slider>
+          </motion.div>
+        )}
 
+        {/* Header Section */}
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-col md:flex-row items-end justify-between mb-10 gap-6"
+        >
+             <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-4xl font-bold shadow-lg ring-4 ring-white">
+                    {user?.name?.[0] || user?.username?.[0] || '?'}
+                </div>
+                <div>
+                    <h1 className="text-4xl font-black tracking-tight mb-2">{user?.name || 'Student'}</h1>
+                    <div className="flex gap-3 text-gray-500 text-sm font-medium">
+                        <span className="bg-gray-100 px-3 py-1 rounded-full">{user?.username}</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full">{user?.branch}</span>
+                    </div>
+                </div>
+             </div>
 
-        {/* Profile Card */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-          <div className="bg-black text-white p-4">
-            <h1 className="text-2xl font-bold">Student Profile</h1>
-          </div>
-          <div className="p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-            <div className="relative">
-              <div className="w-32 h-32 bg-black rounded-full border-4 border-gray-200 flex items-center justify-center text-white">
-                {isLoading ? <div className="bg-gray-100 rounded w-16 h-16 animate-pulse"></div> : <span className="text-5xl font-bold">{user.name?.[0] || ''}</span>}
-              </div>
-            </div>
-
-            <div className="flex-1 text-center md:text-left">
-              {isLoading ? (
-                <>
-                  <div className="bg-gray-100 rounded w-3/4 h-8 animate-pulse"></div>
-                  <div className="bg-gray-100 rounded w-1/2 h-4 animate-pulse"></div>
-                  <div className="bg-gray-100 rounded w-1/3 h-4 animate-pulse"></div>
-                </>
-              ) : (
-                <>
-                  <h1 className="text-3xl font-bold mb-2 text-black">{user.name || 'N/A'}</h1>
-                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    <span className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center"><FaIdCard className="mr-2" /> {user.username || 'N/A'}</span>
-                    <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm flex items-center"><FaGraduationCap className="mr-2" /> {user.branch || 'N/A'}</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Edit Buttons */}
-            <div className="flex gap-2">
-              {isEditing ? (
-                <>
-                  <button onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-                    <FaCheck className="inline mr-1" /> Save
-                  </button>
-                  <button onClick={() => { setIsEditing(false); resetFields(); }} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
-                    <FaTimes className="inline mr-1" /> Cancel
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => setIsEditing(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-                  <FaEdit className="inline mr-1" /> Edit
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+             <div className="flex gap-3">
+                {isEditing ? (
+                  <>
+                    <button onClick={() => { setIsEditing(false); resetFields(); }} className="px-6 py-2 rounded-full border border-gray-200 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                    <button onClick={handleSubmit} disabled={isSubmitting} className="px-6 py-2 rounded-full bg-black text-white hover:bg-gray-800 font-medium transition-colors shadow-lg shadow-gray-200">
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </>
+                ) : (
+                    <button onClick={() => setIsEditing(true)} className="group flex items-center gap-2 px-6 py-2 rounded-full border border-black/10 hover:border-black hover:bg-black hover:text-white transition-all duration-300">
+                        <FaEdit /> <span>Edit Profile</span>
+                    </button>
+                )}
+             </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="mb-4 flex border-b border-gray-200">
-          {['personal', 'academic', 'family'].map(tab => (
-            <button
-              key={tab}
-              className={`px-4 py-2 -mb-px font-semibold text-black ${activeTab === tab ? 'border-b-2 border-black' : 'text-gray-500'}`}
-              onClick={() => setActiveTab(tab)}
+        <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="border-b border-gray-100 mb-8 overflow-x-auto"
+        >
+            <div className="flex gap-8">
+                {['personal', 'academic', 'family'].map(tab => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`pb-4 relative text-sm font-bold uppercase tracking-wider transition-colors ${
+                            activeTab === tab ? 'text-black' : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                    >
+                        {tab}
+                        {activeTab === tab && (
+                            <motion.div 
+                                layoutId="activeTab"
+                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"
+                            />
+                        )}
+                    </button>
+                ))}
+            </div>
+        </motion.div>
+
+        {/* Content */}
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
+                 {activeTab === 'personal' && personalFields.map(f => (
+                     <InfoCard key={f.name} {...f} value={fields[f.name]} isEditing={isEditing} isLoading={isLoading} onValueChange={handleFieldChange} />
+                 ))}
 
-        {/* Tab Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {activeTab === 'personal' &&
-            personalFields.map(f => (
-              <InfoCard
-                key={f.name}
-                icon={f.icon}
-                label={f.label}
-                name={f.name}
-                value={fields[f.name]}
-                editable={f.editable}
-                isEditing={isEditing}
-                isLoading={isLoading}
-                onValueChange={handleFieldChange}
-              />
-            ))}
+                 {activeTab === 'academic' && academicFields.map(f => (
+                     <InfoCard key={f.name} {...f} value={f.value || fields[f.name]} isEditing={isEditing} isLoading={isLoading} onValueChange={handleFieldChange} />
+                 ))}
 
-          {activeTab === 'academic' &&
-            academicFields.map(f => (
-              <InfoCard
-                key={f.name}
-                icon={f.icon}
-                label={f.label}
-                name={f.name}
-                value={f.value || fields[f.name]}
-                editable={f.editable}
-                isEditing={isEditing}
-                isLoading={isLoading}
-                onValueChange={handleFieldChange}
-              />
-            ))}
+                 {activeTab === 'family' && (
+                     <div className="col-span-full grid md:grid-cols-2 gap-10">
+                         {Object.entries(familyFields).map(([parent, keys]) => (
+                             <div key={parent} className="space-y-6">
+                                <h3 className="text-xl font-bold capitalize border-b border-gray-100 pb-2">{parent} Details</h3>
+                                <div className="grid gap-6">
+                                    {keys.map(key => (
+                                        <InputField 
+                                            key={key} 
+                                            label={key.replace(/([A-Z])/g, ' $1').trim()} 
+                                            name={key} 
+                                            value={fields[key]} 
+                                            isEditing={isEditing} 
+                                            isLoading={isLoading} 
+                                            onValueChange={handleFieldChange} 
+                                        />
+                                    ))}
+                                </div>
+                             </div>
+                         ))}
+                     </div>
+                 )}
+            </motion.div>
+        </AnimatePresence>
 
-          {activeTab === 'family' &&
-            Object.entries(familyFields).map(([parent, keys]) => (
-              <div key={parent} className="col-span-1 md:col-span-2">
-                <h2 className="text-xl font-bold mb-4 text-black">{parent.charAt(0).toUpperCase() + parent.slice(1)}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {keys.map(key => (
-                    <InputField
-                      key={key}
-                      label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                      name={key}
-                      value={fields[key]}
-                      isEditing={isEditing}
-                      isLoading={isLoading}
-                      onValueChange={handleFieldChange}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-        </div>
+        {/* Global Feedback */}
+        <AnimatePresence>
+            {(error || success) && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 50 }}
+                    className={`fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl z-50 text-white font-medium ${error ? 'bg-red-600' : 'bg-green-600'}`}
+                >
+                    {error || success}
+                </motion.div>
+            )}
+        </AnimatePresence>
 
-        {/* Error / Success */}
-        {error && <div className="mt-4 text-red-600 font-semibold">{error}</div>}
-        {success && <div className="mt-4 text-green-600 font-semibold">{success}</div>}
       </div>
     </div>
   );

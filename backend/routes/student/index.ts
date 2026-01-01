@@ -36,7 +36,7 @@ studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, re
   const { username } = req.body;
   if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
   
-  const token = jwt.sign(username, process.env.JWT_SECURITY_KEY);
+  const token = jwt.sign({ username, role: 'student' }, process.env.JWT_SECURITY_KEY);
   res.json({ student_token: token, success: true });
 });
 
@@ -180,7 +180,7 @@ studentRouter.post("/requestouting", isPresentInCampus, isApplicationPending, au
 // Get Student Details
 // Get Student Details
 studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
-  const { username } = req.body;
+  const username = (req as any).user?.username || req.body.username;
   if (!username) return res.json({ msg: "Username is required", success: false });
 
   const cacheKey = `student:profile:${username.toLowerCase()}`;
@@ -209,7 +209,9 @@ studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
 
 // Update Student Details
 studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
-  const { username, ...updateDataRaw } = req.body;
+  const username = (req as any).user?.username || req.body.username;
+  const updateDataRaw = req.body;
+  
   if (!username) return res.json({ msg: "Username is required", success: false });
 
   try {

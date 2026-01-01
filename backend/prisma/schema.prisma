@@ -43,6 +43,9 @@ model Student {
   updatedAt            DateTime     @updatedAt
   grades               Grade[] // New relation to Grade
   attendance           Attendance[] // New relation to Attendance
+
+  @@index([Branch, Year])
+  @@index([isPresentInCampus])
 }
 
 model Admin {
@@ -73,6 +76,9 @@ model Outpass {
   rejectedTime  DateTime @default(now())
   inTime        DateTime @default(now())
   Student       Student  @relation(fields: [StudentId], references: [id])
+
+  @@index([StudentId])
+  @@index([isApproved, isRejected, isExpired])
 }
 
 model Outing {
@@ -93,6 +99,9 @@ model Outing {
   rejectedTime  DateTime @default(now())
   inTime        DateTime @default(now())
   Student       Student  @relation(fields: [StudentId], references: [id])
+
+  @@index([StudentId])
+  @@index([isApproved, isRejected, isExpired])
 }
 
 // New Models for Grading and Attendance

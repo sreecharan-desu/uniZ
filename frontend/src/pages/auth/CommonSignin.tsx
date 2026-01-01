@@ -88,6 +88,7 @@ export default function Signin({ type }: SigninProps) {
       } else if (data.admin_token) {
         localStorage.setItem("admin_token", JSON.stringify(data.admin_token));
         localStorage.setItem("username", JSON.stringify(username.trim()));
+        localStorage.setItem("admin_role", (data as any).role || "admin");
         setAuth({ is_authnticated: true, type: "admin" });
         setAdmin(username.trim());
         toast.success("Successfully signed in as admin!");

@@ -1,14 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { offCampus } from "../store";
 import { UPDATE_STUDENT_STATUS } from "../api/endpoints";
 import { Button } from "./Button";
 import { useState, useEffect } from "react";
 import { useIsAuth } from "../hooks/is_authenticated";
 import { toast } from "react-toastify";
+import { useOutsideCampus } from "../hooks/useOutsideCampus";
 
 // Add a skeleton component at the top
 const StudentCardSkeleton = () => (
+  // ... (keep existing skeleton)
   <div className="bg-white rounded-xl shadow-md p-6 space-y-4 animate-pulse">
     <div className="flex items-center space-x-4">
       <div className="bg-gray-300 w-12 h-12 rounded-full"></div>
@@ -30,51 +31,23 @@ const StudentCardSkeleton = () => (
 
 export default function UpdateStatus() {
   useIsAuth();
-  // useOutsideCampus();
-  const students = useRecoilValue(offCampus);
+  useOutsideCampus();
+  const students = useRecoilValue(offCampus) || [];
+  const setOffCampus = useSetRecoilState(offCampus);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredStudents, setFilteredStudents] = useState([{_id :'',username : '',name : '',email : '',gender : '',is_in_campus : false,outings_list : [{        from_time: '',
-    in_time: "",
-    is_approved: true,
-    is_expired:true,
-    is_rejected: false,
-    issued_by: "",
-    issued_time: "",
-    message: "",
-    no_of_days : 0,
-    reason:"",
-    rejected_by : "",
-    rejected_time:"",
-    requested_time : "",
-    student_id : "",
-    to_time:"",
-    _id: ""}],outpasses_list : [{  
-      from_day: '',
-      in_time: "",
-      is_approved: true,
-      is_expired:true,
-      is_rejected: false,
-      issued_by: "",
-      issued_time: "",
-      message: "",
-      no_of_days : 0,
-      reason:"",
-      rejected_by : "",
-      rejected_time:"",
-      requested_time : "",
-      student_id : "",
-      to_day:"",
-      _id: ""}]}]);
+  const [filteredStudents, setFilteredStudents] = useState<any[]>([]); // Initialize empty
   const [loading, setLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
 
   // Fetch students based on search input
   useEffect(() => {
-    if (searchQuery.trim()) {
-      const filtered = students.filter(student => student.username.includes(searchQuery));
-      setFilteredStudents(filtered);
-    } else {
-      setFilteredStudents(students);
+    if (students) {
+       if (searchQuery.trim()) {
+        const filtered = students.filter((student: any) => student.username.toLowerCase().includes(searchQuery.toLowerCase()) || student.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        setFilteredStudents(filtered);
+      } else {
+        setFilteredStudents(students);
+      }
     }
   }, [searchQuery, students]);
 
@@ -84,10 +57,11 @@ export default function UpdateStatus() {
 
   const updateStatus = async (userId: string, id: string) => {
     const token = localStorage.getItem("admin_token");
-    if (token) {
-      setLoading(true);
+    if (!token) return;
+
+    setLoading(true);
+    try {
       const bodyData = JSON.stringify({ userId, id });
-      
       const res = await fetch(UPDATE_STUDENT_STATUS, {
         method: "POST",
         headers: {
@@ -97,19 +71,19 @@ export default function UpdateStatus() {
         body: bodyData,
       });
       const data = await res.json();
-      toast(data.msg);
+      
+      if (data.success) {
+        toast.success(data.msg);
+        // Remove student from list as they are back in campus
+        setOffCampus((prev: any[]) => prev.filter((s: any) => s._id !== userId));
+        setSelectedStudent(null);
+      } else {
+        toast.error(data.msg);
+      }
+    } catch (e) {
+      toast.error("Failed to update status");
+    } finally {
       setLoading(false);
-      location.href="";
-      // Fetch updated student list
-      // const res2 = await fetch(STUDENT_OUTSIDE_CAMPUS, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${JSON.parse(token)}`,
-      //   },
-      // });
-      // const data2 = await res2.json();
-      // setOffCampus(data2.students);
     }
   };
 
@@ -148,7 +122,7 @@ export default function UpdateStatus() {
             <StudentCardSkeleton key={index} />
           ))
         ) : filteredStudents.length > 0 ? (
-          filteredStudents.map((student) => (
+          filteredStudents.map((student: any) => (
             <div 
               key={student.username} 
               className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden
@@ -159,7 +133,7 @@ export default function UpdateStatus() {
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center space-x-4">
                   <div className="bg-gradient-to-b from-gray-700 to-gray-900 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold">
-                    {student.name.split(' ').map(n => n[0]).join('')}
+                    {student.name.split(' ').map((n: any) => n[0]).join('')}
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">{student.name}</h3>
@@ -182,12 +156,12 @@ export default function UpdateStatus() {
                 </div>
 
                 {/* Active Requests Section */}
-                {student.outings_list.filter(outing => !outing.is_expired && outing.is_approved).length > 0 && (
+                {student.outings_list.filter((outing: any) => !outing.is_expired && outing.is_approved).length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-semibold text-gray-700 mb-4">Active Outing</h4>
                     {student.outings_list
-                      .filter(outing => !outing.is_expired && outing.is_approved)
-                      .map(outing => (
+                      .filter((outing: any) => !outing.is_expired && outing.is_approved)
+                      .map((outing: any) => (
                         <div key={outing._id} className="bg-gray-50 rounded-lg p-4 space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">From</span>
@@ -209,15 +183,15 @@ export default function UpdateStatus() {
                 )}
 
                 {/* Outpass Section */}
-                {student.outpasses_list.filter(outpass => !outpass.is_expired && outpass.is_approved).length > 0 && (
+                {student.outpasses_list.filter((outpass: any) => !outpass.is_expired && outpass.is_approved).length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-semibold text-gray-700 mb-4">Active Outpass</h4>
                     {student.outpasses_list
-                      .filter(outpass => !outpass.is_expired && outpass.is_approved)
-                      .map(outpass => (
+                      .filter((outpass: any) => !outpass.is_expired && outpass.is_approved)
+                      .map((outpass: any) => (
                         <div key={outpass._id} className="bg-gray-50 rounded-lg p-4 space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">From</span>
+                             <span className="text-gray-600">From</span>
                             <span className="font-medium">{outpass.from_day}</span>
                           </div>
                           <div className="flex justify-between text-sm">

@@ -65,9 +65,6 @@ export default function Sidebar({ content }: MainContent) {
   const navigate = useNavigate();
   const [_isAuth, setAuth] = useRecoilState(is_authenticated);
   const [isLoading, setIsLoading] = useState(true);
-  const [_isChanging, setIsChanging] = useState(false);
-  const [contentLoading, setContentLoading] = useState(true);
-  const [direction, setDirection] = useState<"left" | "right">("left");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -89,21 +86,6 @@ export default function Sidebar({ content }: MainContent) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // Handle content transition
-  useEffect(() => {
-    setIsChanging(true);
-    setDirection(Math.random() > 0.5 ? "left" : "right");
-    const timer = setTimeout(() => setIsChanging(false), 300);
-    return () => clearTimeout(timer);
-  }, [content]);
-
-  // Handle content loading
-  useEffect(() => {
-    setContentLoading(true);
-    const timer = setTimeout(() => setContentLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, [content]);
 
   // Handle scrolling behavior
   useEffect(() => {
@@ -153,20 +135,7 @@ const handleLogout = () => {
   };
 
   // Animation variants
-  const variants = {
-    enter: (direction: string) => ({
-      x: direction === "right" ? 100 : -100,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: string) => ({
-      x: direction === "right" ? -100 : 100,
-      opacity: 0,
-    }),
-  };
+
 
   return (
     <div className="flex min-h-screen w-full -ml-10">
@@ -409,20 +378,14 @@ const handleLogout = () => {
       >
         <motion.div
           className="p-4"
-          custom={direction}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
         >
-          {contentLoading ? (
-            <ContentSkeleton />
-          ) : (
             <Suspense fallback={<ContentSkeleton />}>
               {contentMap[content] || <Error />}
             </Suspense>
-          )}
         </motion.div>
       </main>
       <ConfirmModal

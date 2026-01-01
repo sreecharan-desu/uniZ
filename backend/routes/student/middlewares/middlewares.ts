@@ -42,7 +42,10 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
   const { username, password } = req.body;
   
   try {
-    const user = await prisma.student.findUnique({ where: { Username: username.toLowerCase() } });
+    const user = await prisma.student.findUnique({ 
+        where: { Username: username.toLowerCase() },
+        select: { id: true, Username: true, Password: true }
+    });
     if (!user) return res.status(404).json({ msg: "Account not found. Consult administration.", success: false });
 
     if (!user.Password || !(await bcrypt.compare(password, user.Password))) {
@@ -66,20 +69,28 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
   try {
     const token = authorization.split(" ")[1];
-    const decoded_username = jwt.verify(token, process.env.JWT_SECURITY_KEY) as string;
+    const decoded = jwt.verify(token, process.env.JWT_SECURITY_KEY);
 
-    const cacheKey = `auth:${decoded_username}`;
+    let username: string;
+    let role: string | undefined;
+
+    if (typeof decoded === 'string') {
+        username = decoded;
+    } else {
+        username = (decoded as any).username;
+        role = (decoded as any).role;
+    }
+
+    const cacheKey = `auth:${username}`;
     
     // Check Redis Cache
     try {
       const cachedAuth = await redis.get(cacheKey);
       if (cachedAuth) {
         const user = JSON.parse(cachedAuth);
+        (req as any).user = { ...user.data, role: user.type };
         if (user.type === 'admin') {
           (req as any).admin = user.data;
-        } else {
-          // Verify student existence still matches (optional, but safer) or just trust cache
-          // trusting cache for speed
         }
         return next();
       }
@@ -87,20 +98,31 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       logger.warn(`Redis auth read error: ${e.message || e}`);
     }
 
-    // DB Lookup (Fallback)
-    const [admin, student] = await Promise.all([
-      prisma.admin.findUnique({ where: { Username: decoded_username }, select: { id: true, Username: true, role: true } }),
-      prisma.student.findUnique({ where: { Username: decoded_username }, select: { id: true, Username: true } })
-    ]);
+    // Role-based lookup optimizaiton
+    let admin: { id: string; Username: string; role: string } | null = null;
+    let student: { id: string; Username: string } | null = null;
+
+    if (role === 'admin') {
+         admin = await prisma.admin.findUnique({ where: { Username: username }, select: { id: true, Username: true, role: true } });
+    } else if (role === 'student') {
+         student = await prisma.student.findUnique({ where: { Username: username }, select: { id: true, Username: true } });
+    } else {
+        // Fallback or Legacy: Look up both if role is missing
+        [admin, student] = await Promise.all([
+          prisma.admin.findUnique({ where: { Username: username }, select: { id: true, Username: true, role: true } }),
+          prisma.student.findUnique({ where: { Username: username }, select: { id: true, Username: true } })
+        ]);
+    }
 
     if (admin) {
-      const adminData = { _id: admin.id, username: admin.Username, role: admin.role };
+      const adminData = { _id: admin.id, username: admin.Username, role: admin.role || 'admin' };
       (req as any).admin = adminData;
-      // Cache Admin
+      (req as any).user = { ...adminData, role: 'admin' };
       await redis.set(cacheKey, JSON.stringify({ type: 'admin', data: adminData }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
     } else if (student) {
-      // Cache Student (just existence marker or basic data if needed later)
-      await redis.set(cacheKey, JSON.stringify({ type: 'student', id: student.id }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
+      const studentData = { _id: student.id, username: student.Username, role: 'student' };
+      (req as any).user = studentData;
+      await redis.set(cacheKey, JSON.stringify({ type: 'student', data: studentData }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
     } else {
       return res.status(401).json({ msg: "Invalid token", success: false });
     }

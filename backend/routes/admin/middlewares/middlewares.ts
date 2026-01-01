@@ -53,5 +53,6 @@ export const fetchAdmin = async (
   if (!isMatch) {
     return res.json({ msg: "Invalid credentials Please Try again or reset your password now!", success: false });
   }
+  (req as any).admin = admin;
   next();
 };

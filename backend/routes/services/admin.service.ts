@@ -106,7 +106,7 @@ import { mapOutingToLegacy, mapOutpassToLegacy, mapStudentOutsideToLegacy, mapSt
 export const getOutPassRequests = async () => {
   const requests = await prisma.outpass.findMany({
     where: { isApproved: false, isRejected: false, isExpired: false },
-    include: { Student: true },
+    include: { Student: { select: { Username: true, Email: true } } },
   });
   return requests.map(mapOutpassToLegacy);
 };
@@ -114,7 +114,7 @@ export const getOutPassRequests = async () => {
 export const getOutingRequests = async () => {
   const requests = await prisma.outing.findMany({
     where: { isApproved: false, isRejected: false, isExpired: false },
-    include: { Student: true },
+    include: { Student: { select: { Username: true, Email: true } } },
   });
   return requests.map(mapOutingToLegacy);
 };
@@ -122,7 +122,14 @@ export const getOutingRequests = async () => {
 export const getStudentsOutsideCampus = async () => {
   const students = await prisma.student.findMany({
     where: { isPresentInCampus: false },
-    include: {
+    select: {
+      id: true,
+      Username: true,
+      Name: true,
+      Email: true,
+      Gender: true,
+      isPresentInCampus: true,
+      isApplicationPending: true,
       Outpass: { orderBy: { RequestedTime: 'desc' }, take: 1 },
       Outing: { orderBy: { RequestedTime: 'desc' }, take: 1 },
     }
