@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, memo } from 'react';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState, useRecoilState } from 'recoil';
 import {
   FaUser, FaVenusMars, FaTint, FaPhone, FaEdit,
   FaGraduationCap, FaIdCard, FaDoorOpen
 } from 'react-icons/fa';
 import axios from 'axios';
-import { student } from '../../store';
+import { student, bannersAtom } from '../../store';
 import { useIsAuth } from '../../hooks/is_authenticated';
 import { useStudentData } from '../../hooks/student_info';
 import Slider from 'react-slick';
@@ -83,6 +83,7 @@ export default function StudentProfilePage() {
   useStudentData();
   const user = useRecoilValue<any>(student);
   const setStudent = useSetRecoilState(student);
+  const [bannersState, setBannersState] = useRecoilState(bannersAtom);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,10 +91,6 @@ export default function StudentProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // Banner states
-  const [banners, setBanners] = useState<any[]>([]);
-  const [loadingBanners, setLoadingBanners] = useState(true);
 
   // Single fields state
   const [fields, setFields] = useState<any>({
@@ -129,18 +126,20 @@ export default function StudentProfilePage() {
 
   // Banner fetch
   useEffect(() => {
+    if (bannersState.fetched) return;
+
     const fetchBanners = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/banners?published=true`);
-        if (res.data.success) setBanners(res.data.banners);
+        if (res.data.success) {
+            setBannersState({ fetched: true, data: res.data.banners });
+        }
       } catch (err) {
         console.error("Error fetching banners", err);
-      } finally {
-        setLoadingBanners(false);
       }
     };
     fetchBanners();
-  }, []);
+  }, [bannersState.fetched, setBannersState]);
 
   const sliderSettings = { dots: true, infinite: true, speed: 500, slidesToShow: 1, slidesToScroll: 1, autoplay: true, autoplaySpeed: 4000 };
 
@@ -172,11 +171,39 @@ export default function StudentProfilePage() {
 
   const validateForm = () => {
     if (!fields.name.trim()) return 'Name is required';
-    const cleanPhone = String(fields.phoneNumber || "").trim();
-    if (!cleanPhone.match(/^\d{10}$/)) return 'Phone number must be 10 digits';
+    const cleanPhone = String(fields.phoneNumber || "").replace(/\D/g, "");
+    if (cleanPhone.length !== 10) return 'Phone number must be 10 digits';
     if (fields.fatherEmail && !fields.fatherEmail.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) return 'Invalid father email format';
     if (fields.motherEmail && !fields.motherEmail.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)) return 'Invalid mother email format';
     return null;
+  };
+
+  const getChangedFields = () => {
+      const currentDetails: any = {
+        name: user.name || '',
+        gender: user.gender || '',
+        bloodGroup: user.blood_group || '',
+        phoneNumber: user.phone_number || '',
+        dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
+        fatherName: user.father_name || '',
+        motherName: user.mother_name || '',
+        fatherOccupation: user.father_occupation || '',
+        motherOccupation: user.mother_occupation || '',
+        fatherEmail: user.father_email || '',
+        motherEmail: user.mother_email || '',
+        fatherAddress: user.father_address || '',
+        motherAddress: user.mother_address || '',
+        fatherPhoneNumber: user.father_phonenumber || '',
+        motherPhoneNumber: user.mother_phonenumber || '',
+      };
+
+      const changes: any = {};
+      Object.keys(fields).forEach(key => {
+          if (fields[key] !== currentDetails[key]) {
+              changes[key] = fields[key];
+          }
+      });
+      return changes;
   };
 
   const handleSubmit = async (e: any) => {
@@ -191,18 +218,25 @@ export default function StudentProfilePage() {
       return;
     }
 
+    const updates = getChangedFields();
+    if (Object.keys(updates).length === 0) {
+        setIsEditing(false);
+        setIsSubmitting(false);
+        return;
+    }
+
     try {
       const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
       if (!token) throw new Error('Authentication token is missing.');
 
       const response = await axios.put(
         'https://uni-z-api.vercel.app/api/v1/student/updatedetails',
-        { username: user.username, ...fields },
+        { ...updates }, // Only send updates
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
-        setStudent(prev => ({ ...prev, ...fields }));
+        setStudent(prev => ({ ...prev, ...updates }));
         setIsEditing(false);
         setSuccess('Profile updated successfully!');
         setTimeout(() => setSuccess(''), 3000);
@@ -242,14 +276,14 @@ export default function StudentProfilePage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         
         {/* Banners */}
-        {banners.length > 0 && !loadingBanners && (
+        {bannersState.data.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-10 rounded-2xl overflow-hidden shadow-sm md:shadow-md"
           >
             <Slider {...sliderSettings}>
-              {banners.map(b => (
+              {bannersState.data.map((b: any) => (
                 <div key={b.id} className="relative outline-none">
                   <img src={b.imageUrl} alt={b.title} className="w-full h-48 md:h-64 object-cover" />
                   {b.title && (

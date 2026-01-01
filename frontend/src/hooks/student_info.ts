@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { student } from "../store";
 import { STUDENT_INFO } from "../api/endpoints";
-import { toast } from "react-toastify";
 
 interface StudentData {
   _id: string;
@@ -26,37 +25,23 @@ export function useStudentData() {
 
   useEffect(() => {
     const fetchStudentData = async () => {
-      const localStorageUsername = localStorage.getItem("username");
-      const token = localStorage.getItem("student_token");
-
-      // Check Recoil state first
-      if (
-        currentStudent?.name &&
-        currentStudent?.email &&
-        currentStudent?.username &&
-        currentStudent.username === JSON.parse(localStorageUsername || '""')
-      ) {
-        console.log("Student data already available in Recoil, skipping API call.");
+      const tokenStr = localStorage.getItem("student_token");
+      
+      // If no token or if we already have student data, skip
+      if (!tokenStr || (currentStudent?.username && currentStudent?.email)) {
         return;
       }
 
-      // Fetch from API if no valid data
-      if (!localStorageUsername || !token) {
-        console.log("Missing username or token, skipping API call.");
-        // toast.warn("Please sign in to access student data.");
-        return;
-      }
+      const token = tokenStr.replace(/^"|"$/g, '');
 
       try {
-        const username = JSON.parse(localStorageUsername);
-        const bodyData = JSON.stringify({ username });
         const res = await fetch(STUDENT_INFO, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${JSON.parse(token)}`,
+            Authorization: `Bearer ${token}`,
           },
-          body: bodyData,
+          body: JSON.stringify({}), // Rely on token for username
         });
 
         const data: StudentInfoResponse = await res.json();
@@ -64,19 +49,14 @@ export function useStudentData() {
         if (res.ok && data.success && data.student) {
           //@ts-ignore
           setStudent(data.student);
-          console.log("Fetched student data.");
         } else {
-          throw new Error(data.msg || "Failed to fetch student data.");
+             // If token is invalid or expired, maybe clear it?
+             if (res.status === 401 || res.status === 403) {
+                 console.warn("Invalid token during fetch");
+             }
         }
       } catch (error) {
         console.error("Error fetching student data:", error);
-        toast.error(
-          error instanceof TypeError
-            ? "Network error. Please check your connection."
-            : error instanceof Error
-            ? error.message
-            : "An error occurred while fetching student data."
-        );
       }
     };
 

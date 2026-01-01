@@ -41,42 +41,63 @@ export default function Home() {
                 initial="hidden" 
                 animate="visible" 
                 variants={stagger}
-                className="relative min-h-[90vh] flex flex-col justify-center items-center px-4 text-center overflow-hidden"
+                className="relative min-h-[90vh] flex flex-col lg:flex-row justify-center items-center px-6 max-w-7xl mx-auto gap-12 overflow-hidden"
             >
                 {/* Minimal Background Element */}
                 <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" />
                 
-                <motion.div variants={fadeInUp} className="mb-6">
-                     <span className="px-4 py-1.5 rounded-full border border-gray-200 text-xs font-medium bg-gray-50 text-gray-600 tracking-wide uppercase hover:bg-gray-100 transition-colors cursor-default">
-                        Campus Reimagined
-                     </span>
-                </motion.div>
-
-                <motion.h1 
-                    variants={fadeInUp} 
-                    className="text-7xl md:text-9xl font-black tracking-tighter mb-6"
-                >
-                    uni<span className="relative inline-block">Z<span className="absolute -top-2 -right-3 w-4 h-4 bg-blue-600 rounded-full animate-pulse"></span></span>
-                </motion.h1>
-
-                <motion.p 
-                    variants={fadeInUp} 
-                    className="text-lg md:text-2xl text-gray-500 font-light max-w-2xl leading-relaxed mb-10"
-                >
-                    The operating system for your academic life. <br className="hidden md:block"/>
-                    <span className="text-black font-normal">Simple. Fast. Professional.</span>
-                </motion.p>
-
-                <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 items-center">
-                    <Link 
-                        to="/student/signin" 
-                        className="group relative px-8 py-4 bg-black text-white rounded-full font-medium overflow-hidden shadow-lg hover:shadow-xl transition-all"
-                    >
-                        <span className="relative z-10 flex items-center gap-2">
-                            Get Started <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {/* Text Content */}
+                <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
+                    <motion.div variants={fadeInUp} className="mb-6">
+                        <span className="px-4 py-1.5 rounded-full border border-gray-200 text-xs font-medium bg-gray-50 text-gray-600 tracking-wide uppercase hover:bg-gray-100 transition-colors cursor-default">
+                            Campus Reimagined
                         </span>
-                        <div className="absolute inset-0 bg-gray-800 transform scale-x-0 group-hover:scale-x-110 transition-transform origin-left duration-300" />
-                    </Link>
+                    </motion.div>
+
+                    <motion.h1 
+                        variants={fadeInUp} 
+                        className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-6"
+                    >
+                        uni<span className="relative inline-block">Z<span className="absolute -top-2 -right-3 w-4 h-4 bg-blue-600 rounded-full animate-pulse"></span></span>
+                    </motion.h1>
+
+                    <motion.p 
+                        variants={fadeInUp} 
+                        className="text-lg md:text-xl text-gray-500 font-light max-w-xl leading-relaxed mb-10"
+                    >
+                        The operating system for your academic life. <br className="hidden md:block"/>
+                        <span className="text-black font-normal">Simple. Fast. Professional.</span>
+                    </motion.p>
+
+                    <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 items-center">
+                        <Link 
+                            to="/student/signin" 
+                            className="group relative px-8 py-4 bg-black text-white rounded-full font-medium overflow-hidden shadow-lg hover:shadow-xl transition-all"
+                        >
+                            <span className="relative z-10 flex items-center gap-2">
+                                Get Started <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </span>
+                            <div className="absolute inset-0 bg-gray-800 transform scale-x-0 group-hover:scale-x-110 transition-transform origin-left duration-300" />
+                        </Link>
+                    </motion.div>
+                </div>
+
+                {/* Mascot Illustration */}
+                <motion.div 
+                    variants={fadeInUp} 
+                    className="flex-1 w-full max-w-md lg:max-w-xl relative transform lg:translate-x-10"
+                >
+                    <motion.div
+                        className="relative z-10"
+                        animate={{ y: [0, -20, 0] }}
+                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <img 
+                            src="/assets/mascot.png" 
+                            alt="UniZ Mascot" 
+                            className="w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                        />
+                    </motion.div>
                 </motion.div>
 
                 {/* Decorative Bottom Gradient */}

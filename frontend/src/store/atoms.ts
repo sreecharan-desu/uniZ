@@ -136,3 +136,11 @@ export const student = atom<Student>({
     updated_at: '',
   },
 });
+
+export const bannersAtom = atom({
+    key: 'bannersAtom',
+    default: {
+        fetched: false,
+        data: [] as any[]
+    }
+});
