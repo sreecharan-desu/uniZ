@@ -2,14 +2,14 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useGetOutings } from "../../hooks/getoutings";
 import { useGetOutpasses } from "../../hooks/getoutpassess";
 import { outings, outpasses } from "../../store";
-import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS } from "../../api/endpoints";
+import { APPROVE_OUTING, APPROVE_OUTPASS, REJECT_OUTING, REJECT_OUTPASS, FORWARD_OUTING, FORWARD_OUTPASS } from "../../api/endpoints";
 import { useState } from "react";
 import { Button } from "../../components/Button";
 import { useIsAuth } from "../../hooks/is_authenticated";
 import { calculateDuration, formatDuration, formatRequestTime } from '../../utils/timeUtils';
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Clock, History, ArrowRight } from "lucide-react";
 
 type ApproveProps = {
     type: "outing" | "outpass",
@@ -120,6 +120,35 @@ export default function ApproveComp({ type }: ApproveProps) {
         }
     }
 
+    const forwardouting = async (id: string) => {
+        const token = localStorage.getItem('admin_token');
+        if (!token) return;
+
+        setloading(true);
+        try {
+            const res = await fetch(FORWARD_OUTING, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${JSON.parse(token)}`
+                },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success(data.msg);
+                setOutings((prev: any[]) => prev.filter((item: any) => item._id !== id));
+            } else {
+                toast.error(data.msg);
+            }
+        } catch (err) {
+            toast.error("Failed to forward outing");
+        } finally {
+            setloading(false);
+        }
+    }
+
     const approveoutpass = async (id: string) => {
         const token = localStorage.getItem('admin_token');
         if (!token) return;
@@ -177,6 +206,35 @@ export default function ApproveComp({ type }: ApproveProps) {
             }
         } catch (err) {
             toast.error("Failed to reject outpass");
+        } finally {
+            setloading(false);
+        }
+    }
+
+    const forwardoutpass = async (id: string) => {
+        const token = localStorage.getItem('admin_token');
+        if (!token) return;
+
+        setloading(true);
+        try {
+            const res = await fetch(FORWARD_OUTPASS, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${JSON.parse(token)}`
+                },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success(data.msg);
+                setOutpasses((prev: any[]) => prev.filter((item: any) => item._id !== id));
+            } else {
+                toast.error(data.msg);
+            }
+        } catch (err) {
+            toast.error("Failed to forward outpass");
         } finally {
             setloading(false);
         }
@@ -279,16 +337,23 @@ export default function ApproveComp({ type }: ApproveProps) {
                                             <p className="text-sm text-gray-500">{request.email}</p>
                                         </div>
                                     </div>
-                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${request.is_approved ? 'bg-emerald-100 text-emerald-800' :
-                                            request.is_rejected ? 'bg-red-100 text-red-800' :
-                                                request.is_expired ? 'bg-gray-100 text-gray-800' :
-                                                    'bg-amber-100 text-amber-800'
-                                        }`}>
-                                        {request.is_approved ? "Approved" :
-                                            request.is_rejected ? "Rejected" :
-                                                request.is_expired ? "Expired" :
-                                                    "Pending"}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${request.is_approved ? 'bg-emerald-100 text-emerald-800' :
+                                                request.is_rejected ? 'bg-red-100 text-red-800' :
+                                                    request.is_expired ? 'bg-gray-100 text-gray-800' :
+                                                        'bg-amber-100 text-amber-800'
+                                            }`}>
+                                            {request.is_approved ? "Approved" :
+                                                request.is_rejected ? "Rejected" :
+                                                    request.is_expired ? "Expired" :
+                                                        "Pending"}
+                                        </span>
+                                        {request.current_level && !request.is_approved && !request.is_rejected && (
+                                            <span className="px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 flex items-center">
+                                                <Clock className="w-3 h-3 mr-1" /> {request.current_level.toUpperCase()}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Request Details */}
@@ -334,6 +399,23 @@ export default function ApproveComp({ type }: ApproveProps) {
                                         </div>
                                     </div>
 
+                                    {/* History Section */}
+                                    {request.approval_logs && request.approval_logs.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center">
+                                                <History className="w-3 h-3 mr-1" /> History
+                                            </h4>
+                                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                {request.approval_logs.map((log: any, i: number) => (
+                                                    <div key={i} className="text-xs text-gray-600 flex justify-between bg-gray-50 p-2 rounded border border-gray-100">
+                                                        <span><span className="font-semibold">{log.action.toUpperCase()}</span> by {log.by} ({log.role})</span>
+                                                        <span className="text-gray-400">{new Date(log.time).toLocaleDateString()}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Action Buttons */}
                                     {!request.is_approved && !request.is_rejected && !request.is_expired && (
                                         <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
@@ -353,6 +435,16 @@ export default function ApproveComp({ type }: ApproveProps) {
                                                 value="Reject"
                                                 loading={loading}
                                             />
+                                            {request.current_level !== 'dsw' && (
+                                                <Button
+                                                    onclickFunction={() => type === "outing"
+                                                        ? forwardouting(request._id)
+                                                        : forwardoutpass(request._id)
+                                                    }
+                                                    value="Forward"
+                                                    loading={loading}
+                                                />
+                                            )}
                                         </div>
                                     )}
 

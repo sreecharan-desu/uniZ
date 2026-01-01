@@ -1,6 +1,7 @@
 import prisma from "./prisma.service";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "../../utils/logger";
 
 export const hashPassword = async (password: string) => {
   const salt = await bcrypt.genSalt(10);
@@ -37,34 +38,54 @@ export const isPendingApplication = async (id: string) => {
 
 export const requestOutpass = async (studentId: string, reason: string, fromDate: string, toDate: string) => {
   try {
-    const res = await prisma.outpass.create({
-      data: {
-        id: uuidv4(),
-        StudentId: studentId,
-        Reason: reason,
-        FromDay: new Date(fromDate),
-        ToDay: new Date(toDate),
-      }
+    const res = await prisma.$transaction(async (tx) => {
+        const outpass = await tx.outpass.create({
+          data: {
+            id: uuidv4(),
+            StudentId: studentId,
+            Reason: reason,
+            FromDay: new Date(fromDate),
+            ToDay: new Date(toDate),
+          }
+        });
+        await tx.student.update({
+            where: { id: studentId },
+            data: { isApplicationPending: true }
+        });
+        return outpass;
     });
     return { ...res, success: true, msg: "Outpass requested successfully!" };
-  } catch (e) {
+  } catch (e: any) {
+    logger.error(`Error requesting outpass: ${e.message || e}`);
     return { success: false, msg: "Error requesting outpass" };
   }
 };
 
 export const requestOuting = async (studentId: string, reason: string, fromTime: string, toTime: string) => {
   try {
-    const res = await prisma.outing.create({
-      data: {
-        id: uuidv4(),
-        StudentId: studentId,
-        reason: reason,
-        FromTime: new Date(fromTime),
-        ToTime: new Date(toTime),
-      }
+    const today = new Date().toISOString().split('T')[0];
+    const from = fromTime.length < 10 ? new Date(`${today}T${fromTime}${fromTime.split(':').length === 2 ? ':00' : ''}`) : new Date(fromTime);
+    const to = toTime.length < 10 ? new Date(`${today}T${toTime}${toTime.split(':').length === 2 ? ':00' : ''}`) : new Date(toTime);
+
+    const res = await prisma.$transaction(async (tx) => {
+        const outing = await tx.outing.create({
+          data: {
+            id: uuidv4(),
+            StudentId: studentId,
+            reason: reason,
+            FromTime: from,
+            ToTime: to,
+          }
+        });
+        await tx.student.update({
+            where: { id: studentId },
+            data: { isApplicationPending: true }
+        });
+        return outing;
     });
     return { ...res, success: true, msg: "Outing requested successfully!" };
-  } catch (e) {
+  } catch (e: any) {
+    logger.error(`Error requesting outing: ${e.message || e}`);
     return { success: false, msg: "Error requesting outing" };
   }
 };

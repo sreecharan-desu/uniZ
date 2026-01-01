@@ -76,6 +76,9 @@ model Outpass {
   rejectedTime  DateTime @default(now())
   inTime        DateTime @default(now())
   Student       Student  @relation(fields: [StudentId], references: [id])
+  
+  currentLevel  String   @default("caretaker")
+  approvalLogs  Json?
 
   @@index([StudentId])
   @@index([isApproved, isRejected, isExpired])
@@ -99,6 +102,9 @@ model Outing {
   rejectedTime  DateTime @default(now())
   inTime        DateTime @default(now())
   Student       Student  @relation(fields: [StudentId], references: [id])
+
+  currentLevel  String   @default("caretaker")
+  approvalLogs  Json?
 
   @@index([StudentId])
   @@index([isApproved, isRejected, isExpired])

@@ -3,6 +3,7 @@ import { useRecoilValue } from 'recoil';
 import axios from 'axios';
 import { student } from '../../store';
 import { ChevronDown, Award, AlertCircle, X, UserCheck, CheckCircle } from 'lucide-react';
+import { GET_ATTENDANCE } from '../../api/endpoints';
 
 interface SubjectAttendance {
   totalClasses: number;
@@ -104,7 +105,7 @@ export default function Attendance() {
     try {
       const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
       const response = await axios.post<AttendanceResponse>(
-        'https://uni-z-api.vercel.app/api/v1/student/getattendance',
+        GET_ATTENDANCE,
         {
           username: user.username,
           semesterId: semesterOption.id,

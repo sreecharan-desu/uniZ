@@ -62,7 +62,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* ToastContainer */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Public Routes */}

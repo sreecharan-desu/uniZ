@@ -6,6 +6,7 @@ import { useRecoilValue } from 'recoil';
 import { adminUsername } from '../../store';
 import { useIsAuth } from '../../hooks/is_authenticated';
 import { toast } from 'react-toastify';
+import { ADMIN_RESET_PASS } from '../../api/endpoints';
 
 interface ResetPasswordResponse {
   success: boolean;
@@ -106,7 +107,7 @@ export default function Settings() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-      const res = await fetch('https://uni-z-api.vercel.app/api/v1/admin/resetpass', {
+      const res = await fetch(  ADMIN_RESET_PASS, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

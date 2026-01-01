@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { useRecoilValue, useSetRecoilState, useRecoilState } from 'recoil';
 import {
   FaUser, FaVenusMars, FaTint, FaPhone, FaEdit,
-  FaGraduationCap, FaIdCard, FaDoorOpen
+  FaGraduationCap, FaIdCard, FaDoorOpen,  FaHistory, FaClock, FaCalendarAlt
 } from 'react-icons/fa';
 import axios from 'axios';
 import { student, bannersAtom } from '../../store';
@@ -13,8 +13,10 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { BASE_URL } from '../../api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
+import RequestCard from '../../components/RequestCard';
+import { toast } from 'react-toastify';
 
-export const enableOutingsAndOutpasses = false;
+export const enableOutingsAndOutpasses = true;
 
 // Memoized InfoCard
 const InfoCard = memo(({ icon, label, name, value, editable, isEditing, isLoading, onValueChange, type = 'text' }: any) => {
@@ -89,8 +91,11 @@ export default function StudentProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+
+  // Request State
+  const [requestType, setRequestType] = useState<'outing' | 'outpass' | null>(null);
+  const [requestForm, setRequestForm] = useState({ reason: '', from: '', to: '' });
+  const [requestLoading, setRequestLoading] = useState(false);
 
   // Single fields state
   const [fields, setFields] = useState<any>({
@@ -209,11 +214,10 @@ export default function StudentProfilePage() {
   const handleSubmit = async (e: any) => {
     if (e) e.preventDefault();
     setIsSubmitting(true);
-    setError('');
 
     const validationError = validateForm();
     if (validationError) {
-      setError(validationError);
+      toast.error(validationError);
       setIsSubmitting(false);
       return;
     }
@@ -238,15 +242,56 @@ export default function StudentProfilePage() {
       if (response.data.success) {
         setStudent(prev => ({ ...prev, ...updates }));
         setIsEditing(false);
-        setSuccess('Profile updated successfully!');
-        setTimeout(() => setSuccess(''), 3000);
+        toast.success('Profile updated successfully!');
       } else {
-        setError(response.data.msg || 'Update failed');
+        toast.error(response.data.msg || 'Update failed');
       }
     } catch (err: any) {
-      setError(err.response?.data?.msg || err.message || 'An error occurred while updating');
+      toast.error(err.response?.data?.msg || err.message || 'An error occurred while updating');
     }
     setIsSubmitting(false);
+  };
+
+  const handleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!requestType) return;
+    setRequestLoading(true);
+    
+    try {
+        const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
+        const endpoint = requestType === 'outpass' 
+            ? `${BASE_URL}/student/requestoutpass` 
+            : `${BASE_URL}/student/requestouting`;
+        
+        const payload: any = {
+            reason: requestForm.reason,
+            userId: user._id
+        };
+
+        if (requestType === 'outpass') {
+            payload.from_date = requestForm.from;
+            payload.to_date = requestForm.to;
+        } else {
+            payload.from_time = requestForm.from;
+            payload.to_time = requestForm.to;
+        }
+
+        const res = await axios.post(endpoint, payload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.data.success) {
+            toast.success(`${requestType === 'outpass' ? 'Outpass' : 'Outing'} requested successfully!`);
+            setRequestType(null);
+            setRequestForm({ reason: '', from: '', to: '' });
+        } else {
+            toast.error(res.data.msg || 'Request failed');
+        }
+    } catch (err: any) {
+         toast.error(err.response?.data?.msg || 'An error occurred');
+    } finally {
+        setRequestLoading(false);
+    }
   };
 
   if (!user && !isLoading) return <div className="text-center mt-20 text-gray-400">Loading user profile...</div>;
@@ -270,6 +315,15 @@ export default function StudentProfilePage() {
     father: ['fatherName', 'fatherOccupation', 'fatherEmail', 'fatherPhoneNumber', 'fatherAddress'],
     mother: ['motherName', 'motherOccupation', 'motherEmail', 'motherPhoneNumber', 'motherAddress'],
   };
+
+  const requestHistory = [
+      ...(user?.outings_list || []).map((r: any) => ({ ...r, type: 'outing' })),
+      ...(user?.outpasses_list || []).map((r: any) => ({ ...r, type: 'outpass' }))
+  ].sort((a: any, b: any) => {
+      const dateA = new Date(a.requested_time || 0).getTime();
+      const dateB = new Date(b.requested_time || 0).getTime();
+      return dateB - dateA;
+  });
 
   return (
     <div className="min-h-screen bg-white font-sans text-black -mt-6">
@@ -341,10 +395,10 @@ export default function StudentProfilePage() {
             className="border-b border-gray-100 mb-8 overflow-x-auto"
         >
             <div className="flex gap-8">
-                {['personal', 'academic', 'family'].map(tab => (
+                {['personal', 'academic', 'family', enableOutingsAndOutpasses ? 'permissions' : ''].filter(Boolean).map(tab => (
                     <button
                         key={tab}
-                        onClick={() => setActiveTab(tab)}
+                        onClick={() => setActiveTab(tab || 'personal')}
                         className={`pb-4 relative text-sm font-bold uppercase tracking-wider transition-colors ${
                             activeTab === tab ? 'text-black' : 'text-gray-400 hover:text-gray-600'
                         }`}
@@ -369,7 +423,7 @@ export default function StudentProfilePage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                className={activeTab === 'permissions' ? "block" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"}
             >
                  {activeTab === 'personal' && personalFields.map(f => (
                      <InfoCard key={f.name} {...f} value={fields[f.name]} isEditing={isEditing} isLoading={isLoading} onValueChange={handleFieldChange} />
@@ -401,22 +455,133 @@ export default function StudentProfilePage() {
                          ))}
                      </div>
                  )}
+
+                 {activeTab === 'permissions' && (
+                     <div className="space-y-10">
+                         
+                         {/* Action Buttons */}
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <button 
+                                onClick={() => setRequestType('outing')}
+                                className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-sm"
+                             >
+                                 <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
+                                     <FaClock />
+                                 </div>
+                                 <div className="text-center">
+                                     <h3 className="text-lg font-bold mb-1">Request Outing</h3>
+                                     <p className="text-sm text-gray-500 group-hover:text-gray-300">Short duration (Few hours)</p>
+                                 </div>
+                             </button>
+
+                             <button 
+                                onClick={() => setRequestType('outpass')}
+                                className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-sm"
+                             >
+                                 <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
+                                     <FaCalendarAlt />
+                                 </div>
+                                 <div className="text-center">
+                                     <h3 className="text-lg font-bold mb-1">Request Outpass</h3>
+                                     <p className="text-sm text-gray-500 group-hover:text-gray-300">Long duration (Days/Overnight)</p>
+                                 </div>
+                             </button>
+                         </div>
+
+                         {/* History */}
+                         <div>
+                             <h3 className="text-xl font-bold flex items-center gap-2 mb-6">
+                                 <FaHistory className="text-gray-400" /> Request History
+                             </h3>
+                             <div className="grid gap-4">
+                                {requestHistory.length > 0 ? requestHistory.map((req: any) => (
+                                     <RequestCard key={req._id} request={req} type={req.type} email={user.email} />
+                                )) : (
+                                    <div className="text-center py-10 bg-gray-50 rounded-xl text-gray-400">
+                                        No request history found.
+                                    </div>
+                                )}
+                             </div>
+                         </div>
+                     </div>
+                 )}
             </motion.div>
         </AnimatePresence>
 
-        {/* Global Feedback */}
+        {/* Modal for Requests */}
         <AnimatePresence>
-            {(error || success) && (
-                <motion.div 
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 50 }}
-                    className={`fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl z-50 text-white font-medium ${error ? 'bg-red-600' : 'bg-green-600'}`}
-                >
-                    {error || success}
-                </motion.div>
+            {requestType && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6"
+                    >
+                        <h2 className="text-2xl font-bold mb-1 capitalize">Request {requestType}</h2>
+                        <p className="text-gray-500 text-sm mb-6">Fill in the details for your {requestType}.</p>
+                        
+                        <form onSubmit={handleRequestSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Reason</label>
+                                <textarea 
+                                    className="w-full bg-gray-50 rounded-lg p-3 border border-gray-200 focus:border-black focus:outline-none min-h-[100px]"
+                                    placeholder="Why do you need to leave?"
+                                    value={requestForm.reason}
+                                    onChange={e => setRequestForm({...requestForm, reason: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                                        {requestType === 'outpass' ? 'From Date' : 'From Time'}
+                                    </label>
+                                    <input 
+                                        type={requestType === 'outpass' ? 'date' : 'time'}
+                                        className="w-full bg-gray-50 rounded-lg p-3 border border-gray-200 focus:border-black focus:outline-none"
+                                        value={requestForm.from}
+                                        onChange={e => setRequestForm({...requestForm, from: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+                                        {requestType === 'outpass' ? 'To Date' : 'To Time'}
+                                    </label>
+                                    <input 
+                                        type={requestType === 'outpass' ? 'date' : 'time'}
+                                        className="w-full bg-gray-50 rounded-lg p-3 border border-gray-200 focus:border-black focus:outline-none"
+                                        value={requestForm.to}
+                                        onChange={e => setRequestForm({...requestForm, to: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button 
+                                    type="button" 
+                                    onClick={() => { setRequestType(null); setRequestForm({reason:'', from:'', to:''}); }}
+                                    className="flex-1 py-3 rounded-lg border border-gray-200 font-medium hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={requestLoading}
+                                    className="flex-1 py-3 rounded-lg bg-black text-white font-bold hover:bg-gray-800 disabled:opacity-50"
+                                >
+                                    {requestLoading ? 'Sending...' : 'Send Request'}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
             )}
         </AnimatePresence>
+
 
       </div>
     </div>

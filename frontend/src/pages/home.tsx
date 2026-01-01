@@ -93,7 +93,7 @@ export default function Home() {
                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     >
                         <img 
-                            src="/assets/mascot.png" 
+                            src="pikachu.png" 
                             alt="UniZ Mascot" 
                             className="w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                         />

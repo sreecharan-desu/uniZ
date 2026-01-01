@@ -30,28 +30,44 @@ export const getOutingById = async (id: string) => {
   return await prisma.outing.findUnique({ where: { id }, include: { Student: true } });
 };
 
-export const approveOutpass = async (id: string) => {
-  const pass = await getOutpassById(id);
+const appendLog = (currentLogs: any, action: string, by: string, role: string) => {
+  const logs = Array.isArray(currentLogs) ? currentLogs : [];
+  logs.push({ action, by, role, time: new Date() });
+  return logs;
+};
+
+export const approveOutpass = async (id: string, adminName: string, adminRole: string) => {
+  const pass : any = await getOutpassById(id);
   if (!pass) return { success: false, msg: "Outpass not found" };
   if (pass.isApproved) return { success: false, msg: "Already approved" };
   if (pass.isRejected) return { success: false, msg: "Already rejected" };
+  
+  if (pass.currentLevel !== adminRole && adminRole !== 'webmaster') {
+      return { success: false, msg: `Unauthorized. Request is at ${pass.currentLevel} level.` };
+  }
 
   await prisma.outpass.update({
     where: { id },
     data: {
       isApproved: true,
-      issuedBy: "Administration",
+      issuedBy: adminName,
       issuedTime: new Date(),
       Student: { update: { isApplicationPending: false, isPresentInCampus: false } },
+      approvalLogs: appendLog(pass.approvalLogs, 'approve', adminName, adminRole),
+      currentLevel: 'completed'
     }
   });
   return { success: true, msg: "Outpass approved" };
 };
 
-export const rejectOutpass = async (id: string, adminName: string = "Administration", message: string = "Rejected") => {
-  const pass = await getOutpassById(id);
+export const rejectOutpass = async (id: string, adminName: string, adminRole: string, message: string) => {
+  const pass : any  = await getOutpassById(id);
   if (!pass) return { success: false, msg: "Outpass not found" };
   if (pass.isApproved) return { success: false, msg: "Already approved" };
+  
+  if (pass.currentLevel !== adminRole && adminRole !== 'webmaster') {
+      return { success: false, msg: `Unauthorized. Request is at ${pass.currentLevel} level.` };
+  }
   
   await prisma.outpass.update({
     where: { id },
@@ -61,32 +77,69 @@ export const rejectOutpass = async (id: string, adminName: string = "Administrat
       rejectedTime: new Date(),
       Message: message,
       Student: { update: { isApplicationPending: false } },
+      approvalLogs: appendLog(pass.approvalLogs, 'reject', adminName, adminRole),
+      currentLevel: 'completed'
     }
   });
   return { success: true, msg: "Outpass rejected" };
 };
 
-export const approveOuting = async (id: string) => {
+export const forwardOutpass = async (id: string, adminName: string, adminRole: string) => {
+  const pass : any  = await getOutpassById(id);
+  if (!pass) return { success: false, msg: "Outpass not found" };
+  if (pass.isApproved || pass.isRejected) return { success: false, msg: "Request already finalized" };
+  
+  if (pass.currentLevel !== adminRole && adminRole !== 'webmaster') {
+      return { success: false, msg: `Unauthorized. Request is at ${pass.currentLevel} level.` };
+  }
+
+  let nextLevel = "";
+  if (pass.currentLevel === 'caretaker') nextLevel = 'warden';
+  else if (pass.currentLevel === 'warden') nextLevel = 'dsw';
+  else return { success: false, msg: "Cannot forward further" };
+
+  await prisma.outpass.update({
+      where: { id },
+      data: {
+          currentLevel: nextLevel,
+          approvalLogs: appendLog(pass.approvalLogs, 'forward', adminName, adminRole)
+      }
+  });
+  return { success: true, msg: `Forwarded to ${nextLevel}` };
+};
+
+export const approveOuting = async (id: string, adminName: string, adminRole: string) => {
   const outing = await getOutingById(id);
   if (!outing) return { success: false, msg: "Outing not found" };
   if (outing.isApproved) return { success: false, msg: "Already approved" };
+  if (outing.isRejected) return { success: false, msg: "Already rejected" };
+
+  if (outing.currentLevel !== adminRole && adminRole !== 'webmaster') {
+      return { success: false, msg: `Unauthorized. Request is at ${outing.currentLevel} level.` };
+  }
   
   await prisma.outing.update({
     where: { id },
     data: {
       isApproved: true,
-      issuedBy: "Administration",
+      issuedBy: adminName,
       issuedTime: new Date(),
       Student: { update: { isApplicationPending: false, isPresentInCampus: false } },
+      approvalLogs: appendLog(outing.approvalLogs, 'approve', adminName, adminRole),
+      currentLevel: 'completed'
     }
   });
   return { success: true, msg: "Outing approved" };
 };
 
-export const rejectOuting = async (id: string, adminName: string = "Administration", message: string = "Rejected") => {
+export const rejectOuting = async (id: string, adminName: string, adminRole: string, message: string) => {
   const outing = await getOutingById(id);
   if (!outing) return { success: false, msg: "Outing not found" };
   if (outing.isApproved) return { success: false, msg: "Already approved" };
+  
+  if (outing.currentLevel !== adminRole && adminRole !== 'webmaster') {
+      return { success: false, msg: `Unauthorized. Request is at ${outing.currentLevel} level.` };
+  }
 
   await prisma.outing.update({
     where: { id },
@@ -96,9 +149,35 @@ export const rejectOuting = async (id: string, adminName: string = "Administrati
       rejectedTime: new Date(),
       Message: message,
       Student: { update: { isApplicationPending: false } },
+      approvalLogs: appendLog(outing.approvalLogs, 'reject', adminName, adminRole),
+      currentLevel: 'completed'
     }
   });
   return { success: true, msg: "Outing rejected" };
+};
+
+export const forwardOuting = async (id: string, adminName: string, adminRole: string) => {
+  const outing = await getOutingById(id);
+  if (!outing) return { success: false, msg: "Outing not found" };
+  if (outing.isApproved || outing.isRejected) return { success: false, msg: "Request already finalized" };
+
+  if (outing.currentLevel !== adminRole && adminRole !== 'webmaster') {
+      return { success: false, msg: `Unauthorized. Request is at ${outing.currentLevel} level.` };
+  }
+
+  let nextLevel = "";
+  if (outing.currentLevel === 'caretaker') nextLevel = 'warden';
+  else if (outing.currentLevel === 'warden') nextLevel = 'dsw';
+  else return { success: false, msg: "Cannot forward further" };
+
+  await prisma.outing.update({
+      where: { id },
+      data: {
+          currentLevel: nextLevel,
+          approvalLogs: appendLog(outing.approvalLogs, 'forward', adminName, adminRole)
+      }
+  });
+  return { success: true, msg: `Forwarded to ${nextLevel}` };
 };
 
 import { mapOutingToLegacy, mapOutpassToLegacy, mapStudentOutsideToLegacy, mapStudentToLegacy } from "../utils/mappers";

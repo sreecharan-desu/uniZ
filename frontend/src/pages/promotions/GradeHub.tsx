@@ -5,6 +5,7 @@ import { student } from '../../store';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChevronDown, Award, AlertCircle, X } from 'lucide-react';
+import { GET_GRADES } from '../../api/endpoints';
 
 // Define semester options with year and semester mappings
 const semesterOptions = [
@@ -105,7 +106,7 @@ export default function GradeHub() {
     try {
       const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
       const response = await axios.post(
-        'https://uni-z-api.vercel.app/api/v1/student/getgrades',
+        GET_GRADES,
         {
           username: user.username,
           semesterId: semesterOption.id,

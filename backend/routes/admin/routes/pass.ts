@@ -2,6 +2,7 @@ import { Router } from "express";
 import prisma from "../../services/prisma.service";
 import { 
   approveOuting, rejectOuting, approveOutpass, rejectOutpass, 
+  forwardOuting, forwardOutpass,
   getStudentsOutsideCampus, updateStudentPresence
 } from "../../services/admin.service";
 import { authMiddleware } from "../../student/middlewares/middlewares";
@@ -12,18 +13,52 @@ export const passRouter = Router();
 passRouter.get("/getrequests", authMiddleware, async (req, res) => {
   try {
     const type = req.query.type;
+    const admin = (req as any).admin;
+    const role = (admin?.role === 'webmaster' || admin?.role === 'admin' || !admin?.role) ? 'caretaker' : admin.role;
+
     if (type === "outpass") {
-      const requests = await prisma.outpass.findMany({
-        where: { isApproved: false, isRejected: false, isExpired: false },
+      const dbRequests = await prisma.outpass.findMany({
+        where: { isApproved: false, isRejected: false, isExpired: false, currentLevel: role },
         include: { Student: true },
       });
-      return res.json({ requests, success: true });
+      
+      const outpasses = dbRequests.map(req => ({
+        _id: req.id,
+        username: req.Student.Username,
+        email: req.Student.Email,
+        from_day: req.FromDay,
+        to_day: req.ToDay,
+        reason: req.Reason,
+        requested_time: req.RequestedTime,
+        is_approved: req.isApproved,
+        is_rejected: req.isRejected,
+        is_expired: req.isExpired,
+        current_level: req.currentLevel,
+        approval_logs: req.approvalLogs
+      }));
+
+      return res.json({ outpasses, success: true });
     } else if (type === "outing") {
-      const requests = await prisma.outing.findMany({
-        where: { isApproved: false, isRejected: false, isExpired: false },
+      const dbRequests = await prisma.outing.findMany({
+        where: { isApproved: false, isRejected: false, isExpired: false, currentLevel: role },
         include: { Student: true },
       });
-      return res.json({ requests, success: true });
+
+      const outings = dbRequests.map(req => ({
+        _id: req.id,
+        username: req.Student.Username,
+        email: req.Student.Email,
+        from_time: req.FromTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        to_time: req.ToTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        reason: req.reason,
+        requested_time: req.RequestedTime,
+        is_approved: req.isApproved,
+        is_rejected: req.isRejected,
+        is_expired: req.isExpired,
+        current_level: req.currentLevel
+      }));
+      
+      return res.json({ outings, success: true });
     }
     res.status(400).json({ msg: "Invalid type", success: false });
   } catch (e) {
@@ -34,7 +69,8 @@ passRouter.get("/getrequests", authMiddleware, async (req, res) => {
 passRouter.post("/approveoutpass", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
-    const result = await approveOutpass(id);
+    const admin = (req as any).admin;
+    const result = await approveOutpass(id, admin?.username || "Admin", admin?.role || "webmaster");
     if (result.success) {
       const data = await prisma.outpass.findUnique({ where: { id }, include: { Student: true } });
       if (data?.Student.Email) {
@@ -50,7 +86,8 @@ passRouter.post("/approveoutpass", authMiddleware, async (req, res) => {
 passRouter.post("/rejectoutpass", authMiddleware, async (req, res) => {
   try {
     const { id, message } = req.body;
-    const result = await rejectOutpass(id, "Administration", message);
+    const admin = (req as any).admin;
+    const result = await rejectOutpass(id, admin?.username || "Admin", admin?.role || "webmaster", message);
     if (result.success) {
       const data = await prisma.outpass.findUnique({ where: { id }, include: { Student: true } });
       if (data?.Student.Email) {
@@ -63,10 +100,22 @@ passRouter.post("/rejectoutpass", authMiddleware, async (req, res) => {
   }
 });
 
+passRouter.post("/forwardoutpass", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.body;
+    const admin = (req as any).admin;
+    const result = await forwardOutpass(id, admin?.username || "Admin", admin?.role || "webmaster");
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ msg: "Error forwarding outpass", success: false });
+  }
+});
+
 passRouter.post("/approveouting", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
-    const result = await approveOuting(id);
+    const admin = (req as any).admin;
+    const result = await approveOuting(id, admin?.username || "Admin", admin?.role || "webmaster");
     if (result.success) {
       const data = await prisma.outing.findUnique({ where: { id }, include: { Student: true } });
       if (data?.Student.Email) {
@@ -82,7 +131,8 @@ passRouter.post("/approveouting", authMiddleware, async (req, res) => {
 passRouter.post("/rejectouting", authMiddleware, async (req, res) => {
   try {
     const { id, message } = req.body;
-    const result = await rejectOuting(id, "Administration", message);
+    const admin = (req as any).admin;
+    const result = await rejectOuting(id, admin?.username || "Admin", admin?.role || "webmaster", message);
     if (result.success) {
       const data = await prisma.outing.findUnique({ where: { id }, include: { Student: true } });
       if (data?.Student.Email) {
@@ -92,6 +142,17 @@ passRouter.post("/rejectouting", authMiddleware, async (req, res) => {
     res.json(result);
   } catch (e) {
     res.status(500).json({ msg: "Error rejecting outing", success: false });
+  }
+});
+
+passRouter.post("/forwardouting", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.body;
+    const admin = (req as any).admin;
+    const result = await forwardOuting(id, admin?.username || "Admin", admin?.role || "webmaster");
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ msg: "Error forwarding outing", success: false });
   }
 });
 
