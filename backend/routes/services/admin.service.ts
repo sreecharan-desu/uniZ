@@ -1,6 +1,7 @@
 import prisma from "./prisma.service";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
+import { sendEmail } from "./email.service";
 
 export const hashPassword = async (password: string) => {
   const salt = await bcrypt.genSalt(10);
@@ -311,7 +312,6 @@ export const getUsers = async (skip: number, take: number) => {
 };
 
 import { mapStudentSuggestionToLegacy } from "../utils/mappers";
-import { sendEmail } from "./email.service";
 
 
 export const getStudentSuggestions = async (q: string) => {
