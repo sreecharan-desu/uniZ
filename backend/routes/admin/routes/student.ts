@@ -7,6 +7,7 @@ import progressStore from "../utils/progress";
 import { getOrCreateSubject } from "../utils/utils";
 import { addStudent, getUsers, getStudentSuggestions } from "../../services/admin.service";
 import { getStudentDetails } from "../../services/student.service";
+import { logger } from "../../../utils/logger";
 
 export const studentAdminRouter = Router();
 
@@ -44,22 +45,31 @@ studentAdminRouter.get("/getstudents", authMiddleware, async (req, res) => {
       if (!student) return res.status(404).json({ msg: `Student with ID ${filter} not found`, success: false });
       return res.json({ student, msg: `Fetched student ${student.Name}`, success: true });
     }
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    logger.error(`Error fetching students: ${e.message || e}`);
     return res.status(500).json({ msg: "Error fetching students", success: false });
   }
 });
 
 studentAdminRouter.post("/searchstudent", authMiddleware, async (req, res) => {
+  const start = Date.now();
   try {
     const username = String(req.body.username || "").trim();
     if (!username) return res.status(400).json({ msg: "username required", success: false });
-    const suggestions = await getStudentSuggestions(username);
-    const exactStudent = await getStudentDetails(username);
-    if (!suggestions.length && !exactStudent) return res.json({ success: false, msg: "No student found" });
+
+    // Parallel execution for performance (sub-100ms target)
+    const [suggestions, exactStudent] = await Promise.all([
+      getStudentSuggestions(username),
+      getStudentDetails(username)
+    ]);
+
+    if (!suggestions.length && !exactStudent) {
+      return res.json({ success: false, msg: "No student found" });
+    }
+
     return res.json({ success: true, suggestions, student: exactStudent || null });
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    logger.error(`Search Student Error: ${e.message || e}`);
     return res.status(500).json({ msg: "Error fetching students", success: false });
   }
 });
@@ -82,8 +92,8 @@ studentAdminRouter.get("/template", authMiddleware, async (req, res) => {
     res.setHeader("Content-Disposition", "attachment; filename=student_template.xlsx");
     await wb.xlsx.write(res);
     res.end();
-  } catch (err) {
-    console.error(err);
+  } catch (err: any) {
+    logger.error(`Template Error: ${err.message || err}`);
     res.status(500).json({ msg: "Failed to generate template", success: false });
   }
 });
@@ -132,8 +142,8 @@ studentAdminRouter.post("/updatestudents", authMiddleware, async (req, res) => {
       success: true,
       templateDownload: "/api/v1/admin/students/template",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    logger.error(`Update Students Error: ${error.message || error}`);
     return res.status(500).json({ msg: "Unexpected error", success: false });
   }
 });

@@ -27,8 +27,6 @@ app.get("/", (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log("");
-  logger.info(`🚀 Server running on ${chalk.yellow(`http://localhost:${PORT}`)}`);
-  logger.info(`System Environment: ${chalk.green(process.env.NODE_ENV || 'development')}`);
-  console.log("");
+    logger.info(`🚀 Server running on ${chalk.yellow(`http://localhost:${PORT}`)}`);
+    logger.info(`System Environment: ${chalk.green(process.env.NODE_ENV || 'development')}`);
 });

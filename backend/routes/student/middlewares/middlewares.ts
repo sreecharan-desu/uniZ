@@ -54,6 +54,11 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+import redis from "../../services/redis.service";
+import { logger } from "../../../utils/logger";
+
+// ... existing imports ...
+
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.headers.authorization;
   if (!authorization || !process.env.JWT_SECURITY_KEY)
@@ -63,14 +68,40 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const token = authorization.split(" ")[1];
     const decoded_username = jwt.verify(token, process.env.JWT_SECURITY_KEY) as string;
 
+    const cacheKey = `auth:${decoded_username}`;
+    
+    // Check Redis Cache
+    try {
+      const cachedAuth = await redis.get(cacheKey);
+      if (cachedAuth) {
+        const user = JSON.parse(cachedAuth);
+        if (user.type === 'admin') {
+          (req as any).admin = user.data;
+        } else {
+          // Verify student existence still matches (optional, but safer) or just trust cache
+          // trusting cache for speed
+        }
+        return next();
+      }
+    } catch (e: any) {
+      logger.warn(`Redis auth read error: ${e.message || e}`);
+    }
+
+    // DB Lookup (Fallback)
     const [admin, student] = await Promise.all([
       prisma.admin.findUnique({ where: { Username: decoded_username }, select: { id: true, Username: true, role: true } }),
       prisma.student.findUnique({ where: { Username: decoded_username }, select: { id: true, Username: true } })
     ]);
 
     if (admin) {
-      (req as any).admin = { _id: admin.id, username: admin.Username, role: admin.role };
-    } else if (!student) {
+      const adminData = { _id: admin.id, username: admin.Username, role: admin.role };
+      (req as any).admin = adminData;
+      // Cache Admin
+      await redis.set(cacheKey, JSON.stringify({ type: 'admin', data: adminData }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
+    } else if (student) {
+      // Cache Student (just existence marker or basic data if needed later)
+      await redis.set(cacheKey, JSON.stringify({ type: 'student', id: student.id }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
+    } else {
       return res.status(401).json({ msg: "Invalid token", success: false });
     }
 

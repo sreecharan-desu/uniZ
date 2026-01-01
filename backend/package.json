@@ -4,11 +4,10 @@
   "description": "An outpass Management System",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --watch '*.ts' --exec 'ts-node' ./index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "prisma generate",
-    "build": "prisma generate && tsc",
-    "start": "node dist/index.js"
+    "dev": "tsc-watch --onSuccess \"node dist/index.js\"",
+    "build": "rm -rf dist && tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "SreeCharan Desu",
   "license": "MIT",
@@ -19,9 +18,8 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/nodemailer": "^6.4.15",
     "@types/xlsx": "^0.0.35",
-    "nodemon": "^3.1.4",
     "prisma": "^6.16.3",
-    "ts-node": "^10.9.2",
+    "tsc-watch": "^7.2.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
