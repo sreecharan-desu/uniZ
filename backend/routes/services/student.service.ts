@@ -8,13 +8,21 @@ export const hashPassword = async (password: string) => {
   return await bcrypt.hash(password, salt);
 };
 
-import { mapStudentToLegacy } from "../utils/mappers";
+import { mapStudentOutsideToLegacy } from "../utils/mappers";
 
 export const getStudentDetails = async (username: string) => {
-  const user = await prisma.student.findUnique({
-    where: { Username: username.toLowerCase() },
-  });
-  return mapStudentToLegacy(user);
+  try {
+      const user = await prisma.student.findUnique({
+        where: { Username: username.toLowerCase() },
+        include: { Outing: true, Outpass: true }
+      });
+      console.log('Fetched user:', user ? user.Username : 'null');
+      if (!user) return null;
+      return mapStudentOutsideToLegacy(user);
+  } catch (e) {
+      console.error("Error in getStudentDetails:", e);
+      throw e;
+  }
 };
 
 export const updateStudentPassword = async (username: string, password: string) => {

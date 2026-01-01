@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { useRecoilValue, useSetRecoilState, useRecoilState } from 'recoil';
 import {
-  FaUser, FaVenusMars, FaTint, FaPhone, FaEdit,
-  FaGraduationCap, FaIdCard, FaDoorOpen,  FaHistory, FaClock, FaCalendarAlt
-} from 'react-icons/fa';
+  User, Droplets, Phone, Edit2, GraduationCap, IdCard, DoorOpen, History, Clock, Calendar
+} from 'lucide-react';
 import axios from 'axios';
 import { student, bannersAtom } from '../../store';
 import { useIsAuth } from '../../hooks/is_authenticated';
@@ -24,29 +23,28 @@ const InfoCard = memo(({ icon, label, name, value, editable, isEditing, isLoadin
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+      className="bg-white p-6 rounded-xl border border-gray-100/50 hover:border-gray-200 transition-colors"
     >
-      <div className="flex items-center space-x-3 mb-3 text-gray-400">
-        <span className="text-lg">{icon}</span>
-        <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
+      <div className="flex items-center gap-2.5 mb-2 text-gray-400">
+        <span className="p-1.5 bg-gray-50 rounded-md text-gray-500">{icon}</span>
+        <span className="text-[11px] font-bold uppercase tracking-widest">{label}</span>
       </div>
       {isLoading ? (
-        <div className="bg-gray-100 rounded w-3/4 h-6 animate-pulse"></div>
+        <div className="bg-gray-50 rounded w-2/3 h-6 animate-pulse"></div>
       ) : isEditing && editable ? (
         <input
           type={type}
           name={name}
           value={value}
           onChange={handleChange}
-          className="w-full bg-gray-50 text-black text-lg font-medium rounded-lg p-2 border border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
+          className="w-full bg-white text-black text-lg font-medium border-b-2 border-gray-100 focus:border-black focus:outline-none py-1 transition-all"
           autoComplete="off"
         />
       ) : (
-        <p className="text-black text-xl font-medium truncate">
-          {value || <span className="text-gray-300 font-normal italic text-sm">Not provided</span>}
+        <p className="text-gray-900 text-lg font-medium truncate leading-tight">
+          {value || <span className="text-gray-300 font-normal italic text-sm">Empty</span>}
         </p>
       )}
     </motion.div>
@@ -59,20 +57,20 @@ const InputField = memo(({ label, name, value, isEditing, isLoading, onValueChan
   
     return (
       <div className="flex flex-col group">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-black transition-colors">{label}</span>
+        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 group-hover:text-black transition-colors">{label}</span>
         {isLoading ? (
-          <div className="bg-gray-100 rounded w-full h-8 animate-pulse"></div>
+          <div className="bg-gray-50 rounded w-full h-8 animate-pulse"></div>
         ) : isEditing ? (
           <input
             type={type}
             name={name}
             value={value}
             onChange={handleChange}
-            className="w-full bg-gray-50 text-black rounded-lg p-2 border border-blue-500 focus:border-black focus:outline-none transition-all"
+            className="w-full bg-white text-black rounded-lg py-2 border-b-2 border-gray-100 focus:border-black focus:outline-none transition-all"
             autoComplete="off"
           />
         ) : (
-          <span className="text-black text-lg font-medium border-b border-transparent group-hover:border-gray-100 py-1 transition-all">
+          <span className="text-gray-900 text-lg font-medium border-b border-transparent py-1 transition-all">
              {value || <span className="text-gray-300 text-sm font-normal italic">Not provided</span>}
           </span>
         )}
@@ -297,18 +295,18 @@ export default function StudentProfilePage() {
   if (!user && !isLoading) return <div className="text-center mt-20 text-gray-400">Loading user profile...</div>;
 
   const personalFields = [
-    { icon: <FaUser />, label: 'Full Name', name: 'name', editable: true },
-    { icon: <FaVenusMars />, label: 'Gender', name: 'gender', editable: true },
-    { icon: <FaTint />, label: 'Blood Group', name: 'bloodGroup', editable: true },
-    { icon: <FaPhone />, label: 'Phone Number', name: 'phoneNumber', editable: true },
-  ];
+    { icon: <User className="w-5 h-5" />, label: 'Full Name', name: 'name', editable: true },
+    { icon: <User className="w-5 h-5" />, label: 'Gender', name: 'gender', editable: true },
+    { icon: <Droplets className="w-5 h-5" />, label: 'Blood Group', name: 'bloodGroup', editable: true },
+    { icon: <Phone className="w-5 h-5" />, label: 'Phone Number', name: 'phoneNumber', editable: true },
+  ];                
 
   const academicFields = [
-    { icon: <FaIdCard />, label: 'Student ID', name: 'username', editable: false, value: user?.username },
-    { icon: <FaGraduationCap />, label: 'Year', name: 'year', editable: false, value: user?.year },
-    { icon: <FaGraduationCap />, label: 'Branch', name: 'branch', editable: false, value: user?.branch },
-    { icon: <FaGraduationCap />, label: 'Section', name: 'section', editable: false, value: user?.section },
-    { icon: <FaDoorOpen />, label: 'Room Number', name: 'roomno', editable: false, value: user?.roomno },
+    { icon: <IdCard className="w-5 h-5" />, label: 'Student ID', name: 'username', editable: false, value: user?.username },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Year', name: 'year', editable: false, value: user?.year },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Branch', name: 'branch', editable: false, value: user?.branch },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Section', name: 'section', editable: false, value: user?.section },
+    { icon: <DoorOpen className="w-5 h-5" />, label: 'Room Number', name: 'roomno', editable: false, value: user?.roomno },
   ];
 
   const familyFields = {
@@ -380,8 +378,8 @@ export default function StudentProfilePage() {
                     </button>
                   </>
                 ) : (
-                    <button onClick={() => setIsEditing(true)} className="group flex items-center gap-2 px-6 py-2 rounded-full border border-black/10 hover:border-black hover:bg-black hover:text-white transition-all duration-300">
-                        <FaEdit /> <span>Edit Profile</span>
+                    <button onClick={() => setIsEditing(true)} className="group flex items-center gap-2 px-6 py-2 rounded-full border border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all duration-300 shadow-sm">
+                        <Edit2 className="w-4 h-4" /> <span className="font-medium text-sm">Edit Profile</span>
                     </button>
                 )}
              </div>
@@ -461,37 +459,51 @@ export default function StudentProfilePage() {
                          
                          {/* Action Buttons */}
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <button 
-                                onClick={() => setRequestType('outing')}
-                                className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-sm"
-                             >
-                                 <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
-                                     <FaClock />
-                                 </div>
-                                 <div className="text-center">
-                                     <h3 className="text-lg font-bold mb-1">Request Outing</h3>
-                                     <p className="text-sm text-gray-500 group-hover:text-gray-300">Short duration (Few hours)</p>
-                                 </div>
-                             </button>
+                             {user?.has_pending_requests ? (
+                                <div className="col-span-full p-8 bg-amber-50 border border-amber-100/50 rounded-2xl text-center">
+                                    <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                                        <Clock className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-yellow-900 mb-2">Request Pending</h3>
+                                    <p className="text-yellow-700 max-w-md mx-auto">
+                                        You already have an active request pending approval. You cannot submit a new request until the current one is processed.
+                                    </p>
+                                </div>
+                             ) : (
+                                 <>
+                                     <button 
+                                        onClick={() => setRequestType('outing')}
+                                        className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50 transition-all duration-300"
+                                     >
+                                         <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                             <Clock className="w-8 h-8" />
+                                         </div>
+                                         <div className="text-center">
+                                             <h3 className="text-lg font-bold mb-1">Request Outing</h3>
+                                             <p className="text-sm text-gray-500 group-hover:text-gray-300">Short duration (Few hours)</p>
+                                         </div>
+                                     </button>
 
-                             <button 
-                                onClick={() => setRequestType('outpass')}
-                                className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-sm"
-                             >
-                                 <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
-                                     <FaCalendarAlt />
-                                 </div>
-                                 <div className="text-center">
-                                     <h3 className="text-lg font-bold mb-1">Request Outpass</h3>
-                                     <p className="text-sm text-gray-500 group-hover:text-gray-300">Long duration (Days/Overnight)</p>
-                                 </div>
-                             </button>
+                                     <button 
+                                        onClick={() => setRequestType('outpass')}
+                                        className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-white hover:border-purple-200 hover:shadow-lg hover:shadow-purple-50 transition-all duration-300"
+                                     >
+                                         <div className="w-16 h-16 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                             <Calendar className="w-8 h-8" />
+                                         </div>
+                                         <div className="text-center">
+                                             <h3 className="text-lg font-bold mb-1">Request Outpass</h3>
+                                             <p className="text-sm text-gray-500 group-hover:text-gray-300">Long duration (Days/Overnight)</p>
+                                         </div>
+                                     </button>
+                                 </>
+                             )}
                          </div>
 
                          {/* History */}
                          <div>
                              <h3 className="text-xl font-bold flex items-center gap-2 mb-6">
-                                 <FaHistory className="text-gray-400" /> Request History
+                                 <History className="w-5 h-5 text-gray-400" /> Request History
                              </h3>
                              <div className="grid gap-4">
                                 {requestHistory.length > 0 ? requestHistory.map((req: any) => (

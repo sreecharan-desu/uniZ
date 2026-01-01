@@ -53,6 +53,7 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
     }
     next();
   } catch (error) {
+    console.log(error)
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 };

@@ -33,7 +33,17 @@ export const studentRouter = Router();
 
 // Student Signin
 studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, res) => {
+
   const { username } = req.body;
+  try {
+      if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
+  
+  const token = jwt.sign({ username, role: 'student' }, process.env.JWT_SECURITY_KEY);
+  res.json({ student_token: token, success: true });
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({ msg: "Internal server error", success: false });
+  }
   if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
   
   const token = jwt.sign({ username, role: 'student' }, process.env.JWT_SECURITY_KEY);
@@ -147,6 +157,11 @@ studentRouter.post("/requestoutpass", isPresentInCampus, isApplicationPending, a
         await sendEmail(user.Email, "Regarding your Outpass Request", emailForStudent);
         await sendEmail(process.env.ADMIN_EMAIL || "sreecharan309@gmail.com", `New Outpass Request From ${user.Username}`, emailForAdmin);
       }
+
+      // Invalidate cache
+      if (user?.Username) {
+         redis.del(`student:profile:${user.Username.toLowerCase()}`).catch(err => logger.warn(`Redis del error: ${err}`));
+      }
     }
     res.json({ msg: result.msg, success: result.success });
   } catch (error: any) {
@@ -168,6 +183,11 @@ studentRouter.post("/requestouting", isPresentInCampus, isApplicationPending, au
       if (user?.Email) {
         await sendEmail(user.Email, "Regarding your Outing Request", emailForStudent);
         await sendEmail(process.env.ADMIN_EMAIL || "sreecharan309@gmail.com", `New Outing Request From ${user.Username}`, emailForAdmin);
+      }
+
+      // Invalidate cache
+      if (user?.Username) {
+         redis.del(`student:profile:${user.Username.toLowerCase()}`).catch(err => logger.warn(`Redis del error: ${err}`));
       }
     }
     res.json({ msg: result.msg, success: result.success });

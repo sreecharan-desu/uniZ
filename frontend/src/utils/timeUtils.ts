@@ -86,20 +86,22 @@ export const calculateDuration = (startTime: string, endTime: string): Duration 
         }
 
         // For time-only strings (outings)
-        if (startTime.includes('pm') || startTime.includes('am')) {
-            // Convert 12-hour format to 24-hour for calculation
+        if (!startTime.includes('/') && !endTime.includes('/')) {
             const parseTime = (timeStr: string) => {
-                const [time, meridiem] = timeStr.trim().split(' ');
-                const [hours, minutes, seconds = 0] = time.split(':').map(Number);
-                let hour = hours;
-                
-                if (meridiem.toLowerCase() === 'pm' && hours !== 12) {
-                    hour = hours + 12;
-                } else if (meridiem.toLowerCase() === 'am' && hours === 12) {
-                    hour = 0;
+                const lowerStr = timeStr.toLowerCase().trim();
+                let hours = 0, minutes = 0, seconds = 0;
+
+                if (lowerStr.includes('am') || lowerStr.includes('pm')) {
+                    const [time, meridiem] = lowerStr.split(' ');
+                    const [h, m, s = 0] = time.split(':').map(Number);
+                    hours = h; minutes = m; seconds = s;
+                    if (meridiem === 'pm' && hours !== 12) hours += 12;
+                    else if (meridiem === 'am' && hours === 12) hours = 0;
+                } else {
+                    const [h, m, s = 0] = lowerStr.split(':').map(Number);
+                    hours = h; minutes = m; seconds = s;
                 }
-                
-                return (hour * 60 * 60) + (minutes * 60) + seconds;
+                return (hours * 3600) + (minutes * 60) + seconds;
             };
 
             const startSeconds = parseTime(startTime);

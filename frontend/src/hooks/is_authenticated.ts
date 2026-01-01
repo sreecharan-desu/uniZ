@@ -45,7 +45,7 @@ export function useIsAuth() {
             return logoutAndRedirect("Session expired or invalid");
         }
         const decoded = parseJwt(adminToken);
-        const validAdminRoles = ["admin", "webmaster", "dean", "director"];
+        const validAdminRoles = ["admin", "webmaster", "dean", "director", "caretaker", "warden", "dsw", "hod", "faculty"];
         if (!decoded || !validAdminRoles.includes(decoded.role || "")) {
              return logoutAndRedirect("Access violation: Invalid Role");
         }

@@ -9,6 +9,7 @@ import { requestLogger } from "./utils/requestLogger";
 import chalk from "chalk";
 
 dotenv.config();
+import cronRouter from "./routes/cron/index";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.use(express.json({ limit: "10mb" })); // Increase limit to 10MB
 app.use(cors());
 app.use(requestLogger); // Custom "super clean" request logger
 app.use("/api/v1/", mainRoute);
+app.use("/api/cron", cronRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello from backend");

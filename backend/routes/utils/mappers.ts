@@ -53,7 +53,7 @@ export const mapOutpassToLegacy = (o: any) => ({
   from_day: new Date(o.FromDay).toLocaleDateString("en-IN"),
   to_day: new Date(o.ToDay).toLocaleDateString("en-IN"),
   no_of_days: o.Days,
-  requested_time: o.RequestedTime.toString().split("GMT")[0],
+  requested_time: new Date(o.RequestedTime).toLocaleString("en-IN"),
   is_expired: o.isExpired,
   is_approved: o.isApproved,
   username: o.Student?.Username,
@@ -65,6 +65,8 @@ export const mapOutpassToLegacy = (o: any) => ({
   rejected_by: o.rejectedBy,
   rejected_time: o.rejectedTime ? new Date(o.rejectedTime).toLocaleTimeString("en-IN") : null,
   in_time: o.inTime,
+  current_level: o.currentLevel,
+  approval_logs: o.approvalLogs,
 });
 
 export const mapOutingToLegacy = (o: any) => ({
@@ -86,6 +88,8 @@ export const mapOutingToLegacy = (o: any) => ({
   rejected_by: o.rejectedBy,
   rejected_time: o.rejectedTime ? new Date(o.rejectedTime).toLocaleTimeString("en-IN") : null,
   in_time: o.inTime ? new Date(o.inTime).toLocaleTimeString("en-IN") : null,
+  current_level: o.currentLevel,
+  approval_logs: o.approvalLogs,
 });
 
 export const mapStudentOutsideToLegacy = (user: any) => ({

@@ -2,6 +2,7 @@ import prisma from "./prisma.service";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { sendEmail } from "./email.service";
+import { getForwardedMailFormatForStudent } from "../student/emails/email_templates";
 
 export const hashPassword = async (password: string) => {
   const salt = await bcrypt.genSalt(10);
@@ -114,6 +115,15 @@ export const forwardOutpass = async (id: string, adminName: string, adminRole: s
           approvalLogs: appendLog(pass.approvalLogs, 'forward', adminName, adminRole)
       }
   });
+
+  if (pass.Student?.Email) {
+      await sendEmail(
+          pass.Student.Email,
+          "Outpass Request Forwarded",
+          getForwardedMailFormatForStudent("Outpass", id, adminRole, nextLevel)
+      );
+  }
+
   return { success: true, msg: `Forwarded to ${nextLevel}` };
 };
 
@@ -194,6 +204,15 @@ export const forwardOuting = async (id: string, adminName: string, adminRole: st
           approvalLogs: appendLog(outing.approvalLogs, 'forward', adminName, adminRole)
       }
   });
+
+  if (outing.Student?.Email) {
+      await sendEmail(
+          outing.Student.Email,
+          "Outing Request Forwarded",
+          getForwardedMailFormatForStudent("Outing", id, adminRole, nextLevel)
+      );
+  }
+
   return { success: true, msg: `Forwarded to ${nextLevel}` };
 };
 
