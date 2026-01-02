@@ -221,6 +221,10 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
     // Map fields and filter undefined
     const mapping: Record<string, string> = {
       name: "Name", gender: "Gender", fatherName: "FatherName", motherName: "MotherName",
+      fatherOccupation: "FatherOccupation", motherOccupation: "MotherOccupation",
+      fatherEmail: "FatherEmail", motherEmail: "MotherEmail",
+      fatherAddress: "FatherAddress", motherAddress: "MotherAddress",
+      fatherPhoneNumber: "FatherPhoneNumber", motherPhoneNumber: "MotherPhoneNumber",
       bloodGroup: "BloodGroup", phoneNumber: "PhoneNumber", address: "Address", year: "Year",
       branch: "Branch", section: "Section", roomno: "Roomno", profileUrl: "ProfileUrl",
     };

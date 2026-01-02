@@ -228,7 +228,7 @@ export default function AddStudents() {
       {!rows.length ? (
             <div className={`
                 border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200
-                ${error ? 'border-red-300 bg-red-50' : 'border-slate-300 hover:border-blue-500 hover:bg-slate-50'}
+                ${error ? 'border-black border-2 bg-slate-50' : 'border-slate-300 hover:border-black hover:bg-slate-50'}
             `}>
                  <input
                     id="fileInput"
@@ -238,7 +238,7 @@ export default function AddStudents() {
                     className="hidden"
                 />
                 <label htmlFor="fileInput" className="cursor-pointer flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center">
                         <Upload className="w-8 h-8" />
                     </div>
                     <div>
@@ -312,7 +312,7 @@ export default function AddStudents() {
                             onClick={handleUpload} 
                             isLoading={uploading}
                             disabled={uploading}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-black hover:bg-slate-800 rounded-none border-2 border-black"
                         >
                             <Upload className="w-4 h-4 mr-2" /> Confirm & Upload
                          </Button>
@@ -327,7 +327,7 @@ export default function AddStudents() {
               <div className="bg-white rounded-xl shadow-2xl p-6 border border-slate-100 w-80">
                 <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-slate-900">Upload Status</span>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${progress.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                    <span className={`text-xs font-black uppercase tracking-widest px-2 py-1 rounded-full ${progress.status === 'completed' ? 'bg-black text-white' : 'bg-slate-200 text-slate-700'}`}>
                         {progress.status === 'completed' ? 'Completed' : 'Processing'}
                     </span>
                 </div>
@@ -338,7 +338,7 @@ export default function AddStudents() {
                         <span className="text-sm font-medium">Successfully processed</span>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-3 text-blue-600 mb-2">
+                    <div className="flex items-center gap-3 text-black mb-2 font-black uppercase tracking-widest">
                         <Loader2 className="w-5 h-5 animate-spin" />
                         <span className="text-sm font-medium">Uploading data...</span>
                     </div>
@@ -346,7 +346,7 @@ export default function AddStudents() {
                 
                 <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                     <div 
-                        className={`h-full rounded-full transition-all duration-500 ${progress.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'}`} 
+                        className={`h-full rounded-full transition-all duration-500 ${progress.status === 'completed' ? 'bg-black' : 'bg-slate-400'}`} 
                         style={{ width: `${progress.percentage}%` }}
                     />
                 </div>

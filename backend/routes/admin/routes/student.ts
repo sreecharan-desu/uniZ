@@ -12,7 +12,55 @@ import { mapOutingToLegacy, mapOutpassToLegacy } from "../../utils/mappers";
 
 export const studentAdminRouter = Router();
 
-// ... existing /getstudents ...
+studentAdminRouter.get("/", authMiddleware, async (req, res) => {
+  try {
+    const page = Math.max(Number(req.query.page || "1"), 1);
+    const limit = Math.max(Number(req.query.limit || "10"), 1);
+    const skip = (page - 1) * limit;
+    const students = await getUsers(skip, limit);
+    return res.json({ success: true, students });
+  } catch (e: any) {
+    logger.error(`Get Students Error: ${e.message || e}`);
+    return res.status(500).json({ msg: "Error fetching students", success: false });
+  }
+});
+studentAdminRouter.get("/getstudents", authMiddleware, async (req, res) => {
+  try {
+    const page = Math.max(Number(req.query.page || "1"), 1);
+    const limit = Math.max(Number(req.query.limit || "10"), 1);
+    const skip = (page - 1) * limit;
+    const students = await getUsers(skip, limit);
+    return res.json({ success: true, students });
+  } catch (e: any) {
+    logger.error(`Get Students Error: ${e.message || e}`);
+    return res.status(500).json({ msg: "Error fetching students", success: false });
+  }
+});
+
+studentAdminRouter.post("/", authMiddleware, async (req, res) => {
+  // Alias for search
+  try {
+    const { 
+      username, 
+      branch, 
+      year, 
+      gender, 
+      isPending, 
+      isOutside, 
+      page = 1, 
+      limit = 10 
+    } = req.body;
+    const results = await searchStudentsAdvanced({
+      query: String(username || "").trim(),
+      branch, year, gender, isPending, isOutside,
+      page: Number(page),
+      limit: Number(limit)
+    });
+    return res.json({ success: true, ...results });
+  } catch (e: any) {
+    return res.status(500).json({ msg: "Error searching students", success: false });
+  }
+});
 
 studentAdminRouter.post("/searchstudent", authMiddleware, async (req, res) => {
   const start = Date.now();
@@ -92,7 +140,7 @@ studentAdminRouter.get("/:id/history", authMiddleware, async (req, res) => {
   }
 });
 
-studentAdminRouter.get("/template", authMiddleware, async (req, res) => {
+studentAdminRouter.all("/template", authMiddleware, async (req, res) => {
   try {
     const headers = [
       "ID NUMBER", "NAME OF THE STUDENT", "GENDER", "BRANCH", "BATCH",

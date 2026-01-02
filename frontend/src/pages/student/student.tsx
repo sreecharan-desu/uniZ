@@ -183,7 +183,7 @@ export default function StudentProfilePage() {
 
   // Single fields state
   const [fields, setFields] = useState<any>({
-    name: '', gender: '', bloodGroup: '', phoneNumber: '', dateOfBirth: '',
+    name: '', gender: '', address: '', bloodGroup: '', phoneNumber: '', dateOfBirth: '',
     fatherName: '', motherName: '', fatherOccupation: '', motherOccupation: '',
     fatherEmail: '', motherEmail: '', fatherAddress: '', motherAddress: '',
     fatherPhoneNumber: '', motherPhoneNumber: '',
@@ -224,6 +224,7 @@ export default function StudentProfilePage() {
       setFields({
         name: user.name || '',
         gender: user.gender || '',
+        address: user.address || '',
         bloodGroup: user.blood_group || '',
         phoneNumber: user.phone_number || '',
         dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
@@ -270,6 +271,7 @@ export default function StudentProfilePage() {
          setFields({
             name: user.name || '',
             gender: user.gender || '',
+            address: user.address || '',
             bloodGroup: user.blood_group || '',
             phoneNumber: user.phone_number || '',
             dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
@@ -300,6 +302,7 @@ export default function StudentProfilePage() {
       const currentDetails: any = {
         name: user.name || '',
         gender: user.gender || '',
+        address: user.address || '',
         bloodGroup: user.blood_group || '',
         phoneNumber: user.phone_number || '',
         dateOfBirth: user.date_of_birth ? new Date(user.date_of_birth).toISOString().split('T')[0] : '',
@@ -347,13 +350,13 @@ export default function StudentProfilePage() {
       if (!token) throw new Error('Authentication token is missing.');
 
       const response = await axios.put(
-        'https://uni-z-api.vercel.app/api/v1/student/updatedetails',
+        UPDATE_DETAILS,
         { ...updates }, // Only send updates
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
-        setStudent(prev => ({ ...prev, ...updates }));
+        await refetch();
         setIsEditing(false);
         toast.success('Profile updated successfully!');
       } else {
@@ -412,6 +415,7 @@ export default function StudentProfilePage() {
   const personalFields = [
     { icon: <User className="w-5 h-5" />, label: 'Full Name', name: 'name', editable: true },
     { icon: <User className="w-5 h-5" />, label: 'Gender', name: 'gender', editable: true },
+    { icon: <IdCard className="w-5 h-5" />, label: 'Personal Address', name: 'address', editable: true },
     { icon: <Droplets className="w-5 h-5" />, label: 'Blood Group', name: 'bloodGroup', editable: true },
     { icon: <Phone className="w-5 h-5" />, label: 'Phone Number', name: 'phoneNumber', editable: true },
   ];                
@@ -650,7 +654,7 @@ export default function StudentProfilePage() {
                                     {keys.map(key => (
                                         <InputField 
                                             key={key} 
-                                            label={key.replace(/([A-Z])/g, ' $1').trim()} 
+                                            label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} 
                                             name={key} 
                                             value={fields[key]} 
                                             isEditing={isEditing} 

@@ -41,6 +41,7 @@ adminRouter.get("/progress", authMiddleware, (req, res) => {
 adminRouter.use("/attendance", attendanceRouter);
 adminRouter.use("/grades", gradesRouter);
 adminRouter.use("/students", studentAdminRouter);
+adminRouter.use("/student", studentAdminRouter);
 adminRouter.use("/pass", passRouter);
 adminRouter.use("/banners", bannerRouter);
 adminRouter.use("/curriculum", curriculumRouter);
@@ -48,19 +49,19 @@ adminRouter.use("/staff", staffRouter);
 adminRouter.use("/notify", notificationsRouter);
 
 // Legacy/Compatibility Routes
-adminRouter.get("/getstudents", studentAdminRouter);
-adminRouter.post("/searchstudent", studentAdminRouter);
-adminRouter.post("/addgrades", gradesRouter);
-adminRouter.post("/grades/template", gradesRouter);
-adminRouter.post("/addattendance", attendanceRouter);
-adminRouter.post("/updatestudents", studentAdminRouter);
-adminRouter.get("/students/template", studentAdminRouter);
-adminRouter.get("/get-curriculum", curriculumRouter);
-adminRouter.post("/populate-curriculum", curriculumRouter);
-adminRouter.put("/resetpass", staffRouter);
-adminRouter.get("/getadmins", staffRouter);
-adminRouter.get("/roles", staffRouter);
-adminRouter.put("/assign-role", staffRouter);
-adminRouter.post("/addadmin", staffRouter);
-adminRouter.get("/notifications-progress", notificationsRouter); // Redirect to notifications router
-adminRouter.put("/roles/:role/permissions", staffRouter);
+adminRouter.get("/getstudents", (req, res, next) => { req.url = "/getstudents"; studentAdminRouter(req, res, next); });
+adminRouter.post("/searchstudent", (req, res, next) => { req.url = "/searchstudent"; studentAdminRouter(req, res, next); });
+adminRouter.post("/addgrades", (req, res, next) => { req.url = "/addgrades"; gradesRouter(req, res, next); });
+adminRouter.post("/grades/template", (req, res, next) => { req.url = "/template"; gradesRouter(req, res, next); });
+adminRouter.post("/addattendance", (req, res, next) => { req.url = "/addattendance"; attendanceRouter(req, res, next); });
+adminRouter.post("/updatestudents", (req, res, next) => { req.url = "/updatestudents"; studentAdminRouter(req, res, next); });
+adminRouter.all("/students/template", (req, res, next) => { req.url = "/template"; studentAdminRouter(req, res, next); });
+adminRouter.get("/get-curriculum", (req, res, next) => { req.url = "/get-curriculum"; curriculumRouter(req, res, next); });
+adminRouter.post("/populate-curriculum", (req, res, next) => { req.url = "/populate-curriculum"; curriculumRouter(req, res, next); });
+adminRouter.put("/resetpass", (req, res, next) => { req.url = "/resetpass"; staffRouter(req, res, next); });
+adminRouter.get("/getadmins", (req, res, next) => { req.url = "/getadmins"; staffRouter(req, res, next); });
+adminRouter.get("/roles", (req, res, next) => { req.url = "/roles"; staffRouter(req, res, next); });
+adminRouter.put("/assign-role", (req, res, next) => { req.url = "/assign-role"; staffRouter(req, res, next); });
+adminRouter.post("/addadmin", (req, res, next) => { req.url = "/addadmin"; staffRouter(req, res, next); });
+adminRouter.get("/notifications-progress", (req, res, next) => { req.url = "/notifications-progress"; notificationsRouter(req, res, next); }); 
+adminRouter.put("/roles/:role/permissions", (req, res, next) => { req.url = `/roles/${req.params.role}/permissions`; staffRouter(req, res, next); });
