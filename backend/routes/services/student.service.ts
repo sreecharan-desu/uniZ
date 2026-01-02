@@ -17,7 +17,8 @@ export const getStudentDetails = async (username: string) => {
         include: { 
           Outing: true, 
           Outpass: true,
-          grades: { include: { subject: true, semester: true } }
+          grades: { include: { subject: true, semester: true } },
+          attendance: { include: { subject: true, semester: true } }
         }
       });
       console.log('Fetched user:', user ? user.Username : 'null');

@@ -51,7 +51,7 @@ studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, re
 });
 
 // STEP 1: Request OTP for Forgot Password
-studentRouter.post("/forgotpass", async (req, res) => {
+studentRouter.all("/forgotpass", async (req, res) => {
   const { username } = req.body;
   if (!username) return res.status(400).json({ msg: "Username is required", success: false });
 
@@ -80,8 +80,27 @@ studentRouter.post("/forgotpass", async (req, res) => {
   }
 });
 
+// Standalone OTP Verification
+studentRouter.all("/verifyotp", async (req, res) => {
+  const { username, otp } = req.body;
+  if (!username || !otp) return res.status(400).json({ msg: "Username and OTP are required", success: false });
+
+  const name = username.split("@")[0].toLowerCase();
+  try {
+    const user = await prisma.student.findUnique({ where: { Username: name }, select: { OTP: true, updatedAt: true } });
+    if (!user || user.OTP !== otp) return res.status(400).json({ msg: "Invalid OTP", success: false });
+    
+    const otpAgeMs = Date.now() - user.updatedAt.getTime();
+    if (otpAgeMs > 10 * 60 * 1000) return res.status(400).json({ msg: "OTP expired", success: false });
+
+    return res.status(200).json({ msg: "OTP verified", success: true });
+  } catch (error) {
+    return res.status(500).json({ msg: "Verification failed", success: false });
+  }
+});
+
 // STEP 2: Set New Password (after OTP verification)
-studentRouter.post("/setnewpass", async (req, res) => {
+studentRouter.all("/setnewpass", async (req, res) => {
   const { username, new_password, otp } = req.body;
   if (!username || !new_password || !otp) {
     return res.status(400).json({ msg: "Username, OTP, and new password are required", success: false });

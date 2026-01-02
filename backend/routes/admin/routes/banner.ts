@@ -21,11 +21,22 @@ bannerRouter.post("/", authMiddleware, requirePermission("manage_banners"), asyn
   }
 });
 
-bannerRouter.get("/", authMiddleware, requirePermission("manage_banners"), async (req, res) => {
+bannerRouter.get("/", authMiddleware, async (req, res) => {
   try {
     const onlyPublished = req.query.published === "true";
+    
+    // Require management permission only if trying to see ALL banners (unpublished included)
+    if (!onlyPublished) {
+      return requirePermission("manage_banners")(req, res, async () => {
+        const banners = await prisma.banner.findMany({
+          orderBy: { createdAt: "desc" },
+        });
+        return res.json({ banners, success: true });
+      });
+    }
+
     const banners = await prisma.banner.findMany({
-      where: onlyPublished ? { isPublished: true } : {},
+      where: { isPublished: true },
       orderBy: { createdAt: "desc" },
     });
     res.json({ banners, success: true });

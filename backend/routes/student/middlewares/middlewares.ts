@@ -58,12 +58,11 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-import { logger } from "../../../utils/logger";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.headers.authorization;
   if (!authorization || !process.env.JWT_SECURITY_KEY)
-    return res.status(401).json({ msg: "Authentication requiredd", success: false });
+    return res.status(401).json({ msg: "Authentication required", success: false });
 
   try {
     const token = authorization.split(" ")[1];
@@ -79,7 +78,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         role = (decoded as any).role;
     }
 
-    // Role-based lookup optimizaiton
+    // Role-based lookup optimization
     let admin: { id: string; Username: string; role: string } | null = null;
     let student: { id: string; Username: string } | null = null;
 
