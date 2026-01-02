@@ -1,7 +1,11 @@
+
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../../api/endpoints";
-import { Send, XCircle, ShieldCheck, Mail, Zap } from "lucide-react";
+import { Send, Mail, Zap, ArrowLeft, BookOpen, AlertTriangle } from "lucide-react";
+import { Input } from "../../components/Input";
+import { Button } from "../../components/Button";
+import { cn } from "../../utils/cn";
 
 type EmailProgress = {
   email: string;
@@ -34,28 +38,29 @@ export default function EmailNotification() {
   const [progress, setProgress] = useState<NotificationProgress | null>(null);
   const [sending, setSending] = useState(false);
 
-  const intervalRef:any = useRef<NodeJS.Timer | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const intervalRef: any = useRef<NodeJS.Timeout | null>(null);
   const abortRef = useRef<boolean>(false);
   const token = localStorage.getItem("admin_token");
 
   const templates: Template[] = [
     {
       title: "Welcome New Students",
-      subject: "Welcome to UniZ Our new College management Sysystem!",
-      body: `Hello Students,Welcome to our campus. We are excited to have you!`,
-      icon: <Zap className="w-6 h-6 text-white" />,
+      subject: "Welcome to UniZ",
+      body: `Hello Students,\n\nWelcome to our campus! We are excited to have you join our vibrant community.\n\nBest regards,\nAdministration`,
+      icon: <Zap className="w-5 h-5 text-white" />,
     },
     {
       title: "Exam Reminder",
       subject: "Upcoming Exam Reminder",
-      body: `Dear Students,Don't forget your exams start next week. Prepare well!`,
-      icon: <Mail className="w-6 h-6 text-white" />,
+      body: `Dear Students,\n\nThis is a reminder that your exams are scheduled to start next week. Please ensure you are well prepared.\n\nGood luck!`,
+      icon: <BookOpen className="w-5 h-5 text-white" />,
     },
     {
       title: "Event Notification",
-      subject: "Join Our Campus Event",
-      body: `Hello Students,We are hosting a fun campus event this Friday. Be there!`,
-      icon: <Send className="w-6 h-6 text-white" />,
+      subject: "Campus Event Invitation",
+      body: `Hello Students,\n\nWe are hosting an exciting campus event this Friday. Don't miss out!\n\nSee you there!`,
+      icon: <Send className="w-5 h-5 text-white" />,
     },
   ];
 
@@ -64,6 +69,7 @@ export default function EmailNotification() {
     setSending(true);
     abortRef.current = false;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload: any = { subject, htmlBody: body, target };
     if (target === "branch") payload.filter = { branch: filterValue };
     if (target === "batch") payload.filter = { batch: filterValue };
@@ -143,147 +149,175 @@ export default function EmailNotification() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="max-w-6xl mx-auto space-y-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <ShieldCheck className="w-8 h-8 text-black" />
-            Secure Email Notifications
-          </h1>
-          <button
-            onClick={() => navigate("/admin")}
-            className="px-4 py-2 border border-black rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            ← Back
-          </button>
-        </div>
-
-        {/* AI Template Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {templates.map((t) => (
-            <div
-              key={t.title}
-              onClick={() => selectTemplate(t)}
-              className="bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded-2xl p-5 cursor-pointer hover:scale-105 transition-transform"
-            >
-              <div className="flex items-center mb-3 gap-3">
-                <div className="bg-black p-3 rounded-full flex items-center justify-center">{t.icon}</div>
-                <h3 className="font-bold text-gray-900">{t.title}</h3>
-              </div>
-              <p className="text-gray-700 text-sm line-clamp-3">{t.body.replace(/<[^>]+>/g, "")}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Email Form */}
-        <div className="bg-white bg-opacity-90 backdrop-blur-sm shadow-2xl rounded-2xl p-8">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Mail className="w-6 h-6 text-black" />
-            Compose Email
-          </h2>
-
-          <input
-            type="text"
-            placeholder="Subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="w-full p-3 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200 text-black"
-          />
-          <textarea
-            placeholder="Body"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            className="w-full p-3 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200 text-black"
-            rows={5}
-          />
-
-          <select
-            value={target}
-            onChange={(e) => setTarget(e.target.value)}
-            className="w-full p-3 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200 text-black"
-          >
-            <option value="all">All Students</option>
-            <option value="branch">By Branch</option>
-            <option value="batch">By Batch / Year</option>
-            <option value="userIds">By Roll Numbers / Emails</option>
-          </select>
-
-          {(target === "branch" || target === "batch" || target === "userIds") && (
-            <input
-              type="text"
-              placeholder={
-                target === "branch"
-                  ? "Branch (e.g., CSE)"
-                  : target === "batch"
-                  ? "Batch / Year (e.g., 2025)"
-                  : "Comma-separated IDs / emails (e.g., o21001,o21002)"
-              }
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
-              className="w-full p-3 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200 text-black"
-            />
-          )}
-
-          <div className="flex gap-4 mb-4">
+    <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      {/* Header */}
+         <div className="flex flex-col gap-6">
             <button
-              onClick={sendNotification}
-              disabled={sending}
-              className="flex-1 py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+                onClick={() => navigate("/admin")}
+                className="self-start inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
             >
-              <Send className="w-5 h-5" />
-              {sending ? "Sending..." : "Send"}
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
             </button>
-            {sending && (
-              <button
-                onClick={cancelNotification}
-                className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <XCircle className="w-5 h-5" />
-                Cancel
-              </button>
-            )}
-          </div>
 
-          {/* Progress Bar */}
-          {progress && (
-            <div className="mt-6">
-              <div className="flex justify-between mb-1 text-gray-700">
-                <span className="font-semibold">
-                  {progress.processedRecords}/{progress.totalRecords}
-                </span>
-                <span>{progress.percentage.toFixed(2)}%</span>
-              </div>
-              <div className="w-full bg-gray-300 h-3 rounded-full overflow-hidden mb-2">
-                <div
-                  className={`h-3 rounded-full transition-all duration-500 ${
-                    progress.status === "failed"
-                      ? "bg-red-600"
-                      : progress.status === "completed"
-                      ? "bg-green-600"
-                      : "bg-black"
-                  }`}
-                  style={{ width: `${progress.percentage}%` }}
-                />
-              </div>
-              <p className="mb-2 font-medium">Status: {progress.status}</p>
-
-              {progress.failedRecords.length > 0 && (
-                <div className="mt-4 text-red-600">
-                  <h3 className="font-semibold mb-2">Failed Emails:</h3>
-                  <ul className="list-disc ml-5 max-h-40 overflow-y-auto">
-                    {progress.failedRecords.map((f, idx) => (
-                      <li key={idx}>
-                        {f.email} - {f.reason || "Unknown"}
-                      </li>
-                    ))}
-                  </ul>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Email Notifications</h1>
+                    <p className="text-slate-500 mt-1">Broadcast important updates to students securely.</p>
                 </div>
-              )}
             </div>
-          )}
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             {/* Main Composer */}
+             <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 lg:p-8 shadow-sm">
+                       <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                           <Mail className="w-5 h-5 text-slate-500" /> Compose Email
+                       </h2>
+
+                       <div className="space-y-5">
+                           <Input
+                                value={subject}
+                                onchangeFunction={(e: any) => setSubject(e.target.value)}
+                                placeholder="Subject Line"
+                                className="font-medium"
+                           />
+                           
+                           <div className="space-y-1.5 ml-1">
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Message Body</label>
+                                <textarea
+                                    value={body}
+                                    onChange={(e) => setBody(e.target.value)}
+                                    placeholder="Write your message here..."
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all resize-none h-48"
+                                />
+                           </div>
+
+                           <div className="pt-2 flex gap-4">
+                                <Button
+                                    onclickFunction={sendNotification}
+                                    loading={sending}
+                                    value="Send Broadcast"
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                />
+                                {sending && (
+                                     <button
+                                        onClick={cancelNotification}
+                                        className="px-6 py-2 bg-white border border-red-200 text-red-600 rounded-xl hover:bg-red-50 font-medium transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                           </div>
+                       </div>
+                  </div>
+
+                  {/* Progress Section */}
+                  {progress && (
+                      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                          <div className="flex justify-between items-center mb-3">
+                               <h3 className="font-semibold text-slate-900">Sending Status</h3>
+                               <span className={cn(
+                                   "px-2 py-0.5 rounded-md text-xs font-bold uppercase",
+                                   progress.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                   progress.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                               )}>
+                                   {progress.status}
+                               </span>
+                          </div>
+
+                          <div className="flex justify-between text-xs text-slate-500 mb-1">
+                               <span>{progress.processedRecords} / {progress.totalRecords} sent</span>
+                               <span>{progress.percentage.toFixed(0)}%</span>
+                          </div>
+                          
+                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-4">
+                                <div
+                                className={cn("h-full transition-all duration-300", 
+                                    progress.status === "failed" ? "bg-red-500" : 
+                                    progress.status === "completed" ? "bg-emerald-500" : "bg-blue-500"
+                                )}
+                                style={{ width: `${progress.percentage}%` }}
+                                />
+                         </div>
+
+                         {progress.failedRecords.length > 0 && (
+                            <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+                                <h4 className="flex items-center gap-2 text-sm font-bold text-red-700 mb-2">
+                                    <AlertTriangle className="w-4 h-4" /> Failed Recipients
+                                </h4>
+                                <ul className="list-disc list-inside text-xs text-red-600 max-h-32 overflow-y-auto space-y-1">
+                                    {progress.failedRecords.map((f, i) => (
+                                        <li key={i}>{f.email} <span className="opacity-75">- {f.reason}</span></li>
+                                    ))}
+                                </ul>
+                            </div>
+                         )}
+                      </div>
+                  )}
+             </div>
+
+             {/* Sidebar Options */}
+             <div className="space-y-6">
+                 {/* Audience Selector */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4">Target Audience</h3>
+                      
+                      <div className="space-y-4">
+                           <select
+                                value={target}
+                                onChange={(e) => setTarget(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                            >
+                                <option value="all">All Students</option>
+                                <option value="branch">Specific Branch</option>
+                                <option value="batch">Specific Batch / Year</option>
+                                <option value="userIds">Specific Students (IDs)</option>
+                            </select>
+
+                            {(target === "branch" || target === "batch" || target === "userIds") && (
+                                <div className="animate-in fade-in slide-in-from-top-1">
+                                    <label className="text-xs font-semibold text-slate-500 mb-1.5 block">
+                                        {target === "branch" ? "Enter Branch Code" : 
+                                         target === "batch" ? "Enter Batch Year" : "Enter IDs (comma separated)"}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={filterValue}
+                                        onChange={(e) => setFilterValue(e.target.value)}
+                                        placeholder={target === 'userIds' ? "e.g. o210001, o210002" : "e.g. CSE or 2024"}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                            )}
+                      </div>
+                  </div>
+
+                  {/* Templates */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                       <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4">Quick Templates</h3>
+                       <div className="space-y-3">
+                           {templates.map((t) => (
+                               <button
+                                  key={t.title}
+                                  onClick={() => selectTemplate(t)}
+                                  className="w-full text-left p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                               >
+                                   <div className="flex items-center gap-3 mb-1">
+                                       <div className="w-6 h-6 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0 group-hover:bg-blue-600 transition-colors">
+                                           {t.icon}
+                                       </div>
+                                       <span className="font-semibold text-slate-900 text-sm">{t.title}</span>
+                                   </div>
+                                   <p className="text-xs text-slate-500 line-clamp-2 pl-9">
+                                       {t.subject}
+                                   </p>
+                               </button>
+                           ))}
+                       </div>
+                  </div>
+             </div>
+        </div>
     </div>
   );
 }

@@ -58,15 +58,12 @@ export const fetchStudent = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-import redis from "../../services/redis.service";
 import { logger } from "../../../utils/logger";
-
-// ... existing imports ...
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.headers.authorization;
   if (!authorization || !process.env.JWT_SECURITY_KEY)
-    return res.status(401).json({ msg: "Authentication required", success: false });
+    return res.status(401).json({ msg: "Authentication requiredd", success: false });
 
   try {
     const token = authorization.split(" ")[1];
@@ -80,23 +77,6 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     } else {
         username = (decoded as any).username;
         role = (decoded as any).role;
-    }
-
-    const cacheKey = `auth:${username}`;
-    
-    // Check Redis Cache
-    try {
-      const cachedAuth = await redis.get(cacheKey);
-      if (cachedAuth) {
-        const user = JSON.parse(cachedAuth);
-        (req as any).user = { ...user.data, role: user.type };
-        if (user.type === 'admin') {
-          (req as any).admin = user.data;
-        }
-        return next();
-      }
-    } catch (e: any) {
-      logger.warn(`Redis auth read error: ${e.message || e}`);
     }
 
     // Role-based lookup optimizaiton
@@ -119,11 +99,9 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       const adminData = { _id: admin.id, username: admin.Username, role: admin.role || 'admin' };
       (req as any).admin = adminData;
       (req as any).user = { ...adminData, role: 'admin' };
-      await redis.set(cacheKey, JSON.stringify({ type: 'admin', data: adminData }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
     } else if (student) {
       const studentData = { _id: student.id, username: student.Username, role: 'student' };
       (req as any).user = studentData;
-      await redis.set(cacheKey, JSON.stringify({ type: 'student', data: studentData }), 'EX', 3600).catch(e => logger.warn(`Redis auth set error: ${e}`));
     } else {
       return res.status(401).json({ msg: "Invalid token", success: false });
     }

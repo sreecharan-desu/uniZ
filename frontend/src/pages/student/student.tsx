@@ -10,7 +10,7 @@ import { useStudentData } from '../../hooks/student_info';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { BASE_URL } from '../../api/endpoints';
+import { BASE_URL, UPDATE_DETAILS } from '../../api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
 import RequestCard from '../../components/RequestCard';
 import { toast } from 'react-toastify';
@@ -78,11 +78,95 @@ const InputField = memo(({ label, name, value, isEditing, isLoading, onValueChan
     );
   });
 
+import { useWebSocket } from '../../hooks/useWebSocket';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../../utils/cropImage';
+import { Loader2, X } from 'lucide-react';
+
+// ... imports
+
 export default function StudentProfilePage() {
   useIsAuth();
-  useStudentData();
+  const { refetch } = useStudentData(); 
   const user = useRecoilValue<any>(student);
+
+  // Crop State
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setSelectedImage(reader.result?.toString() || null));
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadCroppedImage = async () => {
+    if (!selectedImage || !croppedAreaPixels) return;
+    
+    setIsUploadingImage(true);
+    try {
+      const croppedImageBlob = await getCroppedImg(selectedImage, croppedAreaPixels);
+      if (!croppedImageBlob) throw new Error("Failed to crop image");
+
+      const formData = new FormData();
+      formData.append('file', croppedImageBlob);
+      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET); 
+      formData.append('cloud_name', import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+
+      const res = await axios.post(
+          `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, 
+          formData
+      );
+      
+      if (res.data.secure_url) {
+          handleFieldChange('profileUrl', res.data.secure_url);
+          const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
+          await axios.put(
+              UPDATE_DETAILS,
+              { profileUrl: res.data.secure_url },
+              { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setStudent((prev: any) => ({ ...prev, profile_url: res.data.secure_url }));
+          toast.success("Profile picture updated!");
+          setSelectedImage(null); // Close modal
+      }
+    } catch (err) {
+        console.error(err);
+        toast.error("Failed to upload image");
+    } finally {
+        setIsUploadingImage(false);
+    }
+  };
+
+  
+  // WebSocket Integration
+  useWebSocket(undefined, (msg) => {
+      if (msg.type === 'REFRESH_REQUESTS' && msg.payload.userId === user?._id) {
+          refetch();
+          toast.info(`Request updated: ${msg.payload.status}`);
+      }
+  });
+
+  // Polling fallback
+  useEffect(() => {
+     const interval = setInterval(() => {
+        if (user?._id) refetch();
+     }, 30000); 
+     return () => clearInterval(interval);
+  }, [user]);
+
   const setStudent = useSetRecoilState(student);
+  // ... rest of hooks
   const [bannersState, setBannersState] = useRecoilState(bannersAtom);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -349,7 +433,10 @@ export default function StudentProfilePage() {
           </motion.div>
         )}
 
-        {/* Header Section */}
+
+
+
+  
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -357,18 +444,52 @@ export default function StudentProfilePage() {
             className="flex flex-col md:flex-row items-end justify-between mb-10 gap-6"
         >
              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-4xl font-bold shadow-lg ring-4 ring-white">
-                    {user?.name?.[0] || user?.username?.[0] || '?'}
+                <div 
+                    className="relative w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-4xl font-bold shadow-lg ring-4 ring-white cursor-pointer overflow-hidden group"
+                    onClick={() => isEditing && document.getElementById('profile-upload')?.click()}
+                >
+                   {/* Image Display Logic */}
+                    {isUploadingImage ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+                            <Loader2 className="w-8 h-8 animate-spin text-white" />
+                        </div>
+                    ) : null}
+
+                    {user?.profile_url ? (
+                        <img src={user.profile_url} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                        user?.name?.[0] || user?.username?.[0] || '?'
+                    )}
+                    
+                    {isEditing && !isUploadingImage && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-xs text-white font-medium">Change</span>
+                        </div>
+                    )}
+                    <input 
+                        type="file" 
+                        id="profile-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                    />
                 </div>
+                {/* ... Name/Details ... */}
                 <div>
                     <h1 className="text-4xl font-black tracking-tight mb-2">{user?.name || 'Student'}</h1>
-                    <div className="flex gap-3 text-gray-500 text-sm font-medium">
+                    <div className="flex flex-wrap gap-3 text-gray-500 text-sm font-medium">
                         <span className="bg-gray-100 px-3 py-1 rounded-full">{user?.username}</span>
                         <span className="bg-gray-100 px-3 py-1 rounded-full">{user?.branch}</span>
+                        {/* Status Check UI */}
+                        {user?.has_pending_requests && (
+                            <span className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1 rounded-full animate-pulse border border-amber-100">
+                                <Clock className="w-3.5 h-3.5" /> Processing Request...
+                            </span>
+                        )}
                     </div>
                 </div>
              </div>
-
+             {/* ... Buttons ... */}
              <div className="flex gap-3">
                 {isEditing ? (
                   <>
@@ -384,6 +505,71 @@ export default function StudentProfilePage() {
                 )}
              </div>
         </motion.div>
+
+        {/* ... (Tabs and Content) ... */}
+
+        {/* Crop Modal */}
+        <AnimatePresence>
+            {selectedImage && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                     <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="bg-white w-full max-w-lg rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                     >
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="font-bold text-lg">Adjust Profile Picture</h3>
+                            <button onClick={() => setSelectedImage(null)} className="p-1 hover:bg-gray-100 rounded-full"><X className="w-5 h-5"/></button>
+                        </div>
+                        <div className="relative h-64 md:h-96 bg-black">
+                            <Cropper
+                                image={selectedImage}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        <div className="p-6 space-y-6">
+                             <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Zoom</label>
+                                <input
+                                    type="range"
+                                    value={zoom}
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    aria-labelledby="Zoom"
+                                    onChange={(e) => setZoom(Number(e.target.value))}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                             </div>
+                             <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setSelectedImage(null)}
+                                    className="flex-1 py-3 rounded-xl border border-gray-200 font-medium hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={uploadCroppedImage}
+                                    disabled={isUploadingImage}
+                                    className="flex-1 py-3 rounded-xl bg-black text-white font-bold hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isUploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                    {isUploadingImage ? 'Uploading...' : 'Save Picture'}
+                                </button>
+                             </div>
+                        </div>
+                     </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+        
+        {/* ... (Request Modal) ... */}
 
         {/* Tabs */}
         <motion.div 

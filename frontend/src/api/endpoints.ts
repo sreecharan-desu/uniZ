@@ -20,6 +20,7 @@ export const ADMIN_RESET_PASS = `${BASE_URL}/admin/resetpass`;
 export const GET_ATTENDANCE = `${BASE_URL}/student/getattendance`;
 export const GET_GRADES = `${BASE_URL}/student/getgrades`;
 export const UPDATE_DETAILS = `${BASE_URL}/student/updatedetails`;
+export const GET_SEMESTERS = `${BASE_URL}/student/getsemesters`;
 
 
 // Student endpoints

@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Input } from "../../components/Input";
@@ -6,8 +7,8 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { adminUsername, is_authenticated } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
 import { FORGOT_PASS_ENDPOINT, SET_NEW_PASS_ENDPOINT, SIGNIN } from "../../api/endpoints";
+import { User, Lock, Mail, KeyRound, ArrowLeft } from "lucide-react";
 
 type SigninProps = {
   type: "student" | "admin";
@@ -41,12 +42,6 @@ export default function Signin({ type }: SigninProps) {
     }
   }, [authState, navigate]);
 
-  const usernameHandler = (event: any) => setUsername(event.target.value.toLowerCase());
-  const passwordHandler = (event: any) => setPassword(event.target.value);
-
-  // --------------------------
-  //  Sign In API
-  // --------------------------
   const sendDataToBackend = async () => {
     if (username.trim() === "" || password.trim() === "") {
       toast.error("Username and password are required");
@@ -83,7 +78,7 @@ export default function Signin({ type }: SigninProps) {
         localStorage.setItem("student_token", JSON.stringify(data.student_token));
         localStorage.setItem("username", JSON.stringify(username.trim()));
         setAuth({ is_authnticated: true, type: "student" });
-        toast.success(`Successfully signed in as ${username.trim()}!`);
+        toast.success(`Welcome back, ${username.trim()}!`);
         navigate("/student", { replace: true });
       } else if (data.admin_token) {
         localStorage.setItem("admin_token", JSON.stringify(data.admin_token));
@@ -91,7 +86,7 @@ export default function Signin({ type }: SigninProps) {
         localStorage.setItem("admin_role", (data as any).role || "admin");
         setAuth({ is_authnticated: true, type: "admin" });
         setAdmin(username.trim());
-        toast.success("Successfully signed in as admin!");
+        toast.success("Welcome back, Admin!");
         navigate("/admin", { replace: true });
       }
     } catch (error: any) {
@@ -103,7 +98,7 @@ export default function Signin({ type }: SigninProps) {
 
   const requestOtp = async () => {
     if (username.trim() === "") {
-      toast.error("Please enter your email");
+      toast.error("Please enter your email/ID");
       return;
     }
 
@@ -117,24 +112,23 @@ export default function Signin({ type }: SigninProps) {
 
       const data = await response.json();
       if (!response.ok) {
-        toast.error(data?.msg || `Failed to request OTP: ${response.status}`);
+        toast.error(data?.msg || `Failed to request OTP`);
         return;
       }
 
       if (data.success) {
-        toast.success(data.msg || "OTP sent to your registered email");
+        toast.success(data.msg || "OTP sent successfully");
         setStep("verifyOtp");
       } else {
         toast.error(data.msg || "Failed to send OTP");
       }
     } catch (error: any) {
-      toast.error(`Error requesting OTP: ${error.message || "Network error"}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // We call the setnewpass endpoint which also validates the OTP on the server side.
   const resetPassword = async () => {
     if (otp.trim() === "" || newPassword.trim() === "") {
       toast.error("OTP and new password are required");
@@ -155,13 +149,12 @@ export default function Signin({ type }: SigninProps) {
 
       const data = await response.json();
       if (!response.ok) {
-        toast.error(data?.msg || `Failed to reset password: ${response.status}`);
+        toast.error(data?.msg || `Failed to reset password`);
         return;
       }
 
       if (data.success) {
-        toast.success(data.msg || "Password has been reset successfully. Please sign in.");
-        // Clear sensitive fields
+        toast.success(data.msg || "Password reset successfully");
         setOtp("");
         setNewPassword("");
         setStep("signin");
@@ -169,18 +162,12 @@ export default function Signin({ type }: SigninProps) {
         toast.error(data.msg || "Failed to reset password");
       }
     } catch (error: any) {
-      toast.error(`Error resetting password: ${error.message || "Network error"}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Optional: if you want to provide a separate "Verify OTP" step before accepting a new password
-  // you can implement a function that calls VERIFY_OTP_ENDPOINT and then shows a dedicated form.
-
-  // --------------------------
-  //  Submit Handler
-  // --------------------------
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === "signin") sendDataToBackend();
@@ -188,112 +175,142 @@ export default function Signin({ type }: SigninProps) {
     if (step === "verifyOtp") resetPassword();
   };
 
- return (
-  <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-br from-white to-gray-100">
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="max-w-md w-full text-center space-y-8"
-    >
-      <div>
-        <h1 className="text-3xl font-extrabold text-black tracking-tight">
-          {step === "signin"
-            ? type === "student"
-              ? "Student Sign In"
-              : "Admin Sign In"
-            : step === "forgot"
-            ? "Forgot Password"
-            : "Reset Password"}
-        </h1>
-        <p className="mt-2 text-gray-500 text-sm">
-          {step === "signin"
-            ? "Welcome back! Please enter your details."
-            : step === "forgot"
-            ? "Enter your email to receive an OTP."
-            : "Set your new password to continue."}
-        </p>
-      </div>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="w-full max-w-md bg-white border border-slate-200 shadow-xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+            {/* Header */}
+            <div className="bg-slate-900 p-8 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 mb-4 ring-4 ring-slate-800/50">
+                    {step === "signin" ? (
+                        <User className="w-6 h-6 text-white" />
+                    ) : step === "forgot" ? (
+                        <Mail className="w-6 h-6 text-white" />
+                    ) : (
+                        <KeyRound className="w-6 h-6 text-white" />
+                    )}
+                </div>
+                <h2 className="text-2xl font-bold text-white tracking-tight">
+                    {step === "signin"
+                        ? type === "student" ? "Student Login" : "Administrator"
+                        : step === "forgot" ? "Reset Password" : "New Credentials"
+                    }
+                </h2>
+                <p className="text-slate-400 text-sm mt-2">
+                     {step === "signin"
+                        ? "Enter your credentials to access the portal"
+                        : step === "forgot"
+                        ? "We'll send an OTP to your registered email"
+                        : "Secure your account with a strong password"
+                    }
+                </p>
+            </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col justify-center w-full p-8 bg-white shadow-xl rounded-2xl border border-gray-200 space-y-5"
-      >
-        {/* Signin Form */}
-        {step === "signin" && (
-          <>
-            <Input
-              type="text"
-              onchangeFunction={usernameHandler}
-              placeholder="Username"
-            />
-            <Input
-              type="password"
-              onchangeFunction={passwordHandler}
-              placeholder="Password"
-            />
-            <Button
-              value="Sign In"
-              onclickFunction={sendDataToBackend}
-              loading={isLoading}
-            />
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                {step === "signin" && (
+                    <div className="space-y-4">
+                        <Input
+                            label="Username"
+                            icon={<User className="w-4 h-4" />}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                            placeholder={type === 'student' ? 'University ID' : 'Admin ID'}
+                        />
+                        <Input
+                            label="Password"
+                            type="password"
+                            icon={<Lock className="w-4 h-4" />}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                        />
+                        <div className="pt-2">
+                             <Button 
+                                className="w-full" 
+                                size="lg"
+                                isLoading={isLoading}
+                                onClick={sendDataToBackend}
+                            >
+                                Sign In
+                            </Button>
+                        </div>
+                        
+                        {type === "student" && (
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline transition-all"
+                                    onClick={() => setStep("forgot")}
+                                >
+                                    Forgot password?
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
 
-            {type === "student" && (
-              <p
-                className="mt-2 text-sm text-blue-600 cursor-pointer hover:underline transition"
-                onClick={() => setStep("forgot")}
-              >
-                Forgot password?
-              </p>
-            )}
-          </>
-        )}
+                {step === "forgot" && (
+                     <div className="space-y-4">
+                        <Input
+                            label="University ID"
+                            icon={<User className="w-4 h-4" />}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                            placeholder="Enter your ID"
+                        />
+                         <div className="pt-2">
+                             <Button 
+                                className="w-full" 
+                                size="lg"
+                                isLoading={isLoading}
+                                onClick={requestOtp}
+                            >
+                                Send OTP
+                            </Button>
+                        </div>
+                        <div className="text-center pt-2">
+                            <button
+                                type="button"
+                                className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700 font-medium transition-all group"
+                                onClick={() => setStep("signin")}
+                            >
+                                <ArrowLeft className="w-3 h-3 mr-1 group-hover:-translate-x-1 transition-transform" /> Back to Login
+                            </button>
+                        </div>
+                     </div>
+                )}
 
-        {/* Forgot Password (students only) */}
-        {type === "student" && step === "forgot" && (
-          <>
-            <Input
-              type="text"
-              onchangeFunction={usernameHandler}
-              placeholder="Enter your email"
-            />
-            <Button
-              value="Send OTP"
-              onclickFunction={requestOtp}
-              loading={isLoading}
-            />
-            <p
-              className="mt-2 text-sm text-gray-500 cursor-pointer hover:underline transition"
-              onClick={() => setStep("signin")}
-            >
-              Back to Sign In
-            </p>
-          </>
-        )}
-
-        {/* Reset Password (students only) */}
-        {type === "student" && step === "verifyOtp" && (
-          <>
-            <Input
-              type="text"
-              onchangeFunction={(e: any) => setOtp(e.target.value)}
-              placeholder="Enter OTP"
-            />
-            <Input
-              type="password"
-              onchangeFunction={(e: any) => setNewPassword(e.target.value)}
-              placeholder="Enter New Password"
-            />
-            <Button
-              value="Reset Password"
-              onclickFunction={resetPassword}
-              loading={isLoading}
-            />
-          </>
-        )}
-      </form>
-    </motion.div>
-  </div>
-);
-
+                {step === "verifyOtp" && (
+                    <div className="space-y-4">
+                        <Input
+                            label="One-Time Password"
+                            icon={<KeyRound className="w-4 h-4" />}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            placeholder="Enter 6-digit OTP"
+                        />
+                        <Input
+                            label="New Password"
+                            type="password"
+                            icon={<Lock className="w-4 h-4" />}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="New strong password"
+                        />
+                        <div className="pt-2">
+                             <Button 
+                                className="w-full" 
+                                size="lg"
+                                isLoading={isLoading}
+                                onClick={resetPassword}
+                            >
+                                Update Password
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </form>
+        </div>
+    </div>
+  );
 }

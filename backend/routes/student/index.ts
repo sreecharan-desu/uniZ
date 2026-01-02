@@ -16,7 +16,6 @@ import {
   updateStudentPassword,
 } from "../services/student.service";
 import prisma from "../services/prisma.service";
-import redis from "../services/redis.service";
 import { sendEmail } from "../services/email.service";
 import { subjectsData } from "../constants/subjects";
 import {
@@ -28,6 +27,7 @@ import {
   passwordResetSuccess,
 } from "./emails/email_templates";
 import { logger } from "../../utils/logger";
+import { broadcast } from "../../utils/websocket";
 
 export const studentRouter = Router();
 
@@ -157,11 +157,7 @@ studentRouter.post("/requestoutpass", isPresentInCampus, isApplicationPending, a
         await sendEmail(user.Email, "Regarding your Outpass Request", emailForStudent);
         await sendEmail(process.env.ADMIN_EMAIL || "sreecharan309@gmail.com", `New Outpass Request From ${user.Username}`, emailForAdmin);
       }
-
-      // Invalidate cache
-      if (user?.Username) {
-         redis.del(`student:profile:${user.Username.toLowerCase()}`).catch(err => logger.warn(`Redis del error: ${err}`));
-      }
+      broadcast({ type: 'REFRESH_REQUESTS', payload: { userId, type: 'outpass', status: 'created' } });
     }
     res.json({ msg: result.msg, success: result.success });
   } catch (error: any) {
@@ -184,11 +180,7 @@ studentRouter.post("/requestouting", isPresentInCampus, isApplicationPending, au
         await sendEmail(user.Email, "Regarding your Outing Request", emailForStudent);
         await sendEmail(process.env.ADMIN_EMAIL || "sreecharan309@gmail.com", `New Outing Request From ${user.Username}`, emailForAdmin);
       }
-
-      // Invalidate cache
-      if (user?.Username) {
-         redis.del(`student:profile:${user.Username.toLowerCase()}`).catch(err => logger.warn(`Redis del error: ${err}`));
-      }
+      broadcast({ type: 'REFRESH_REQUESTS', payload: { userId, type: 'outing', status: 'created' } });
     }
     res.json({ msg: result.msg, success: result.success });
   } catch (error: any) {
@@ -203,21 +195,9 @@ studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
   const username = (req as any).user?.username || req.body.username;
   if (!username) return res.json({ msg: "Username is required", success: false });
 
-  const cacheKey = `student:profile:${username.toLowerCase()}`;
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return res.json({ student: JSON.parse(cached), success: true });
-    }
-  } catch (e: any) {
-    logger.warn(`Redis cache read error: ${e.message || e}`);
-  }
-
   try {
     const user = await getStudentDetails(username);
     if (user) {
-      // Cache for 24 hours
-      redis.set(cacheKey, JSON.stringify(user), "EX", 86400).catch((err) => logger.warn(`Redis set error: ${err.message || err}`));
       res.json({ student: user, success: true });
     } else {
       res.json({ msg: "Student not found", success: false });
@@ -242,7 +222,7 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
     const mapping: Record<string, string> = {
       name: "Name", gender: "Gender", fatherName: "FatherName", motherName: "MotherName",
       bloodGroup: "BloodGroup", phoneNumber: "PhoneNumber", address: "Address", year: "Year",
-      branch: "Branch", section: "Section", roomno: "Roomno",
+      branch: "Branch", section: "Section", roomno: "Roomno", profileUrl: "ProfileUrl",
     };
 
     const data: any = {};
@@ -258,9 +238,6 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
       select: { id: true, Username: true, Email: true, Name: true },
     });
 
-    // Invalidate cache
-    redis.del(`student:profile:${username.toLowerCase()}`).catch((err) => logger.warn(`Redis del error: ${err.message || err}`));
-
     await sendEmail(updated.Email, "Account details updated", "Your account details have been updated successfully.");
 
     res.json({
@@ -273,18 +250,24 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
   }
 });
 
+// Get Semesters List
+studentRouter.get("/getsemesters", async (req, res) => {
+  try {
+    const semesters = await prisma.semester.findMany({
+      select: { id: true, name: true, year: true },
+      orderBy: [{ year: 'asc' }, { name: 'asc' }]
+    });
+    res.json({ semesters, success: true });
+  } catch (error: any) {
+    logger.error(`Get Semesters Error: ${error.message || error}`);
+    res.status(500).json({ msg: "Internal Server Error", success: false });
+  }
+});
+
 // Academic: Get Grades
 studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
   const { username, semesterId } = req.body;
   if (!username || !semesterId) return res.json({ msg: "Username and semesterId are required", success: false });
-
-  const cacheKey = `student:grades:${username.toLowerCase()}:${semesterId}`;
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) return res.json(JSON.parse(cached));
-  } catch (e:any) {
-    logger.warn(`Redis read error: ${e.message || e}`);
-  }
 
   try {
     const user = await prisma.student.findFirst({
@@ -346,8 +329,6 @@ studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
       success: true,
     };
 
-    redis.set(cacheKey, JSON.stringify(responsePayload), "EX", 604800).catch((err) => logger.warn(`Redis set error: ${err.message || err}`));
-
     res.json(responsePayload);
   } catch (error: any) {
     logger.error(`Get Grades Error: ${error.message || error}`);
@@ -359,14 +340,6 @@ studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
 studentRouter.post("/getattendance", authMiddleware, async (req, res) => {
   const { username, semesterId } = req.body;
   if (!username) return res.status(400).json({ msg: "Username is required", success: false });
-
-  const cacheKey = `student:attendance:${username.toLowerCase()}:${semesterId || 'all'}`;
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) return res.json(JSON.parse(cached));
-  } catch (e:any) {
-    logger.warn(`Redis read error: ${e.message || e}`);
-  }
 
   try {
     const user = await prisma.student.findFirst({
@@ -411,8 +384,6 @@ studentRouter.post("/getattendance", authMiddleware, async (req, res) => {
     });
 
     const response = { attendance_data: attendanceData, success: true };
-    redis.set(cacheKey, JSON.stringify(response), "EX", 3600).catch((err) => logger.warn(`Redis set error: ${err.message || err}`)); // 1 hour
-
     res.json(response);
   } catch (error: any) {
     logger.error(`Get Attendance Error: ${error.message || error}`);

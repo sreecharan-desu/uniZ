@@ -1,14 +1,15 @@
-import { motion } from "framer-motion";
+
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useIsAuth } from "../hooks/is_authenticated";
-import { Award, Clock, UserCheck, ArrowRight } from "lucide-react";
+import { Award, Clock, UserCheck, ArrowRight, Zap, ShieldCheck } from "lucide-react";
+import { Button } from "../components/Button";
 
 export default function Home() {
     useIsAuth();
     const navigate = useNavigate();
 
-    // Secret Admin Access
+    // Secret Admin Access (Easter Egg)
     useEffect(() => {
         let keyBuffer = '';
         const targetSequence = 'admin';
@@ -24,117 +25,83 @@ export default function Home() {
         return () => window.removeEventListener('keypress', handleKeyPress);
     }, [navigate]);
 
-    const fadeInUp = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-    };
-
-    const stagger = {
-        visible: { transition: { staggerChildren: 0.1 } }
-    };
-
     return (
-        <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-slate-900 selection:text-white flex flex-col">
             
             {/* Hero Section */}
-            <motion.section 
-                initial="hidden" 
-                animate="visible" 
-                variants={stagger}
-                className="relative min-h-[90vh] flex flex-col lg:flex-row justify-center items-center px-6 max-w-7xl mx-auto gap-12 overflow-hidden"
-            >
-                {/* Minimal Background Element */}
-                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" />
-                
-                {/* Text Content */}
-                <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
-                    <motion.div variants={fadeInUp} className="mb-6">
-                        <span className="px-4 py-1.5 rounded-full border border-gray-200 text-xs font-medium bg-gray-50 text-gray-600 tracking-wide uppercase hover:bg-gray-100 transition-colors cursor-default">
-                            Campus Reimagined
-                        </span>
-                    </motion.div>
+            <section className="flex-1 flex flex-col justify-center px-4 md:px-6 relative overflow-hidden">
+                <div className="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center py-20 lg:py-0">
+                    
+                    {/* Content */}
+                    <div className="space-y-8 text-center lg:text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold tracking-wide uppercase">
+                            <span className="w-2 h-2 rounded-full bg-blue-600 mr-2 animate-pulse"></span>
+                            Campus Operating System
+                        </div>
 
-                    <motion.h1 
-                        variants={fadeInUp} 
-                        className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-6"
-                    >
-                        uni<span className="relative inline-block">Z<span className="absolute -top-2 -right-3 w-4 h-4 bg-blue-600 rounded-full animate-pulse"></span></span>
-                    </motion.h1>
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 leading-tight">
+                            uni<span className="text-blue-600">Z</span>
+                        </h1>
 
-                    <motion.p 
-                        variants={fadeInUp} 
-                        className="text-lg md:text-xl text-gray-500 font-light max-w-xl leading-relaxed mb-10"
-                    >
-                        The operating system for your academic life. <br className="hidden md:block"/>
-                        <span className="text-black font-normal">Simple. Fast. Professional.</span>
-                    </motion.p>
+                        <p className="text-lg md:text-xl text-slate-500 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                            A unified platform for academic management.
+                            <br className="hidden md:inline" /> 
+                            Streamline your campus life with speed and precision.
+                        </p>
 
-                    <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 items-center">
-                        <Link 
-                            to="/student/signin" 
-                            className="group relative px-8 py-4 bg-black text-white rounded-full font-medium overflow-hidden shadow-lg hover:shadow-xl transition-all"
-                        >
-                            <span className="relative z-10 flex items-center gap-2">
-                                Get Started <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            <div className="absolute inset-0 bg-gray-800 transform scale-x-0 group-hover:scale-x-110 transition-transform origin-left duration-300" />
-                        </Link>
-                    </motion.div>
-                </div>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                             <Link to="/student/signin">
+                                 <Button size="lg" className="rounded-full px-8 w-full sm:w-auto">
+                                    Student Login <ArrowRight className="ml-2 w-4 h-4" />
+                                 </Button>
+                             </Link>
+                        </div>
+                    </div>
 
-                {/* Mascot Illustration */}
-                <motion.div 
-                    variants={fadeInUp} 
-                    className="flex-1 w-full max-w-md lg:max-w-xl relative transform lg:translate-x-10"
-                >
-                    <motion.div
-                        className="relative z-10"
-                        animate={{ y: [0, -20, 0] }}
-                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    >
+                    {/* Visual */}
+                    <div className="relative animate-in fade-in slide-in-from-right-8 duration-1000 delay-200 hidden lg:block">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-slate-50 rounded-full blur-3xl opacity-60 transform scale-90"></div>
                         <img 
-                            src="pikachu.png" 
-                            alt="UniZ Mascot" 
-                            className="w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                            src="/pikachu.png" 
+                            alt="UniZ Platform" 
+                            className="relative z-10 w-full max-w-sm mx-auto drop-shadow-xl hover:scale-105 transition-transform duration-500" 
                         />
-                    </motion.div>
-                </motion.div>
-
-                {/* Decorative Bottom Gradient */}
-                <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-            </motion.section>
-
-            {/* Features Minimal Grid */}
-            <section className="py-24 px-6 max-w-7xl mx-auto border-t border-gray-100">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                     {[
-                        { icon: <Clock className="w-6 h-6"/>, title: "Real-time Sync", desc: "Instant updates on your attendance, grades, and approvals. Never miss a beat." },
-                        { icon: <UserCheck className="w-6 h-6"/>, title: "Student Centric", desc: "Built specifically for RGUKT students, tailored to your exact workflow and needs." },
-                        { icon: <Award className="w-6 h-6"/>, title: "Academic Proof", desc: "Secure, verifiable, and permanent academic records at your fingertips." },
-                     ].map((f, i) => (
-                        <motion.div 
-                            key={i}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.1, duration: 0.5 }}
-                            className="group p-8 rounded-2xl border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-all duration-300 hover:shadow-sm"
-                        >
-                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 group-hover:bg-black group-hover:text-white">
-                                {f.icon}
-                            </div>
-                            <h3 className="text-xl font-bold mb-3 text-black">{f.title}</h3>
-                            <p className="text-gray-500 font-light leading-relaxed">{f.desc}</p>
-                        </motion.div>
-                     ))}
+                    </div>
                 </div>
             </section>
 
-             {/* Footer Simple */}
-            <footer className="py-10 text-center text-gray-400 text-sm border-t border-gray-100 bg-gray-50/30">
-                <p>&copy; {new Date().getFullYear()} UniZ. Built for RGUKT.</p>
-            </footer>
+            {/* Features Strip */}
+            <section className="bg-white border-t border-slate-200 py-16 px-6">
+                <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <FeatureCard 
+                        icon={<Clock className="w-6 h-6 text-blue-600"/>}
+                        title="Real-time Sync"
+                        desc="Instant updates on attendance and approvals."
+                     />
+                     <FeatureCard 
+                        icon={<ShieldCheck className="w-6 h-6 text-purple-600"/>}
+                        title="Secure & Reliable"
+                        desc="Institutional-grade security for your data."
+                     />
+                     <FeatureCard 
+                        icon={<Zap className="w-6 h-6 text-amber-500"/>}
+                        title="Fast Workflow"
+                        desc="Optimized for quick academic tasks."
+                     />
+                </div>
+            </section>
+        </div>
+    );
+}
 
+function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+    return (
+        <div className="flex flex-col items-center text-center p-6 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all duration-300">
+            <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center mb-4 shadow-sm">
+                {icon}
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
+            <p className="text-sm text-slate-500">{desc}</p>
         </div>
     );
 }

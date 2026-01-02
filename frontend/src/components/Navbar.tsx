@@ -1,131 +1,145 @@
+
 import { useRecoilState, useRecoilValue } from "recoil";
 import { is_authenticated, student } from "../store";
-import { useEffect} from "react";
+import { useEffect, useState } from "react";
 import { useStudentData } from "../hooks/student_info";
 import { Button } from "./Button";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { isMaintenance } from "../App";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { cn } from "../utils/cn";
 
-// Add new Skeleton components
 const UserSkeleton = () => (
-    <div className="flex items-center space-x-2 animate-pulse">
-        <div className="bg-gray-300 rounded-full p-2 px-4 h-10 w-10"></div>
-        <div className="flex-col justify-center">
-            <div className="bg-gray-300 h-4 w-32 rounded mb-2"></div>
-            <div className="bg-gray-300 h-4 w-40 rounded"></div>
+    <div className="flex items-center space-x-3 animate-pulse">
+        <div className="bg-slate-200 rounded-full h-9 w-9"></div>
+        <div className="space-y-1">
+            <div className="bg-slate-200 h-3 w-24 rounded"></div>
+            <div className="bg-slate-200 h-2 w-32 rounded"></div>
         </div>
     </div>
 );
 
 export default function Navbar() {
     const [isAuth, setAuth] = useRecoilState(is_authenticated);
-    const username = useRecoilValue(student);
+    const user = useRecoilValue(student);
     const [isLoading, setIsLoading] = useState(true);
-    const adminName = localStorage.getItem('username');
+    const navigate = useNavigate();
+    const { isConnected } = useWebSocket(undefined); // Connect to global WS
+
+    // Safely parse admin name
+    const rawAdminName = localStorage.getItem('username');
+    const adminName = rawAdminName ? rawAdminName.replace(/^"|"$/g, '') : null;
 
     useEffect(() => {
-        if (username?.name || username?.email) {
+        if (user?.name || user?.email) {
             setIsLoading(false);
         }
-    }, [username]);
+    }, [user]);
 
     useStudentData();
 
-    // Helper function to safely get initials
     const getInitials = (name: string | null | undefined) => {
-        if (!name) return '';
-        
-        // Special handling for Warden1, Warden2 format
-        if (name.startsWith('Warden')) {
-            return 'W';
-        }
-        
-        // Original logic for other names
-        const nameParts = name.split(' ');
-        if (nameParts.length >= 2) {
-            return `${nameParts[0][0]}${nameParts[1][0]}`;
-        }
-        return name[0] || '';
+        if (!name) return 'U';
+        if (name.startsWith('Warden')) return 'W';
+        const parts = name.split(' ');
+        if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+        return name[0].toUpperCase();
     };
 
     const logout = () => {
         localStorage.removeItem('student_token');
         localStorage.removeItem('username');
         localStorage.removeItem('admin_token');
-        setAuth({
-            is_authnticated: false,
-            type: ''
-        });
-        location.href = "/";
+        setAuth({ is_authnticated: false, type: '' });
+        navigate("/");
     };
 
+    const isAuthenticated = (
+        (isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) ||
+        (localStorage.getItem('student_token') && user)
+    );
+
+    const isAdminAuthenticated = (
+        (isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) ||
+        (localStorage.getItem('admin_token') && adminName)
+    );
+
     return (
-        <div className="flex justify-between pl-5 pr-2 items-center p-1 bg-black border-gray-300 sticky top-0 z-50">
-            <div className="flex">
-                <img src="/vite.svg" width="36"/>
-                <a href="/" className="m-3 mt-4">
-                    <h1 className="font-bold text-xl lg:text-3xl text-white">
-                        uniZ
-                    </h1>
-                </a>
-            </div> 
-            {isMaintenance ? <>
-           
-            </> : <>
-            {!localStorage.getItem('student_token') && !localStorage.getItem('admin_token') ? (
-                <a href="/student/signin">
-                    <Button
-                        onclickFunction={() => undefined}
-                        value="Signin Now"
-                        loading={false}
+        <nav className="border-b border-slate-200 bg-white sticky top-0 z-50">
+            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                     <Link to="/" className="font-extrabold text-2xl tracking-tighter text-slate-900 flex items-center gap-1 group">
+                        <span className="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-md group-hover:scale-105 transition-transform duration-200">Z</span>
+                        <span className="group-hover:text-slate-700 transition-colors">uniZ</span>
+                    </Link>
+                    {/* WS Status Indicator (Subtle) */}
+                    <div 
+                        className={cn(
+                            "w-2 h-2 rounded-full transition-colors duration-500",
+                            isConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-amber-400 animate-pulse"
+                        )} 
+                        title={isConnected ? "Live Connected" : "Connecting..."}
                     />
-                </a>
-            ) : null}
-            </>}            
+                </div>
 
-
-            {(isAuth.is_authnticated && isAuth.type === "student" && localStorage.getItem('student_token')) || 
-             (localStorage.getItem('student_token') && username) ? (
-                <div className="flex items-center space-x-3">
-                    {isLoading ? (
-                        <UserSkeleton />
-                    ) : (
-                        <div className="flex items-center space-x-2">
-                            <div className={`${username?.name ? 'bg-white' : 'transparent'} text-black rounded-full py-1 px-2 font-bold`}>
-                                {username?.name ? getInitials(username.name).toUpperCase() : ''}
+                <div className="flex items-center gap-4">
+                    {isAuthenticated ? (
+                        isLoading ? <UserSkeleton /> : (
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 pl-1 pr-1 py-1 rounded-full border border-slate-100 bg-slate-50/50 hover:bg-slate-100 transition-colors cursor-default">
+                                    <div className="h-9 w-9 rounded-full bg-white text-slate-900 flex items-center justify-center text-sm font-bold border-2 border-white shadow-sm overflow-hidden">
+                                        {user?.profile_url ? (
+                                            <img src={user.profile_url} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            getInitials(user?.name)
+                                        )}
+                                    </div>
+                                    <div className="hidden sm:block pr-3">
+                                        <p className="text-xs font-bold text-slate-900 leading-tight">{user?.name}</p>
+                                        <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{user?.year || 'Student'}</p>
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={logout}
+                                    className="hidden sm:flex border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-red-600 transition-colors"
+                                >
+                                    Sign out
+                                </Button>
+                                 <button onClick={logout} className="sm:hidden p-2 text-slate-400 hover:text-red-500 transition-colors">
+                                    <LogOut className="w-5 h-5" />
+                                </button>
                             </div>
-                            <div className="flex-col justify-center">
-                                <p className="text-white text-left text-sm font-semibold">{username?.name}</p>
-                                <p className="text-white text-left text-sm font-semibold">{username?.email}</p>
+                        )
+                    ) : isAdminAuthenticated ? (
+                         <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 pl-1 pr-4 py-1 rounded-full border border-slate-100 bg-slate-50/50">
+                                    <div className="h-9 w-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-sm font-bold border-2 border-white shadow-sm">
+                                        {getInitials(adminName)}
+                                    </div>
+                                    <div className="hidden sm:block">
+                                        <p className="text-xs font-bold text-slate-900 leading-tight capitalize">{adminName}</p>
+                                        <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Administrator</p>
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={logout}
+                                    className="border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                                >
+                                    Sign out
+                                </Button>
                             </div>
-                        </div>
+                    ) : ( !isMaintenance &&
+                        <Link to="/student/signin">
+                            <Button size="sm" className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200">Sign In</Button>
+                        </Link>
                     )}
                 </div>
-            ) : null}
-
-            {(isAuth.is_authnticated && isAuth.type === "admin" && localStorage.getItem('admin_token')) || 
-             (localStorage.getItem('admin_token') && adminName) ? (
-                <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-2">
-                            <div className='bg-white text-black rounded-full p-2 px-4 text-xl font-bold'>
-                                {/* @ts-ignore */}
-                                {localStorage.getItem('admin_token') ? getInitials(JSON.parse(adminName)).toUpperCase() : ''}
-                            </div>
-                            <div className="flex-col justify-center">
-                                <p className="text-white text-left text-sm font-semibold">
-                                    {adminName?.slice(1,adminName.length-1).toString()}
-                                </p>
-                                <p className="text-white text-left text-sm font-semibold">                                    {adminName?.slice(1,adminName.length-1).toString().split("@")[0]}@rguktong.ac.in</p>
-                            </div>
-                        </div>
-                    </div>
-                    <button onClick={logout} className="bg-white rounded-full px-4 py-2">
-                        Logout
-                    </button>
-                </div>
-            ) : null}
-            
-        </div>
+            </div>
+        </nav>
     );
 }

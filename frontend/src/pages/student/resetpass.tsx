@@ -128,7 +128,7 @@ export default function Resetpassword() {
         localStorage.removeItem("username");
 
         setTimeout(() => {
-          location.href = "/student/signin";
+          navigateTo("/student/signin");
         }, 2000);
       } else {
         switch (res.status) {

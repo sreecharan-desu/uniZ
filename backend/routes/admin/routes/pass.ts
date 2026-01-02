@@ -7,6 +7,7 @@ import {
 } from "../../services/admin.service";
 import { authMiddleware } from "../../student/middlewares/middlewares";
 import { sendEmail } from "../../services/email.service";
+import { broadcast } from "../../../utils/websocket";
 
 export const passRouter = Router();
 
@@ -20,6 +21,7 @@ passRouter.get("/getrequests", authMiddleware, async (req, res) => {
       const dbRequests = await prisma.outpass.findMany({
         where: { isApproved: false, isRejected: false, isExpired: false, currentLevel: role },
         include: { Student: true },
+        orderBy: { RequestedTime: 'desc' }
       });
       
       const outpasses = dbRequests.map(req => ({
@@ -42,6 +44,7 @@ passRouter.get("/getrequests", authMiddleware, async (req, res) => {
       const dbRequests = await prisma.outing.findMany({
         where: { isApproved: false, isRejected: false, isExpired: false, currentLevel: role },
         include: { Student: true },
+        orderBy: { RequestedTime: 'desc' }
       });
 
       const outings = dbRequests.map(req => ({
@@ -76,6 +79,7 @@ passRouter.post("/approveoutpass", authMiddleware, async (req, res) => {
       if (data?.Student.Email) {
         await sendEmail(data.Student.Email, "Outpass Approved", `Your outpass ${id} is approved. Return by ${data.ToDay.toLocaleDateString()}.`);
       }
+      broadcast({ type: 'REFRESH_REQUESTS', payload: { id, type: 'outpass', status: 'approved' } });
     }
     res.json(result);
   } catch (e) {
@@ -93,6 +97,7 @@ passRouter.post("/rejectoutpass", authMiddleware, async (req, res) => {
       if (data?.Student.Email) {
         await sendEmail(data.Student.Email, "Outpass Rejected", `Your outpass ${id} was rejected. Reason: ${message}`);
       }
+      broadcast({ type: 'REFRESH_REQUESTS', payload: { id, type: 'outpass', status: 'rejected' } });
     }
     res.json(result);
   } catch (e) {
@@ -105,6 +110,9 @@ passRouter.post("/forwardoutpass", authMiddleware, async (req, res) => {
     const { id } = req.body;
     const admin = (req as any).admin;
     const result = await forwardOutpass(id, admin?.username || "Admin", admin?.role || "webmaster");
+    if (result.success) {
+        broadcast({ type: 'REFRESH_REQUESTS', payload: { id, type: 'outpass', status: 'forwarded' } });
+    }
     res.json(result);
   } catch (e) {
     res.status(500).json({ msg: "Error forwarding outpass", success: false });
@@ -121,6 +129,7 @@ passRouter.post("/approveouting", authMiddleware, async (req, res) => {
       if (data?.Student.Email) {
         await sendEmail(data.Student.Email, "Outing Approved", `Your outing ${id} is approved. Return by ${data.ToTime.toLocaleTimeString()}.`);
       }
+      broadcast({ type: 'REFRESH_REQUESTS', payload: { id, type: 'outing', status: 'approved' } });
     }
     res.json(result);
   } catch (e) {
@@ -138,6 +147,7 @@ passRouter.post("/rejectouting", authMiddleware, async (req, res) => {
       if (data?.Student.Email) {
         await sendEmail(data.Student.Email, "Outing Rejected", `Your outing ${id} was rejected. Reason: ${message}`);
       }
+      broadcast({ type: 'REFRESH_REQUESTS', payload: { id, type: 'outing', status: 'rejected' } });
     }
     res.json(result);
   } catch (e) {
@@ -150,6 +160,9 @@ passRouter.post("/forwardouting", authMiddleware, async (req, res) => {
     const { id } = req.body;
     const admin = (req as any).admin;
     const result = await forwardOuting(id, admin?.username || "Admin", admin?.role || "webmaster");
+    if (result.success) {
+        broadcast({ type: 'REFRESH_REQUESTS', payload: { id, type: 'outing', status: 'forwarded' } });
+    }
     res.json(result);
   } catch (e) {
     res.status(500).json({ msg: "Error forwarding outing", success: false });
@@ -169,6 +182,9 @@ passRouter.post("/updatestudentstatus", authMiddleware, async (req, res) => {
   try {
     const { userId, id } = req.body;
     const result = await updateStudentPresence(userId, id);
+    if (result.success) {
+        broadcast({ type: 'REFRESH_REQUESTS', payload: { id, userId, status: 'presence_updated' } });
+    }
     res.json(result);
   } catch (e) {
     res.status(500).json({ msg: "Error updating status", success: false });

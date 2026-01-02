@@ -35,7 +35,7 @@ export default function RequestComp({ type }: RequestCompProps) {
             ('Missing auth_token. Authorization failed!');
             localStorage.removeItem('student_token');
             localStorage.removeItem('username');
-            location.href = "";
+            navigateTo("/");
             return;
         }else if((type == "outpass" && (from_date == null || to_date == null || reason == null)) || (type=="outing" && (from_time == null || to_time == null || reason == null))){
             ("Please fill all the details!");

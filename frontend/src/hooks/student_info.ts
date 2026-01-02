@@ -23,14 +23,11 @@ export function useStudentData() {
   const setStudent = useSetRecoilState(student);
   const currentStudent = useRecoilValue(student);
 
-  useEffect(() => {
     const fetchStudentData = async () => {
       const tokenStr = localStorage.getItem("student_token");
       
-      // If no token or if we already have student data, skip
-      if (!tokenStr || (currentStudent?.username && currentStudent?.email)) {
-        return;
-      }
+      // If no token, skip
+      if (!tokenStr) return;
 
       const token = tokenStr.replace(/^"|"$/g, '');
 
@@ -50,7 +47,6 @@ export function useStudentData() {
           //@ts-ignore
           setStudent(data.student);
         } else {
-             // If token is invalid or expired, maybe clear it?
              if (res.status === 401 || res.status === 403) {
                  console.warn("Invalid token during fetch");
              }
@@ -60,6 +56,11 @@ export function useStudentData() {
       }
     };
 
-    fetchStudentData();
-  }, [setStudent, currentStudent]);
-}
+    useEffect(() => {
+        if (!currentStudent?.username) {
+            fetchStudentData();
+        }
+    }, [currentStudent]);
+
+    return { refetch: fetchStudentData };
+  };

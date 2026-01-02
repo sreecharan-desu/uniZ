@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -5,12 +6,17 @@ import { BASE_URL } from "../../api/endpoints";
 import {
   UserPlus,
   Users,
-  Loader2,
   Search,
   Trash2,
   Settings,
   ShieldCheck,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
+import { Input } from "../../components/Input";
+import { Button } from "../../components/Button";
+import { cn } from "../../utils/cn";
 
 type Role = "webmaster" | "dean" | "director";
 type Permission =
@@ -183,52 +189,39 @@ export default function RoleManagement() {
     fetchAll();
   }, []);
 
-  const Skeleton = () => (
-    <tr className="animate-pulse border-t border-gray-100">
-      <td className="px-4 py-3">
-        <div className="h-4 w-24 bg-gray-200 rounded"></div>
-      </td>
-      <td className="px-4 py-3">
-        <div className="h-4 w-16 bg-gray-200 rounded"></div>
-      </td>
-      <td className="px-4 py-3">
-        <div className="h-4 w-20 bg-gray-200 rounded"></div>
-      </td>
-    </tr>
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto bg-white bg-opacity-90 backdrop-blur-sm shadow-2xl rounded-3xl p-8 border border-gray-200">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-10">
-          <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-            <ShieldCheck className="w-7 h-7 text-black" />
-            Role & Permissions Management
-          </h1>
-          <button
-            onClick={() => navigate("/admin")}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            ← Back
-          </button>
+    <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      {/* Header */}
+         <div className="flex flex-col gap-6">
+            <button
+                onClick={() => navigate("/admin")}
+                className="self-start inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+            </button>
+
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Role Management</h1>
+                    <p className="text-slate-500 mt-1">Configure admin access and role-based permissions.</p>
+                </div>
+            </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-10 mb-8 border-b border-gray-200">
-          {[
-            { key: "overview", label: "Overview", icon: <Users className="w-5 h-5" /> },
-            { key: "add", label: "Add Admin", icon: <UserPlus className="w-5 h-5" /> },
-            { key: "permissions", label: "Role Permissions", icon: <Settings className="w-5 h-5" /> },
+        {/* Tab Navigation */}
+        <div className="flex border-b border-slate-200">
+             {[
+            { key: "overview", label: "Admins Overview", icon: <Users className="w-4 h-4" /> },
+            { key: "add", label: "Add New Admin", icon: <UserPlus className="w-4 h-4" /> },
+            { key: "permissions", label: "Permission Sets", icon: <Settings className="w-4 h-4" /> },
           ].map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key as any)}
-              className={`pb-3 flex items-center gap-2 font-semibold ${
-                tab === t.key
-                  ? "border-b-2 border-black text-black"
-                  : "text-gray-500 hover:text-gray-800"
-              }`}
+              className={cn(
+                  "flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-all hover:bg-slate-50",
+                  tab === t.key ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700"
+              )}
             >
               {t.icon}
               {t.label}
@@ -236,175 +229,252 @@ export default function RoleManagement() {
           ))}
         </div>
 
-        {/* Overview Tab */}
-        {tab === "overview" && (
-          <>
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search admin..."
-                value={search}
-                onChange={(e) => searchAdmin(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg pl-10 p-3 focus:ring-2 focus:ring-gray-200 outline-none"
-              />
-            </div>
+        {/* Content Area */}
+        <div className="min-h-[400px]">
+            {/* Overview Tab */}
+            {tab === "overview" && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex justify-between items-center">
+                    <div className="w-full md:w-96">
+                        <Input 
+                            value={search}
+                            onchangeFunction={(e: any) => searchAdmin(e.target.value)}
+                            placeholder="Find admin by username..."
+                            icon={<Search className="w-4 h-4" />}
+                        />
+                    </div>
+                    <span className="text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1 rounded-full">
+                        {filtered.length} Admins
+                    </span>
+                </div>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-              <table className="w-full text-left text-gray-700">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Username</th>
-                    <th className="px-4 py-3 font-semibold">Role</th>
-                    <th className="px-4 py-3 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading
-                    ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} />)
-                    : filtered.map((a) => (
-                        <tr
-                          key={a.id}
-                          className="border-t border-gray-100 hover:bg-gray-50 transition"
-                        >
-                          <td className="px-4 py-3">{a.username}</td>
-                          <td className="px-4 py-3">
-                            <select
-                              value={a.role}
-                              onChange={(e) =>
-                                assignRole(a.username, e.target.value as Role)
-                              }
-                              className="border border-gray-300 rounded-lg px-2 py-1 bg-transparent"
-                            >
-                              {roles.map((r) => (
-                                <option key={r}>{r}</option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="px-4 py-3 flex items-center gap-3">
-                            <button
-                              onClick={() => deleteAdmin(a.username)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </td>
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 text-slate-500 uppercase text-xs font-semibold">
+                        <tr>
+                            <th className="px-6 py-4">Admin User</th>
+                            <th className="px-6 py-4">Assigned Role</th>
+                            <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
-                      ))}
-                </tbody>
-              </table>
-              {loading && (
-                <div className="flex justify-center py-6">
-                  <Loader2 className="w-6 h-6 text-gray-500 animate-spin" />
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                        {loading ? (
+                             [1,2,3].map(i => (
+                                 <tr key={i} className="animate-pulse">
+                                     <td className="px-6 py-4"><div className="h-4 bg-slate-100 rounded w-32"/></td>
+                                     <td className="px-6 py-4"><div className="h-8 bg-slate-100 rounded w-24"/></td>
+                                     <td className="px-6 py-4"><div className="h-8 bg-slate-100 rounded w-8 ml-auto"/></td>
+                                 </tr>
+                             ))
+                        ) : filtered.length === 0 ? (
+                            <tr>
+                                <td colSpan={3} className="px-6 py-12 text-center text-slate-500">
+                                    No admins found matching your search.
+                                </td>
+                            </tr>
+                        ) : (
+                            filtered.map((a) => (
+                                <tr key={a.id} className="hover:bg-slate-50 transition-colors group">
+                                <td className="px-6 py-4 font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
+                                    {a.username}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="relative inline-block w-40">
+                                        <select
+                                            value={a.role}
+                                            onChange={(e) => assignRole(a.username, e.target.value as Role)}
+                                            className="appearance-none w-full bg-white border border-slate-200 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium shadow-sm transition-all hover:border-slate-300"
+                                        >
+                                            {roles.map((r) => (
+                                                <option key={r} value={r} className="capitalize">{r}</option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <button
+                                        onClick={() => deleteAdmin(a.username)}
+                                        className="text-slate-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                                        title="Delete Admin"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </td>
+                                </tr>
+                            ))
+                        )}
+                        </tbody>
+                    </table>
                 </div>
-              )}
             </div>
-          </>
-        )}
-
-        {/* Add Admin Tab */}
-        {tab === "add" && (
-          <div className="max-w-md mx-auto bg-white bg-opacity-90 backdrop-blur-sm border border-gray-200 shadow-lg rounded-2xl p-8">
-            <input
-              type="text"
-              placeholder="Username"
-              value={newAdmin.username}
-              onChange={(e) =>
-                setNewAdmin({ ...newAdmin, username: e.target.value })
-              }
-              className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-gray-200 outline-none"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={newAdmin.password}
-              onChange={(e) =>
-                setNewAdmin({ ...newAdmin, password: e.target.value })
-              }
-              className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-gray-200 outline-none"
-            />
-            <select
-              value={newAdmin.role}
-              onChange={(e) =>
-                setNewAdmin({ ...newAdmin, role: e.target.value as Role })
-              }
-              className="w-full border border-gray-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-gray-200 outline-none"
-            >
-              {roles.map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
-            <button
-              onClick={addAdmin}
-              className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors"
-            >
-              Add Admin
-            </button>
-          </div>
-        )}
-
-        {/* Permissions Tab */}
-        {tab === "permissions" && (
-          <div className="max-w-lg mx-auto bg-white bg-opacity-90 backdrop-blur-sm border border-gray-200 shadow-lg rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
-              Manage Role Permissions
-            </h2>
-            <select
-              value={selectedRole || ""}
-              onChange={(e) => {
-                const role = e.target.value as Role;
-                setSelectedRole(role);
-                setCustomPerms(permissions[role] || []);
-              }}
-              className="w-full border border-gray-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-gray-200 outline-none"
-            >
-              <option value="">Select a role</option>
-              {roles.map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
-
-            {selectedRole && (
-              <>
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  {(
-                    [
-                      "manage_banners",
-                      "send_notifications",
-                      "assign_roles",
-                      "manage_users",
-                      "manage_curriculum",
-                      "view_reports",
-                    ] as Permission[]
-                  ).map((perm) => (
-                    <label key={perm} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={customPerms.includes(perm)}
-                        onChange={(e) =>
-                          setCustomPerms((prev) =>
-                            e.target.checked
-                              ? [...prev, perm]
-                              : prev.filter((x) => x !== perm)
-                          )
-                        }
-                        className="accent-black"
-                      />
-                      <span className="text-gray-700">{perm}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={updateRolePermissions}
-                  className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition"
-                >
-                  Save Permissions
-                </button>
-              </>
             )}
-          </div>
-        )}
-      </div>
+
+            {/* Add Admin Tab */}
+            {tab === "add" && (
+            <div className="max-w-xl mx-auto animate-in fade-in duration-300 pt-8">
+                <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                     <div className="text-center mb-8">
+                        <div className="mx-auto h-12 w-12 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-blue-600">
+                            <UserPlus className="w-6 h-6" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-900">Create New Admin</h2>
+                        <p className="text-slate-500 mt-1">Grant administrative access to a new user.</p>
+                     </div>
+
+                     <div className="space-y-5">
+                         <Input
+                            label="Username"
+                            value={newAdmin.username}
+                            onchangeFunction={(e: any) => setNewAdmin({ ...newAdmin, username: e.target.value })}
+                            placeholder="Choose a username"
+                         />
+                         <Input
+                            label="Password"
+                            type="password"
+                            value={newAdmin.password}
+                            onchangeFunction={(e: any) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                            placeholder="Set a strong password"
+                         />
+                         
+                         <div>
+                             <label className="block text-sm font-medium text-slate-700 mb-1.5 ml-1">Initial Role</label>
+                             <select
+                                value={newAdmin.role}
+                                onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value as Role })}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+                            >
+                                {roles.map((r) => (
+                                    <option key={r} value={r} className="capitalize">{r}</option>
+                                ))}
+                            </select>
+                         </div>
+                         
+                         <div className="pt-4">
+                             <Button
+                                onclickFunction={addAdmin}
+                                value="Create Admin Account"
+                                className="w-full bg-blue-600 hover:bg-blue-700"
+                             />
+                         </div>
+                     </div>
+                </div>
+            </div>
+            )}
+
+            {/* Permissions Tab */}
+            {tab === "permissions" && (
+            <div className="max-w-4xl mx-auto animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Role Selector Sidebar */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 h-fit">
+                        <h3 className="font-semibold text-slate-900 px-2 mb-3 text-sm uppercase tracking-wide">Select Role</h3>
+                        <div className="space-y-1">
+                             <button
+                                onClick={() => {
+                                    setSelectedRole(null);
+                                    setCustomPerms([]);
+                                }}
+                                className={cn(
+                                    "w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                                    !selectedRole ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"
+                                )}
+                             >
+                                 Select a role...
+                             </button>
+                             {roles.map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => {
+                                        setSelectedRole(r);
+                                        setCustomPerms(permissions[r] || []);
+                                    }}
+                                    className={cn(
+                                        "w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize",
+                                        selectedRole === r ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"
+                                    )}
+                                >
+                                    {r}
+                                </button>
+                             ))}
+                        </div>
+                    </div>
+                    
+                    {/* Permissions Editor */}
+                    <div className="md:col-span-2">
+                         {selectedRole ? (
+                             <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+                                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold uppercase text-lg">
+                                        {selectedRole[0]}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-900 capitalize">{selectedRole} Permissions</h3>
+                                        <p className="text-sm text-slate-500">Configure what this role can access.</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                     {(
+                                        [
+                                            "manage_banners",
+                                            "send_notifications",
+                                            "assign_roles",
+                                            "manage_users",
+                                            "manage_curriculum",
+                                            "view_reports",
+                                        ] as Permission[]
+                                        ).map((perm) => {
+                                           const isChecked = customPerms.includes(perm);
+                                           return (
+                                            <div 
+                                                key={perm}
+                                                onClick={() => {
+                                                    setCustomPerms((prev) =>
+                                                        isChecked ? prev.filter((x) => x !== perm) : [...prev, perm]
+                                                    )
+                                                }}
+                                                className={cn(
+                                                    "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
+                                                    isChecked ? "border-blue-200 bg-blue-50/50" : "border-slate-200 hover:border-slate-300"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "w-5 h-5 rounded border flex items-center justify-center mr-4 transition-colors",
+                                                    isChecked ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                                                )}>
+                                                    {isChecked && <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                </div>
+                                                <span className="font-medium text-slate-800 capitalize select-none">
+                                                    {perm.replace('_', ' ')}
+                                                </span>
+                                            </div>
+                                           );
+                                        })}
+                                </div>
+                                
+                                <div className="pt-8 mt-4 border-t border-slate-100 flex justify-end">
+                                    <Button
+                                        onclickFunction={updateRolePermissions}
+                                        value="Save Changes"
+                                        className="bg-slate-900 hover:bg-black"
+                                    />
+                                </div>
+                             </div>
+                         ) : (
+                             <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-slate-400">
+                                 <ShieldCheck className="w-12 h-12 mb-4 opacity-50" />
+                                 <p className="font-medium text-slate-600">No Role Selected</p>
+                                 <p className="text-sm mt-1">Select a role from the sidebar to configure permissions.</p>
+                             </div>
+                         )}
+                    </div>
+                </div>
+            </div>
+            )}
+        </div>
     </div>
   );
 }

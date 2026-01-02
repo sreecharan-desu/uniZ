@@ -1,7 +1,6 @@
 
 import express, { Request, Response } from 'express';
 import { PrismaClient } from "@prisma/client";
-import redis from '../services/redis.service';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -49,15 +48,10 @@ router.get('/expire-requests', async (req: Request, res: Response) => {
                 });
 
                 // Update Student
-                const updatedStudent = await prisma.student.update({
+                await prisma.student.update({
                     where: { id: outing.StudentId },
-                    data: { isApplicationPending: false },
-                    select: { Username: true }
+                    data: { isApplicationPending: false }
                 });
-
-                if (updatedStudent.Username) {
-                     await redis.del(`student:profile:${updatedStudent.Username.toLowerCase()}`).catch(err => console.error(`Redis del error: ${err}`));
-                }
 
                 console.log(`Auto-expired Outing ID: ${outing.id} and updated student status.`);
             }
@@ -91,15 +85,10 @@ router.get('/expire-requests', async (req: Request, res: Response) => {
                 });
 
                 // Update Student
-                const updatedStudent = await prisma.student.update({
+                await prisma.student.update({
                     where: { id: outpass.StudentId },
-                    data: { isApplicationPending: false },
-                    select: { Username: true }
+                    data: { isApplicationPending: false }
                 });
-                
-                if (updatedStudent.Username) {
-                     await redis.del(`student:profile:${updatedStudent.Username.toLowerCase()}`).catch(err => console.error(`Redis del error: ${err}`));
-                }
 
                  console.log(`Auto-expired Outpass ID: ${outpass.id} and updated student status.`);
             }
@@ -116,3 +105,4 @@ router.get('/expire-requests', async (req: Request, res: Response) => {
 });
 
 export default router;
+

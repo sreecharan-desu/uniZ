@@ -14,7 +14,11 @@ export const getStudentDetails = async (username: string) => {
   try {
       const user = await prisma.student.findUnique({
         where: { Username: username.toLowerCase() },
-        include: { Outing: true, Outpass: true }
+        include: { 
+          Outing: true, 
+          Outpass: true,
+          grades: { include: { subject: true, semester: true } }
+        }
       });
       console.log('Fetched user:', user ? user.Username : 'null');
       if (!user) return null;

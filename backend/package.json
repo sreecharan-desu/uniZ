@@ -19,6 +19,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/nodemailer": "^6.4.15",
+    "@types/ws": "^8.18.1",
     "@types/xlsx": "^0.0.35",
     "prisma": "^6.16.3",
     "tsc-watch": "^7.2.0",
@@ -26,7 +27,6 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
-    "@types/redis": "^4.0.10",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "bcrypt-ts": "^5.0.2",
@@ -40,7 +40,6 @@
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
     "express": "^4.21.0",
-    "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.12",
@@ -48,6 +47,7 @@
     "socket.io-client": "^4.7.5",
     "uuid": "^11.1.0",
     "winston": "^3.14.2",
+    "ws": "^8.18.3",
     "zod": "^3.23.8"
   }
 }

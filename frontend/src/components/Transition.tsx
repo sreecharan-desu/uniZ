@@ -1,66 +1,29 @@
-import { motion, AnimatePresence } from 'framer-motion';
+
+// Minimal utility for transitions that falls back to CSS logic mostly
+// but keeps structure compatible if we ever want to re-add motion.
+import { ReactNode } from 'react';
 
 interface TransitionProps {
-    children: React.ReactNode;
+    children: ReactNode;
     type?: 'page' | 'component' | 'list' | 'modal';
     delay?: number;
+    className?: string; // Add className prop
 }
 
-const variants = {
-    page: {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -20 },
-    },
-    component: {
-        initial: { opacity: 0, scale: 0.95 },
-        animate: { opacity: 1, scale: 1 },
-        exit: { opacity: 0, scale: 0.95 },
-    },
-    list: {
-        initial: { opacity: 0, x: -20 },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: 20 },
-    },
-    modal: {
-        initial: { opacity: 0, scale: 0.9 },
-        animate: { opacity: 1, scale: 1 },
-        exit: { opacity: 0, scale: 1.1 },
-    }
-};
-
-export const PageTransition = ({ children, type = 'page', delay = 0 }: TransitionProps) => {
+export const PageTransition = ({ children, className }: TransitionProps) => {
+    // Just a div wrapper that can accept classes - removing framer motion logic
+    // We rely on simple CSS animations or no animation for sharpness.
     return (
-        <AnimatePresence mode="wait">
-            <motion.div
-                initial={variants[type].initial}
-                animate={variants[type].animate}
-                exit={variants[type].exit}
-                transition={{ 
-                    duration: 0.3, 
-                    ease: "easeInOut",
-                    delay: delay 
-                }}
-            >
-                {children}
-            </motion.div>
-        </AnimatePresence>
-    );
-};
-
-// List item transition for mapping over arrays
-export const ListItemTransition = ({ children, index = 0 }: { children: React.ReactNode; index?: number }) => {
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ 
-                duration: 0.2,
-                delay: index * 0.05, // Stagger effect
-            }}
-        >
+        <div className={`animate-in fade-in duration-300 slide-in-from-bottom-2 ${className || ''}`}>
             {children}
-        </motion.div>
+        </div>
     );
-}; 
+};
+
+export const ListItemTransition = ({ children }: { children: ReactNode; index?: number }) => {
+    return (
+        <div className="animate-in fade-in slide-in-from-left-2 duration-300">
+            {children}
+        </div>
+    );
+};

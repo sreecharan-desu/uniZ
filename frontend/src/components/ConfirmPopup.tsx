@@ -1,4 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
+
+import { Button } from "./Button";
+import { AlertCircle } from "lucide-react";
 
 interface ConfirmModalProps {
   open: boolean;
@@ -8,42 +10,47 @@ interface ConfirmModalProps {
 }
 
 export function ConfirmModal({ open, onClose, onConfirm, message }: ConfirmModalProps) {
+  if (!open) return null;
+
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/50"
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white text-black rounded-2xl shadow-xl max-w-sm w-full p-6"
-          >
-            <p className="text-lg font-semibold mb-6">{message}</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800 transition"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div 
+        className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="p-6">
+           <div className="flex flex-col items-center text-center gap-4">
+              <div className="p-3 bg-slate-100 rounded-full text-slate-900">
+                  <AlertCircle size={24} />
+              </div>
+              <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Confirm Action</h3>
+                  <p className="text-sm text-slate-500 mt-1">{message}</p>
+              </div>
+           </div>
+
+           <div className="flex gap-3 mt-6">
+              <Button 
+                variant="outline" 
+                onClick={onClose} 
+                className="flex-1"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button 
+                variant="primary" 
                 onClick={() => {
                   onConfirm();
                   onClose();
                 }}
-                className="px-4 py-2 rounded-md bg-white text-black border border-black hover:bg-gray-100 transition"
+                className="flex-1"
               >
                 Confirm
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              </Button>
+           </div>
+        </div>
+      </div>
+    </div>
   );
 }

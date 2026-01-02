@@ -5,22 +5,7 @@ import { student } from '../../store';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChevronDown, Award, AlertCircle, X } from 'lucide-react';
-import { GET_GRADES } from '../../api/endpoints';
-
-// Define semester options with year and semester mappings
-const semesterOptions = [
-  { id: '2ae9044f-dade-4020-bbb9-0611a8502b2a', name: 'Sem - 1', year: 'E1' },
-  { id: '118f9490-c2e2-4013-a508-8d1819c09e1f', name: 'Sem - 2', year: 'E1' },
-  { id: '49693fc4-dcbe-4c9d-9033-95e184ce787a', name: 'Sem - 1', year: 'E2' },
-  { id: 'f955f237-ceef-4c7f-a6c6-a47b8421adeb', name: 'Sem - 2', year: 'E2' },
-  { id: '265e4b17-6d03-4431-924f-3a885d81ba3c', name: 'Sem - 1', year: 'E3' },
-  { id: 'b34fa0e3-d88f-494a-94a4-96ece7ecc693', name: 'Sem - 2', year: 'E3' },
-  { id: 'f8979cba-3824-4ebd-a384-f333da6a1746', name: 'Sem - 1', year: 'E4' },
-  { id: 'ee050aca-1b1b-465c-91b7-2b88cdc8e5b3', name: 'Sem - 2', year: 'E4' },
-];
-
-// Unique years
-const years = Array.from(new Set(semesterOptions.map(opt => opt.year))).sort();
+import { GET_GRADES, GET_SEMESTERS } from '../../api/endpoints';
 
 // Grade colors for visualizations (in grayscale for B&W theme)
 const GRADE_COLORS: any = {
@@ -55,6 +40,7 @@ const PIKACHU_IMAGE = '/pikachu.png';
 
 export default function GradeHub() {
   const user = useRecoilValue(student);
+  const [semesterOptions, setSemesterOptions] = useState<{ id: string; name: string; year: string }[]>([]);
   const [selectedYear, setSelectedYear] = useState('E1');
   const [selectedSemester, setSelectedSemester] = useState('Sem - 1');
   const [grades, setGrades] = useState<any>(null);
@@ -65,6 +51,25 @@ export default function GradeHub() {
   const [showMessage, setShowMessage] = useState(false);
   const [messageIdx, setMessageIdx] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Pikachu is fetching your records!');
+
+  // Unique years
+  const years = Array.from(new Set(semesterOptions.map(opt => opt.year))).sort();
+
+  // Fetch Semester Options on Mount
+  useEffect(() => {
+    const fetchSemesters = async () => {
+        try {
+            const response = await axios.get(GET_SEMESTERS);
+            if (response.data.success) {
+                setSemesterOptions(response.data.semesters);
+            }
+        } catch (err) {
+            console.error('Failed to fetch semester options', err);
+            setError('Could not load semester options. Please refresh.');
+        }
+    };
+    fetchSemesters();
+  }, []);
 
   // Handle dynamic loading message
   useEffect(() => {

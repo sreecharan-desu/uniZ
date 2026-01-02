@@ -42,7 +42,7 @@ const getBaseTemplate = (title: string, content: string) => `
 `;
 
 export const getOutpassMailFormatForStudent = (outpass: any) => {
-    const details = outpass.outpass_details;
+    const details = outpass;
     const content = `
         <p class="message">Your outpass request has been successfully submitted and is pending approval.</p>
         <div class="detail-card">
@@ -58,7 +58,7 @@ export const getOutpassMailFormatForStudent = (outpass: any) => {
 };
 
 export const getOutpassMailFormatForAdministration = (outpass: any, user: any) => {
-    const details = outpass.outpass_details;
+    const details = outpass;
     const content = `
         <p class="message">A new outpass request requires your attention.</p>
         <div class="detail-card">
@@ -76,7 +76,7 @@ export const getOutpassMailFormatForAdministration = (outpass: any, user: any) =
 };
 
 export const getOutingMailFormatForStudent = (outing: any) => {
-    const details = outing.outing_details;
+    const details = outing;
     const date = new Date(details.FromTime).toLocaleDateString("en-IN");
     const fromTime = new Date(details.FromTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
     const toTime = new Date(details.ToTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
@@ -95,7 +95,7 @@ export const getOutingMailFormatForStudent = (outing: any) => {
 };
 
 export const getOutingMailFormatForAdministration = (outing: any, user: any) => {
-    const details = outing.outing_details;
+    const details = outing;
     const date = new Date(details.FromTime).toLocaleDateString("en-IN");
     const fromTime = new Date(details.FromTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
     const toTime = new Date(details.ToTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });

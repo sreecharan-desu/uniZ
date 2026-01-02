@@ -62,6 +62,7 @@ export interface Student {
     mother_phonenumber: string;
     outings_list: Outing[];
     outpasses_list: Outpass[];
+    profile_url?: string;
     created_at: string;
     updated_at: string;
 }

@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +12,12 @@ import {
   CheckCircle2,
   Search,
   ArrowLeft,
+  FileSpreadsheet,
+  X
 } from "lucide-react";
+import { Button } from "../../components/Button";
+import { Input } from "../../components/Input";
+import { cn } from "../../utils/cn";
 
 export default function AddGrades() {
   const navigate = useNavigate();
@@ -80,10 +86,10 @@ export default function AddGrades() {
           const header = headers_found[colNumber];
           if (header) rowData[header] = cell.text;
         });
-        json.push(rowData);
+        if (Object.keys(rowData).length > 0) json.push(rowData);
       });
 
-      if (!json.length) throw new Error("Empty file");
+      if (!json.length) throw new Error("Empty file or invalid format");
       setHeaders(headers_found.filter(Boolean));
       setRows(json.map((r, i) => ({ id: i + 1, ...r })));
     } catch (err: any) {
@@ -92,6 +98,13 @@ export default function AddGrades() {
       setFile(null);
       setRows([]);
     }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    setRows([]);
+    setHeaders([]);
+    setError(null);
   };
 
   // --- Build payload ---
@@ -160,7 +173,7 @@ export default function AddGrades() {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Template download error", err);
-      alert("Failed to download template");
+      setError("Failed to download template");
     }
   };
 
@@ -179,241 +192,231 @@ export default function AddGrades() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 flex flex-col items-center justify-start relative overflow-hidden">
-      {/* Subtle Glass Blur Background */}
-      <div className="absolute inset-0 backdrop-blur-2xl bg-white/30" />
-
-      {/* Main Container */}
-      <div className="relative w-full max-w-6xl mt-10 mb-16 rounded-3xl bg-white/40 shadow-2xl border border-white/40 backdrop-blur-lg p-10 space-y-6 text-gray-900">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
+    <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      {/* Header */}
+         <div className="flex flex-col gap-6">
             <button
-              onClick={() => navigate("/admin")}
-              className="p-2 rounded-full hover:bg-white/30 transition"
+                onClick={() => navigate("/admin")}
+                className="self-start inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
             </button>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Grade Upload Manager
-            </h1>
-          </div>
-        </div>
 
-        <p className="text-sm text-gray-700">
-          Upload or download grade templates for any{" "}
-          <b>Year, Semester, and Branch</b>. You can{" "}
-          <b>preview, search, and edit</b> before uploading.
-        </p>
-
-        {/* Controls */}
-        <div className="flex flex-wrap gap-4">
-          <select
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="glass-select"
-          >
-            {["E1", "E2", "E3", "E4"].map((y) => (
-              <option key={y}>{y}</option>
-            ))}
-          </select>
-
-          <select value={sem} onChange={(e) => setSem(e.target.value)} className="glass-select">
-            <option value="Sem-1">Sem-1</option>
-            <option value="Sem-2">Sem-2</option>
-          </select>
-
-          <select value={branch} onChange={(e) => setBranch(e.target.value)} className="glass-select">
-            {["CSE", "ECE", "EEE", "CIVIL", "MECH"].map((b) => (
-              <option key={b}>{b}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Upload Box */}
-        <div className="glass-card border-dashed text-center py-10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/50 transition">
-          <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-            }}
-            className="hidden"
-            id="spreadsheetInput"
-          />
-          <label htmlFor="spreadsheetInput" className="flex flex-col items-center gap-3 cursor-pointer">
-            <Upload className="w-10 h-10 text-gray-700" />
-            {file ? (
-              <span className="font-semibold">{file.name}</span>
-            ) : (
-              <span className="text-gray-700 font-medium">
-                Select or Drag & Drop Spreadsheet
-              </span>
-            )}
-          </label>
-        </div>
-
-        {/* Search Bar */}
-        {rows.length > 0 && (
-          <div className="glass-input flex items-center gap-2 px-3 py-2">
-            <Search className="w-5 h-5 text-gray-700" />
-            <input
-              type="text"
-              placeholder="Search grades..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent outline-none text-sm"
-            />
-          </div>
-        )}
-
-        {/* Table */}
-        {rows.length > 0 && (
-          <div className="rounded-xl overflow-hidden border border-white/50 shadow-inner backdrop-blur-sm max-h-96 overflow-y-auto">
-            <table className="w-full text-sm text-left text-gray-900">
-              <thead className="sticky top-0 bg-white/70 backdrop-blur-md border-b border-gray-300">
-                <tr>
-                  {headers.map((h) => (
-                    <th key={h} className="px-3 py-2 font-semibold uppercase tracking-wide">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRows.map((row) => (
-                  <tr key={row.id} className="border-b border-gray-200 hover:bg-white/50">
-                    {headers.map((h) => (
-                      <td key={h} className="px-3 py-2">
-                        <input
-                          value={row[h] || ""}
-                          onChange={(e) => handleEdit(row.id, h, e.target.value)}
-                          className="w-full bg-white/60 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-black focus:outline-none"
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-4 flex-wrap justify-end">
-          <button
-            onClick={downloadTemplate}
-            className="glass-btn flex items-center gap-2"
-          >
-            <FileDown className="w-5 h-5" /> Download Template
-          </button>
-
-          <button
-            onClick={handleUpload}
-            disabled={uploading || !rows.length}
-            className={`glass-btn flex items-center gap-2 ${
-              uploading || !rows.length ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            {uploading && <Loader2 className="w-5 h-5 animate-spin" />}
-            Upload & Process
-          </button>
-        </div>
-
-        {/* Errors */}
-        {error && (
-          <div className="flex items-center gap-2 text-red-600 bg-red-50/60 border border-red-300 rounded-lg p-3">
-            <AlertCircle className="w-5 h-5" /> {error}
-          </div>
-        )}
-
-        {/* Progress */}
-        {progress && (
-          <div className="space-y-3 bg-white/40 p-4 rounded-xl border border-white/60 backdrop-blur-sm">
-            <div className="flex justify-between text-sm">
-              <span>
-                Status:{" "}
-                <b
-                  className={
-                    progress.status === "completed"
-                      ? "text-black"
-                      : progress.status === "failed"
-                      ? "text-red-600"
-                      : "text-gray-700"
-                  }
-                >
-                  {progress.status}
-                </b>
-              </span>
-              <span>{progress.percentage}% done</span>
-            </div>
-            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-              <div
-                className={`h-3 transition-all duration-500 ${
-                  progress.status === "failed"
-                    ? "bg-red-600"
-                    : progress.status === "completed"
-                    ? "bg-black"
-                    : "bg-gray-700"
-                }`}
-                style={{ width: `${progress.percentage}%` }}
-              />
-            </div>
-
-            {progress.errors?.length > 0 && (
-              <div className="mt-2">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600" /> Errors (
-                  {progress.errors.length})
-                </h3>
-                <ul className="list-disc list-inside text-sm max-h-32 overflow-y-auto">
-                  {progress.errors.map((err: any, idx: number) => (
-                    <li key={idx}>
-                      {err.recordIndex != null
-                        ? `Record ${err.recordIndex}: `
-                        : ""}
-                      {err.message}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {progress.status === "completed" &&
-              progress.errors?.length === 0 && (
-                <div className="flex items-center gap-2 text-green-700 text-sm">
-                  <CheckCircle2 className="w-5 h-5" /> All grades processed
-                  successfully
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Add Grades</h1>
+                    <p className="text-slate-500 mt-1">Bulk upload academic grades via spreadsheet.</p>
                 </div>
-              )}
+                 <div className="flex gap-3">
+                     <Button variant="secondary" onClick={downloadTemplate} size="sm">
+                         <FileDown className="w-4 h-4 mr-2" /> Template
+                     </Button>
+                 </div>
+            </div>
+        </div>
+
+        {/* Configuration */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Year</label>
+                  <div className="flex bg-slate-100 p-1 rounded-lg">
+                      {["E1", "E2", "E3", "E4"].map((y) => (
+                        <button
+                          key={y}
+                          onClick={() => setYear(y)}
+                          className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
+                            year === y
+                              ? "bg-white text-slate-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-700"
+                          }`}
+                        >
+                          {y}
+                        </button>
+                      ))}
+                  </div>
+            </div>
+
+            <div className="space-y-2">
+                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Semester</label>
+                 <select
+                  value={sem}
+                  onChange={(e) => setSem(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                  >
+                  <option value="Sem-1">Semester 1</option>
+                  <option value="Sem-2">Semester 2</option>
+                  </select>
+            </div>
+
+            <div className="space-y-2">
+                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Branch</label>
+                 <select
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                  >
+                  {["CSE", "ECE", "EEE", "CIVIL", "MECH"].map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                  </select>
+            </div>
+        </div>
+
+        {/* Upload Area */}
+        {!rows.length ? (
+            <div className={`
+                border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200
+                ${error ? 'border-red-300 bg-red-50' : 'border-slate-300 hover:border-blue-500 hover:bg-slate-50'}
+            `}>
+                 <input
+                    id="fileInput"
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFile(f);
+                    }}
+                    className="hidden"
+                />
+                <label htmlFor="fileInput" className="cursor-pointer flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                        <Upload className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <p className="text-lg font-semibold text-slate-900">Click to upload grades sheet</p>
+                        <p className="text-slate-500 text-sm mt-1">Supports .xlsx, .xls, .csv</p>
+                    </div>
+                </label>
+                {error && <p className="text-red-600 font-medium mt-4 flex items-center justify-center gap-2"><AlertCircle className="w-4 h-4"/> {error}</p>}
+            </div>
+      ) : (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               {/* File Info Bar */}
+               <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 bg-slate-800 rounded-lg">
+                            <FileSpreadsheet className="w-6 h-6 text-green-400" />
+                        </div>
+                        <div>
+                            <p className="font-semibold">{file?.name}</p>
+                            <p className="text-xs text-slate-400">{rows.length} records loaded</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={clearFile}
+                            className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                            title="Remove File"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+               </div>
+
+                {/* Table Preview */}
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                         <h3 className="font-semibold text-slate-900">Review Data</h3>
+                         <div className="w-full sm:w-72">
+                             <Input 
+                                placeholder="Search rows..." 
+                                value={search}
+                                onchangeFunction={(e: any) => setSearch(e.target.value)}
+                                icon={<Search className="w-4 h-4" />}
+                             />
+                         </div>
+                    </div>
+                    <div className="overflow-x-auto max-h-[500px]">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0 z-10 w-full">
+                                <tr>
+                                    {headers.map((h, i) => (
+                                        <th key={i} className="px-6 py-3 font-semibold border-b border-slate-200 min-w-[150px]">{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {filteredRows.map((r) => (
+                                    <tr key={r.id} className="bg-white hover:bg-slate-50 transition-colors">
+                                        {headers.map((h, i) => (
+                                            <td key={i} className="px-6 py-3 whitespace-nowrap text-slate-700">
+                                                 <input
+                                                    value={r[h] || ""}
+                                                    onChange={(e) => handleEdit(r.id, h, e.target.value)}
+                                                    className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm text-slate-700"
+                                                />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                         <Button 
+                            onClick={handleUpload} 
+                            isLoading={uploading}
+                            disabled={uploading}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <Upload className="w-4 h-4 mr-2" /> Upload Grades
+                         </Button>
+                    </div>
+                </div>
+          </div>
+      )}
+
+      {/* Progress & Errors */}
+      {progress && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-right-10 duration-500 w-96">
+              <div className="bg-white rounded-xl shadow-2xl p-6 border border-slate-100 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                    <div>
+                         <span className="font-bold text-slate-900 block">Processing Upload</span>
+                         <span className={cn("text-xs font-semibold uppercase", 
+                            progress.status === 'completed' ? 'text-green-600' : 
+                            progress.status === 'failed' ? 'text-red-600' : 'text-blue-600'
+                         )}>
+                            {progress.status}
+                         </span>
+                    </div>
+                    <span className="text-sm font-bold text-slate-500">{progress.percentage}%</span>
+                </div>
+                
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div 
+                        className={cn("h-full rounded-full transition-all duration-500", 
+                            progress.status === 'completed' ? 'bg-green-500' : 
+                            progress.status === 'failed' ? 'bg-red-500' : 'bg-blue-500'
+                        )} 
+                        style={{ width: `${progress.percentage}%` }}
+                    />
+                </div>
+
+                {progress.errors?.length > 0 && (
+                  <div className="mt-2 text-xs bg-red-50 p-3 rounded-lg border border-red-100 max-h-32 overflow-y-auto">
+                    <h4 className="font-bold text-red-700 mb-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Errors ({progress.errors.length})
+                    </h4>
+                    <ul className="space-y-1 text-red-600">
+                      {progress.errors.map((err: any, idx: number) => (
+                        <li key={idx}>
+                          {err.recordIndex != null ? `Row ${err.recordIndex}: ` : ""}
+                          {err.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {progress.status === 'completed' && progress.errors?.length === 0 && (
+                     <div className="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> Success! All grades uploaded.
+                    </div>
+                )}
+              </div>
           </div>
         )}
-      </div>
     </div>
   );
-}
-
-/* ---------- Tailwind Glass Classes ---------- */
-const styles = `
-.glass-card {
-  @apply border border-white/50 rounded-2xl bg-white/30 backdrop-blur-lg shadow-lg;
-}
-.glass-select {
-  @apply bg-white/40 backdrop-blur-md border border-white/50 rounded-xl px-3 py-2 text-sm font-medium shadow-sm focus:ring-2 focus:ring-black focus:outline-none;
-}
-.glass-input {
-  @apply border border-white/50 bg-white/40 rounded-xl shadow-sm backdrop-blur-md;
-}
-.glass-btn {
-  @apply bg-white/30 border border-white/50 rounded-xl px-4 py-2 font-medium hover:bg-white/60 backdrop-blur-md transition shadow-sm;
-}
-`;
-
-// Inject glass styles once (for Tailwind JIT environments)
-if (typeof document !== "undefined" && !document.getElementById("glass-style")) {
-  const style = document.createElement("style");
-  style.id = "glass-style";
-  style.innerHTML = styles;
-  document.head.appendChild(style);
 }

@@ -46,6 +46,7 @@ model Student {
   updatedAt            DateTime     @updatedAt
   grades               Grade[] // New relation to Grade
   attendance           Attendance[] // New relation to Attendance
+  ProfileUrl           String       @default("") // Profile picture URL from Cloudinary
 
   @@index([Branch, Year])
   @@index([isPresentInCampus])
