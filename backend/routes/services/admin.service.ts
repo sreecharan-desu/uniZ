@@ -335,9 +335,65 @@ import { mapStudentSuggestionToLegacy } from "../utils/mappers";
 
 export const getStudentSuggestions = async (q: string) => {
   const students = await prisma.student.findMany({
-    where: { Username: { contains: q.toLowerCase(), mode: 'insensitive' } },
+    where: { 
+      OR: [
+        { Username: { contains: q.toLowerCase(), mode: 'insensitive' } },
+        { Name: { contains: q, mode: 'insensitive' } }
+      ]
+    },
     take: 10,
-    select: { id: true, Username: true, Name: true, Branch: true, Year: true }
+    select: { id: true, Username: true, Name: true, Branch: true, Year: true, ProfileUrl: true }
   });
   return students.map(mapStudentSuggestionToLegacy);
+};
+
+export const searchStudentsAdvanced = async (params: {
+  query?: string;
+  branch?: string;
+  year?: string;
+  gender?: string;
+  isPending?: boolean;
+  isOutside?: boolean;
+  page?: number;
+  limit?: number;
+}) => {
+  const { query, branch, year, gender, isPending, isOutside, page = 1, limit = 10 } = params;
+  const skip = (page - 1) * limit;
+
+  const where: any = {};
+  if (query) {
+    where.OR = [
+      { Username: { contains: query.toLowerCase(), mode: 'insensitive' } },
+      { Name: { contains: query, mode: 'insensitive' } }
+    ];
+  }
+  if (branch) where.Branch = branch;
+  if (year) where.Year = year;
+  if (gender) where.Gender = gender;
+  if (isPending !== undefined) where.isApplicationPending = isPending;
+  if (isOutside !== undefined) where.isPresentInCampus = !isOutside;
+
+  const [total, students] = await Promise.all([
+    prisma.student.count({ where }),
+    prisma.student.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { Username: 'asc' },
+      include: {
+        grades: { include: { subject: true, semester: true } },
+        attendance: { include: { subject: true, semester: true } },
+      }
+    })
+  ]);
+
+  return {
+    students: students.map(mapStudentToLegacy),
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };

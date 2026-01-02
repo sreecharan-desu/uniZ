@@ -14,7 +14,9 @@ export const APPROVE_OUTPASS = `${BASE_URL}/admin/pass/approveoutpass`;
 export const REJECT_OUTPASS = `${BASE_URL}/admin/pass/rejectoutpass`;
 export const FORWARD_OUTING = `${BASE_URL}/admin/pass/forwardouting`;
 export const FORWARD_OUTPASS = `${BASE_URL}/admin/pass/forwardoutpass`;
-export const SEARCH_STUDENTS = `${BASE_URL}/admin/searchstudent`; // Handled by legacy or students router
+export const SEARCH_STUDENTS = `${BASE_URL}/admin/searchstudent`; 
+export const SEARCH_STUDENTS_LIST = `${BASE_URL}/admin/getstudents`;
+export const ADMIN_STUDENT_HISTORY = (id: string) => `${BASE_URL}/admin/student/${id}/history`;
 export const UPDATE_STUDENT_STATUS = `${BASE_URL}/admin/pass/updatestudentstatus`;
 export const ADMIN_RESET_PASS = `${BASE_URL}/admin/resetpass`;
 export const GET_ATTENDANCE = `${BASE_URL}/student/getattendance`;
@@ -27,6 +29,7 @@ export const GET_SEMESTERS = `${BASE_URL}/student/getsemesters`;
 export const STUDENT_INFO = `${BASE_URL}/student/getdetails`;
 export const REQUEST_OUTING = `${BASE_URL}/student/requestouting`;
 export const REQUEST_OUTPASS = `${BASE_URL}/student/requestoutpass`;
+export const STUDENT_HISTORY = `${BASE_URL}/student/history`;
 export const RESET_PASS = `${BASE_URL}/student/resetpass`;
 
   // --------------------------

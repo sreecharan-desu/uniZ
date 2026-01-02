@@ -124,8 +124,12 @@ export default function Sidebar({ content }: MainContent) {
 
         {/* User Profile Summary */}
         <div className={cn("p-4 border-b border-slate-800 flex items-center gap-3 transition-all", isCollapsed ? "justify-center" : "")}>
-           <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-semibold shadow-sm ring-1 ring-slate-700">
-             {userData?.name?.[0] || 'U'}
+           <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-semibold shadow-sm ring-1 ring-slate-700 overflow-hidden">
+             {userData?.profile_url ? (
+               <img src={userData.profile_url} alt={userData.name} className="w-full h-full object-cover" />
+             ) : (
+               userData?.name?.[0] || 'U'
+             )}
            </div>
            {!isCollapsed && (
              <div className="min-w-0 flex-1">

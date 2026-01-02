@@ -5,72 +5,90 @@ import prisma from "../../services/prisma.service";
 import { authMiddleware } from "../../student/middlewares/middlewares";
 import progressStore from "../utils/progress";
 import { getOrCreateSubject } from "../utils/utils";
-import { addStudent, getUsers, getStudentSuggestions } from "../../services/admin.service";
+import { addStudent, getUsers, getStudentSuggestions, searchStudentsAdvanced } from "../../services/admin.service";
 import { getStudentDetails } from "../../services/student.service";
 import { logger } from "../../../utils/logger";
+import { mapOutingToLegacy, mapOutpassToLegacy } from "../../utils/mappers";
 
 export const studentAdminRouter = Router();
 
-studentAdminRouter.get("/getstudents", authMiddleware, async (req, res) => {
-  try {
-    const filter = String(req.query.filter || "").trim();
-    if (!filter) return res.status(400).json({ msg: "Filter is required", success: false });
-
-    if (filter === "all") {
-      const page = Math.max(parseInt(String(req.query.page || "1")), 1);
-      const limit = Math.max(parseInt(String(req.query.limit || "5")), 1);
-      const skip = (page - 1) * limit;
-
-      const total = await prisma.student.count();
-      const students = await getUsers(skip, limit);
-
-      return res.json({
-        students,
-        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-        msg: `Fetched ${students.length} students`,
-        success: true,
-      });
-    } else if (filter === "names") {
-      const students = await prisma.student.findMany({ select: { id: true, Name: true } });
-      return res.json({ students, msg: `Fetched ${students.length} students`, success: true });
-    } else {
-      const student = await prisma.student.findUnique({
-        where: { id: filter },
-        select: {
-          id: true, Name: true, _count: true, Address: true, grades: true, attendance: true,
-          BloodGroup: true, Branch: true, createdAt: true, DateOfBirth: true, Email: true,
-          FatherAddress: true, FatherEmail: true, FatherName: true, FatherOccupation: true,
-        },
-      });
-      if (!student) return res.status(404).json({ msg: `Student with ID ${filter} not found`, success: false });
-      return res.json({ student, msg: `Fetched student ${student.Name}`, success: true });
-    }
-  } catch (e: any) {
-    logger.error(`Error fetching students: ${e.message || e}`);
-    return res.status(500).json({ msg: "Error fetching students", success: false });
-  }
-});
+// ... existing /getstudents ...
 
 studentAdminRouter.post("/searchstudent", authMiddleware, async (req, res) => {
   const start = Date.now();
   try {
-    const username = String(req.body.username || "").trim();
-    if (!username) return res.status(400).json({ msg: "username required", success: false });
+    const { 
+      username, 
+      branch, 
+      year, 
+      gender, 
+      isPending, 
+      isOutside, 
+      page = 1, 
+      limit = 10 
+    } = req.body;
 
-    // Parallel execution for performance (sub-100ms target)
-    const [suggestions, exactStudent] = await Promise.all([
-      getStudentSuggestions(username),
-      getStudentDetails(username)
-    ]);
-
-    if (!suggestions.length && !exactStudent) {
-      return res.json({ success: false, msg: "No student found" });
+    const query = String(username || "").trim();
+    
+    // If it's a simple suggestion search (just query, first page)
+    if (query && !branch && !year && !gender && isPending === undefined && isOutside === undefined && page === 1 && limit <= 10) {
+      const [suggestions, exactStudent] = await Promise.all([
+        getStudentSuggestions(query),
+        getStudentDetails(query)
+      ]);
+      return res.json({ success: true, suggestions, student: exactStudent || null });
     }
 
-    return res.json({ success: true, suggestions, student: exactStudent || null });
+    // Advanced search with filters and pagination
+    const results = await searchStudentsAdvanced({
+      query,
+      branch,
+      year,
+      gender,
+      isPending,
+      isOutside,
+      page: Number(page),
+      limit: Number(limit)
+    });
+
+    return res.json({ success: true, ...results });
   } catch (e: any) {
     logger.error(`Search Student Error: ${e.message || e}`);
-    return res.status(500).json({ msg: "Error fetching students", success: false });
+    return res.status(500).json({ msg: "Error searching students", success: false });
+  }
+});
+
+// New Paginated History Endpoint
+studentAdminRouter.get("/:id/history", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const page = Math.max(Number(req.query.page || "1"), 1);
+    const limit = Math.max(Number(req.query.limit || "10"), 1);
+    const skip = (page - 1) * limit;
+
+    const [outings, outpasses, totalOutings, totalOutpasses] = await Promise.all([
+      prisma.outing.findMany({ where: { StudentId: id }, skip, take: limit, orderBy: { RequestedTime: 'desc' } }),
+      prisma.outpass.findMany({ where: { StudentId: id }, skip, take: limit, orderBy: { RequestedTime: 'desc' } }),
+      prisma.outing.count({ where: { StudentId: id } }),
+      prisma.outpass.count({ where: { StudentId: id } })
+    ]);
+
+    return res.json({
+      success: true,
+      history: [
+        ...outings.map(o => ({ ...mapOutingToLegacy(o), type: 'outing' })),
+        ...outpasses.map(o => ({ ...mapOutpassToLegacy(o), type: 'outpass' }))
+      ].sort((a: any, b: any) => new Date(b.requested_time).getTime() - new Date(a.requested_time).getTime()),
+      pagination: {
+        page,
+        limit,
+        total: totalOutings + totalOutpasses,
+        totalPages: Math.ceil((totalOutings + totalOutpasses) / limit)
+      }
+    });
+  } catch (e: any) {
+    logger.error(`History Fetch Error: ${e.message || e}`);
+    return res.status(500).json({ success: false, msg: "Failed to fetch history" });
   }
 });
 

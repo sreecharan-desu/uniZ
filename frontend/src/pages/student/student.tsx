@@ -14,6 +14,8 @@ import { BASE_URL, UPDATE_DETAILS } from '../../api/endpoints';
 import { motion, AnimatePresence } from 'framer-motion';
 import RequestCard from '../../components/RequestCard';
 import { toast } from 'react-toastify';
+import { Pagination } from '../../components/Pagination';
+import { STUDENT_HISTORY } from '../../api/endpoints';
 
 export const enableOutingsAndOutpasses = true;
 
@@ -186,6 +188,35 @@ export default function StudentProfilePage() {
     fatherEmail: '', motherEmail: '', fatherAddress: '', motherAddress: '',
     fatherPhoneNumber: '', motherPhoneNumber: '',
   });
+
+  // History State
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyPagination, setHistoryPagination] = useState({ page: 1, totalPages: 1 });
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  const fetchHistory = async (page = 1) => {
+    try {
+      setIsHistoryLoading(true);
+      const token = localStorage.getItem('student_token')?.replace(/^"|"$/g, '');
+      const res = await axios.get(`${STUDENT_HISTORY}?page=${page}&limit=5`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setHistory(res.data.history);
+        setHistoryPagination(res.data.pagination);
+      }
+    } catch (err) {
+      console.error("Failed to fetch history", err);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'permissions') {
+       fetchHistory(1);
+    }
+  }, [activeTab]);
 
   // Initialize fields
   useEffect(() => {
@@ -398,14 +429,7 @@ export default function StudentProfilePage() {
     mother: ['motherName', 'motherOccupation', 'motherEmail', 'motherPhoneNumber', 'motherAddress'],
   };
 
-  const requestHistory = [
-      ...(user?.outings_list || []).map((r: any) => ({ ...r, type: 'outing' })),
-      ...(user?.outpasses_list || []).map((r: any) => ({ ...r, type: 'outpass' }))
-  ].sort((a: any, b: any) => {
-      const dateA = new Date(a.requested_time || 0).getTime();
-      const dateB = new Date(b.requested_time || 0).getTime();
-      return dateB - dateA;
-  });
+
 
   return (
     <div className="min-h-screen bg-white font-sans text-black -mt-6">
@@ -692,9 +716,24 @@ export default function StudentProfilePage() {
                                  <History className="w-5 h-5 text-gray-400" /> Request History
                              </h3>
                              <div className="grid gap-4">
-                                {requestHistory.length > 0 ? requestHistory.map((req: any) => (
-                                     <RequestCard key={req._id} request={req} type={req.type} email={user.email} />
-                                )) : (
+                                {isHistoryLoading ? (
+                                     <div className="flex flex-col items-center justify-center py-10 gap-2">
+                                         <div className="w-6 h-6 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
+                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Loading history...</p>
+                                     </div>
+                                ) : history.length > 0 ? (
+                                    <>
+                                        {history.map((req: any) => (
+                                             <RequestCard key={req._id} request={req} type={req.type} email={user.email} />
+                                        ))}
+                                        <Pagination 
+                                            currentPage={historyPagination.page} 
+                                            totalPages={historyPagination.totalPages} 
+                                            onPageChange={(p) => fetchHistory(p)}
+                                            className="mt-6"
+                                        />
+                                    </>
+                                ) : (
                                     <div className="text-center py-10 bg-gray-50 rounded-xl text-gray-400">
                                         No request history found.
                                     </div>

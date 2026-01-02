@@ -1,5 +1,5 @@
 
-import { FaDiscord, FaGithub, FaLinkedin, FaYoutube } from "react-icons/fa";
+import {  FaGithub, FaLinkedin, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
 export function Footer() {

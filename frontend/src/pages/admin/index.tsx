@@ -4,7 +4,6 @@ import { useAdminname } from "../../hooks/adminname";
 import { useIsAuth } from "../../hooks/is_authenticated";
 import {
   Settings,
-  Users,
   UserPlus,
   ClipboardList,
   CalendarCheck,

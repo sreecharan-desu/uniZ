@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   ArrowLeft,
   CheckCircle2,
-  AlertCircle
 } from "lucide-react";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";

@@ -105,4 +105,5 @@ export const mapStudentSuggestionToLegacy = (student: any) => ({
   name: student.Name,
   branch: student.Branch,
   year: student.Year,
+  profile_url: student.ProfileUrl,
 });

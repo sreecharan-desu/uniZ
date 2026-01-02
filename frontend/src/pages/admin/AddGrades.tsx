@@ -7,7 +7,6 @@ import ExcelJS from "exceljs";
 import {
   Upload,
   FileDown,
-  Loader2,
   AlertCircle,
   CheckCircle2,
   Search,

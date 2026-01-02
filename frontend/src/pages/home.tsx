@@ -2,7 +2,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useIsAuth } from "../hooks/is_authenticated";
-import { Award, Clock, UserCheck, ArrowRight, Zap, ShieldCheck } from "lucide-react";
+import { Clock, ArrowRight, Zap, ShieldCheck } from "lucide-react";
 import { Button } from "../components/Button";
 
 export default function Home() {

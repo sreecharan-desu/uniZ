@@ -250,6 +250,46 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
   }
 });
 
+// New Paginated History for Student
+studentRouter.get("/history", authMiddleware, async (req, res) => {
+  try {
+    const studentId = (req as any).user?.username; // Username is used as ID in this system
+    if (!studentId) return res.status(401).json({ success: false, msg: "Unauthorized" });
+
+    const page = Math.max(Number(req.query.page || "1"), 1);
+    const limit = Math.max(Number(req.query.limit || "5"), 1);
+    const skip = (page - 1) * limit;
+
+    const [outings, outpasses, totalOutings, totalOutpasses] = await Promise.all([
+      prisma.outing.findMany({ where: { StudentId: studentId }, skip, take: limit, orderBy: { RequestedTime: 'desc' } }),
+      prisma.outpass.findMany({ where: { StudentId: studentId }, skip, take: limit, orderBy: { RequestedTime: 'desc' } }),
+      prisma.outing.count({ where: { StudentId: studentId } }),
+      prisma.outpass.count({ where: { StudentId: studentId } })
+    ]);
+
+    const { mapOutingToLegacy, mapOutpassToLegacy } = await import("../utils/mappers");
+
+    const history = [
+      ...outings.map(o => ({ ...mapOutingToLegacy(o), type: 'outing' })),
+      ...outpasses.map(o => ({ ...mapOutpassToLegacy(o), type: 'outpass' }))
+    ].sort((a: any, b: any) => new Date(b.requested_time).getTime() - new Date(a.requested_time).getTime());
+
+    return res.json({
+      success: true,
+      history: history.slice(0, limit), // Slice because we merged two paginated lists
+      pagination: {
+        page,
+        limit,
+        total: totalOutings + totalOutpasses,
+        totalPages: Math.ceil((totalOutings + totalOutpasses) / limit)
+      }
+    });
+  } catch (e: any) {
+    logger.error(`Student History Error: ${e.message || e}`);
+    return res.status(500).json({ success: false, msg: "Failed to fetch history" });
+  }
+});
+
 // Get Semesters List
 studentRouter.get("/getsemesters", async (req, res) => {
   try {

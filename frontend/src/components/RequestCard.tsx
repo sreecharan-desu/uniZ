@@ -1,6 +1,6 @@
 
 import { calculateDuration, formatDuration } from '../utils/timeUtils';
-import { Clock, History, Calendar, CheckCircle, XCircle, AlertCircle, User, ArrowRight } from 'lucide-react';
+import { Clock, History, Calendar, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function RequestCard({ request, type, email }: { request: any; type: 'outing' | 'outpass'; email: string }) {
     const isPending = !request.is_approved && !request.is_rejected;
