@@ -51,9 +51,9 @@ export default function Resetpassword() {
     switch (score) {
       case 0:
       case 1:
-        return { score, label: "Weak", color: "bg-gray-300" };
+        return { score, label: "Weak", color: "bg-slate-200" };
       case 2:
-        return { score, label: "Moderate", color: "bg-gray-600" };
+        return { score, label: "Moderate", color: "bg-slate-400" };
       case 3:
         return { score, label: "Strong", color: "bg-black" };
       default:

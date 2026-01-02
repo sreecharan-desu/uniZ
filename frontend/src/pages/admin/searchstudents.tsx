@@ -195,7 +195,7 @@ export default function SearchStudents() {
     return {
         avg,
         status: hasFail ? "Remedial" : Number(avg) >= 8.5 ? "Excellent" : Number(avg) >= 7 ? "Pass" : "Good",
-        color: hasFail ? "text-red-600 bg-red-50" : Number(avg) >= 8.5 ? "text-emerald-600 bg-emerald-50" : "text-blue-600 bg-blue-50"
+        color: hasFail ? "text-white bg-black" : "text-slate-900 bg-slate-100"
     };
   };
 
@@ -266,11 +266,11 @@ export default function SearchStudents() {
                                                 {s.profile_url ? <img src={s.profile_url} className="w-full h-full object-cover" /> : s.name[0]}
                                             </div>
                                             <div className="text-left">
-                                                <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{s.name}</p>
+                                                <p className="text-sm font-bold text-slate-900 group-hover:text-black transition-colors">{s.name}</p>
                                                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{s.username} • {s.branch} {s.year}</p>
                                             </div>
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-all" />
+                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
                                     </button>
                                 ))}
                             </motion.div>
@@ -315,14 +315,14 @@ export default function SearchStudents() {
                                         onClick={() => setIsPending(isPending === true ? undefined : true)}
                                         className={cn(
                                             "flex-1 h-11 rounded-xl text-[10px] font-black uppercase border shadow-sm transition-all",
-                                            isPending ? "bg-amber-500 border-amber-500 text-white shadow-amber-200" : "bg-white border-slate-200 text-slate-600"
+                                            isPending ? "bg-slate-900 border-slate-900 text-white shadow-slate-200" : "bg-white border-slate-200 text-slate-600"
                                         )}
                                     >Pending</button>
                                     <button 
                                         onClick={() => setIsOutside(isOutside === true ? undefined : true)}
                                         className={cn(
                                             "flex-1 h-11 rounded-xl text-[10px] font-black uppercase border shadow-sm transition-all",
-                                            isOutside ? "bg-blue-600 border-blue-600 text-white shadow-blue-200" : "bg-white border-slate-200 text-slate-600"
+                                            isOutside ? "bg-black border-black text-white" : "bg-white border-slate-200 text-slate-600"
                                         )}
                                     >Outside</button>
                                 </div>
@@ -372,7 +372,7 @@ export default function SearchStudents() {
                                       {student.profile_url ? <img src={student.profile_url} className="w-full h-full object-cover" /> : student.name[0]}
                                   </div>
                                   <div>
-                                      <h4 className="font-bold text-slate-900 text-lg leading-tight group-hover:text-blue-600 transition-colors">{student.name}</h4>
+                                      <h4 className="font-bold text-slate-900 text-lg leading-tight group-hover:text-black transition-colors">{student.name}</h4>
                                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{student.username}</p>
                                   </div>
                               </div>
@@ -404,7 +404,7 @@ export default function SearchStudents() {
                   {/* Student Header Card */}
                   <div className="bg-slate-900 rounded-[2rem] p-8 md:p-12 relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800 rounded-full blur-3xl opacity-20 -mr-32 -mt-32" />
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600 rounded-full blur-3xl opacity-10 -ml-32 -mb-32" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-700 rounded-full blur-3xl opacity-10 -ml-32 -mb-32" />
                     
                     <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">
                         <div className="relative">
@@ -419,7 +419,7 @@ export default function SearchStudents() {
                             </div>
                             <div className={cn(
                                 "absolute -bottom-2 -right-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border-2 border-slate-900",
-                                selectedStudent.isApplicationPending ? "bg-amber-400 text-slate-900" : "bg-emerald-500 text-white"
+                                selectedStudent.isApplicationPending ? "bg-white text-slate-900" : "bg-white/10 text-white border-white/20"
                             )}>
                                 {selectedStudent.isApplicationPending ? "Action Required" : "Up to Date"}
                             </div>
@@ -432,7 +432,7 @@ export default function SearchStudents() {
                             </div>
                             <div className="flex flex-wrap justify-center md:justify-start gap-3">
                                 <span className="px-4 py-2 bg-white/5 rounded-xl text-white text-xs font-bold border border-white/10 flex items-center gap-2">
-                                    <MapPin className="w-3.5 h-3.5 text-blue-400" /> Room {selectedStudent.roomno || "N/A"}
+                                    <MapPin className="w-3.5 h-3.5 text-slate-400" /> Room {selectedStudent.roomno || "N/A"}
                                 </span>
                                 {getAcademicStatus() && (
                                     <span className={cn("px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 border border-transparent", getAcademicStatus()?.color)}>
@@ -491,22 +491,22 @@ export default function SearchStudents() {
                                                   <p className="text-sm font-bold text-slate-900">{g.subject}</p>
                                                   <p className="text-[10px] font-bold text-slate-400 uppercase">{g.semester}</p>
                                               </div>
-                                              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black", g.grade < 5 ? "bg-red-50 text-red-600" : "bg-white text-slate-900 shadow-sm")}>
-                                                  {g.grade}
-                                              </div>
-                                          </div>
+                                               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black", g.grade < 5 ? "bg-slate-900 text-white" : "bg-white text-slate-900 shadow-sm")}>
+                                                   {g.grade}
+                                               </div>
+                                           </div>
                                       )) : <p className="text-slate-400 font-bold italic py-4">No records found</p>}
                                   </Section>
                                   <Section icon={BookOpen} title="Attendance Metrics">
                                       {selectedStudent.attendance?.length ? selectedStudent.attendance.map((a, i) => (
                                           <div key={i} className="p-4 bg-slate-50 rounded-2xl space-y-2 border border-transparent hover:border-slate-200 hover:bg-white transition-all">
-                                              <div className="flex justify-between items-center">
-                                                  <p className="text-sm font-bold text-slate-900">{a.subject}</p>
-                                                  <span className="text-blue-600 font-black text-xs">{((a.attendedClasses / a.totalClasses) * 100).toFixed(1)}%</span>
-                                              </div>
-                                              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(a.attendedClasses / a.totalClasses) * 100}%` }} />
-                                              </div>
+                                               <div className="flex justify-between items-center">
+                                                   <p className="text-sm font-bold text-slate-900">{a.subject}</p>
+                                                   <span className="text-slate-900 font-black text-xs">{((a.attendedClasses / a.totalClasses) * 100).toFixed(1)}%</span>
+                                               </div>
+                                               <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                   <div className="h-full bg-slate-900 rounded-full" style={{ width: `${(a.attendedClasses / a.totalClasses) * 100}%` }} />
+                                               </div>
                                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.attendedClasses} / {a.totalClasses} Lectures</p>
                                           </div>
                                       )) : <p className="text-slate-400 font-bold italic py-4">No records found</p>}
@@ -528,18 +528,18 @@ export default function SearchStudents() {
                                           {history.map((req, i) => (
                                               <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group">
                                                   <div className="flex items-center gap-6">
-                                                      <div className={cn(
-                                                          "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform",
-                                                          req.is_approved ? "bg-emerald-500 text-white shadow-emerald-200" : req.is_rejected ? "bg-red-500 text-white shadow-red-200" : "bg-amber-400 text-slate-900 shadow-amber-100"
-                                                      )}>
-                                                          <History className="w-6 h-6" />
-                                                      </div>
-                                                      <div>
-                                                          <div className="flex items-center gap-3 mb-1">
-                                                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{req.type}</span>
-                                                              <span className={cn("w-1.5 h-1.5 rounded-full", req.is_approved ? "bg-emerald-500" : req.is_rejected ? "bg-red-500" : "bg-amber-400 animat-pulse")} />
-                                                              <span className="text-xs font-bold text-slate-700">{req.is_approved ? "Granted" : req.is_rejected ? "Rejected" : "Pending"}</span>
-                                                          </div>
+                                                       <div className={cn(
+                                                           "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform",
+                                                           req.is_approved ? "bg-black text-white shadow-slate-200" : req.is_rejected ? "bg-slate-300 text-slate-700 shadow-slate-100" : "bg-white border-2 border-slate-900 text-slate-900 shadow-slate-50"
+                                                       )}>
+                                                           <History className="w-6 h-6" />
+                                                       </div>
+                                                       <div>
+                                                           <div className="flex items-center gap-3 mb-1">
+                                                               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{req.type}</span>
+                                                               <span className={cn("w-1.5 h-1.5 rounded-full", req.is_approved ? "bg-black" : req.is_rejected ? "bg-slate-400" : "bg-slate-900 animate-pulse")} />
+                                                               <span className="text-xs font-bold text-slate-700">{req.is_approved ? "Granted" : req.is_rejected ? "Rejected" : "Pending"}</span>
+                                                           </div>
                                                           <p className="font-bold text-slate-900 text-lg">"{req.reason}"</p>
                                                           <p className="text-xs font-semibold text-slate-400 mt-1">{new Date(req.requested_time).toLocaleString()}</p>
                                                       </div>

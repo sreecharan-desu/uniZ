@@ -33,9 +33,9 @@ const ApproveComp = lazy(() => import("./pages/admin/approve-comp"));
 export const isMaintenance = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 
 const LoadingFallback = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
-        <Loader2 className="w-10 h-10 text-slate-800 animate-spin" />
-        <p className="text-slate-500 font-medium animate-pulse">Loading Application...</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <Loader2 className="w-10 h-10 text-black animate-spin" />
+        <p className="text-black font-black uppercase tracking-widest animate-pulse">Loading uniZ...</p>
     </div>
 );
 
@@ -43,20 +43,20 @@ export function Error() {
   useIsAuth();
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-center px-4">
-       <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-6 text-slate-500">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center px-4">
+       <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-6 text-white">
            <FileQuestion size={32} />
        </div>
-       <h1 className="text-2xl font-bold text-slate-900 mb-2">Page Not Found</h1>
-       <p className="text-slate-500 max-w-md mb-8">
-          The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+       <h1 className="text-4xl font-black text-black mb-2 uppercase tracking-tighter">Page Not Found</h1>
+       <p className="text-slate-500 max-w-md mb-8 font-medium italic">
+          The requested resource is unavailable or has been relocated.
        </p>
        <div className="flex gap-4">
-           <Button variant="outline" onclickFunction={() => navigate(-1)}>
+           <Button variant="outline" onclickFunction={() => navigate(-1)} className="rounded-none border-2 border-black font-bold uppercase">
                <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
            </Button>
            <Link to="/">
-                <Button>Return to Home</Button>
+                <Button className="rounded-none bg-black text-white px-8 font-bold uppercase">Return to Home</Button>
            </Link>
        </div>
     </div>
@@ -67,7 +67,7 @@ export function Maintenance() {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-center px-4">
-       <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-600 animate-pulse">
+       <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mb-6 text-white animate-pulse">
            <Construction size={40} />
        </div>
        <h1 className="text-3xl font-bold text-slate-900 mb-2">Under Maintenance</h1>

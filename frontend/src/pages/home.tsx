@@ -34,16 +34,16 @@ export default function Home() {
                     
                     {/* Content */}
                     <div className="space-y-8 text-center lg:text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold tracking-wide uppercase">
-                            <span className="w-2 h-2 rounded-full bg-blue-600 mr-2 animate-pulse"></span>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-black border border-black text-white text-xs font-black tracking-widest uppercase">
+                            <span className="w-2 h-2 rounded-full bg-white mr-2 animate-pulse"></span>
                             Campus Operating System
                         </div>
 
-                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 leading-tight">
-                            uni<span className="text-blue-600">Z</span>
+                        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 leading-tight uppercase">
+                            uni<span className="text-black">Z</span>
                         </h1>
 
-                        <p className="text-lg md:text-xl text-slate-500 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                        <p className="text-lg md:text-xl text-slate-500 max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium capitalize">
                             A unified platform for academic management.
                             <br className="hidden md:inline" /> 
                             Streamline your campus life with speed and precision.
@@ -51,8 +51,8 @@ export default function Home() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                              <Link to="/student/signin">
-                                 <Button size="lg" className="rounded-full px-8 w-full sm:w-auto">
-                                    Student Login <ArrowRight className="ml-2 w-4 h-4" />
+                                 <Button size="lg" className="rounded-none border-4 border-black px-10 w-full sm:w-auto font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                                    Student Login <ArrowRight className="ml-2 w-5 h-5" />
                                  </Button>
                              </Link>
                         </div>
@@ -60,31 +60,31 @@ export default function Home() {
 
                     {/* Visual */}
                     <div className="relative animate-in fade-in slide-in-from-right-8 duration-1000 delay-200 hidden lg:block">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-slate-50 rounded-full blur-3xl opacity-60 transform scale-90"></div>
+                        <div className="absolute inset-0 bg-slate-200 rounded-full blur-3xl opacity-30 transform scale-90"></div>
                         <img 
                             src="/pikachu.png" 
                             alt="UniZ Platform" 
-                            className="relative z-10 w-full max-w-sm mx-auto drop-shadow-xl hover:scale-105 transition-transform duration-500" 
+                            className="relative z-10 w-full max-w-sm mx-auto drop-shadow-2xl grayscale hover:grayscale-0 transition-all duration-500" 
                         />
                     </div>
                 </div>
             </section>
 
             {/* Features Strip */}
-            <section className="bg-white border-t border-slate-200 py-16 px-6">
+            <section className="bg-white border-t-8 border-black py-16 px-6">
                 <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
                      <FeatureCard 
-                        icon={<Clock className="w-6 h-6 text-blue-600"/>}
+                        icon={<Clock className="w-6 h-6 text-black"/>}
                         title="Real-time Sync"
                         desc="Instant updates on attendance and approvals."
                      />
                      <FeatureCard 
-                        icon={<ShieldCheck className="w-6 h-6 text-purple-600"/>}
+                        icon={<ShieldCheck className="w-6 h-6 text-black"/>}
                         title="Secure & Reliable"
                         desc="Institutional-grade security for your data."
                      />
                      <FeatureCard 
-                        icon={<Zap className="w-6 h-6 text-amber-500"/>}
+                        icon={<Zap className="w-6 h-6 text-black"/>}
                         title="Fast Workflow"
                         desc="Optimized for quick academic tasks."
                      />

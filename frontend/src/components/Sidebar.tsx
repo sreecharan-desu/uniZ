@@ -156,7 +156,7 @@ export default function Sidebar({ content }: MainContent) {
                         )}
                         title={isCollapsed ? item.name : undefined}
                     >
-                        <span className={cn("transition-colors", isActive ? "text-blue-400" : "group-hover:text-blue-400 text-slate-500")}>
+                        <span className={cn("transition-colors", isActive ? "text-white" : "group-hover:text-white text-slate-500")}>
                             {item.icon}
                         </span>
                         {!isCollapsed && (
@@ -172,7 +172,7 @@ export default function Sidebar({ content }: MainContent) {
              <button
                 onClick={() => setShowConfirm(true)}
                 className={cn(
-                    "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-colors text-red-400 hover:bg-red-400/10 hover:text-red-300",
+                    "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-colors text-slate-400 hover:bg-white hover:text-black",
                     isCollapsed ? "justify-center" : ""
                 )}
                 title={isCollapsed ? "Logout" : undefined}

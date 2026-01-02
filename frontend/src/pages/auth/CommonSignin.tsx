@@ -239,7 +239,7 @@ export default function Signin({ type }: SigninProps) {
                             <div className="text-center pt-2">
                                 <button
                                     type="button"
-                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline transition-all"
+                                    className="text-sm text-slate-900 hover:text-black font-bold uppercase tracking-widest underline transition-all"
                                     onClick={() => setStep("forgot")}
                                 >
                                     Forgot password?

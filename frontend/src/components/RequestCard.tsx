@@ -8,16 +8,16 @@ export default function RequestCard({ request, type, email }: { request: any; ty
     const isRejected = request.is_rejected;
 
     const statusBadge = () => {
-        if (isApproved) return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800"><CheckCircle className="w-3.5 h-3.5" /> Approved</span>;
-        if (isRejected) return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3.5 h-3.5" /> Rejected</span>;
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800"><AlertCircle className="w-3.5 h-3.5" /> Pending</span>;
+        if (isApproved) return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-black text-white"><CheckCircle className="w-3.5 h-3.5" /> Approved</span>;
+        if (isRejected) return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-slate-400 text-white"><XCircle className="w-3.5 h-3.5" /> Rejected</span>;
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-white text-black border border-black shadow-sm"><AlertCircle className="w-3.5 h-3.5" /> Pending</span>;
     };
 
     return (
         <div className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-5">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-md ${type === 'outing' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
+                    <div className={`p-2 rounded-md bg-slate-100 text-slate-900 border border-slate-200`}>
                         {type === 'outing' ? <Clock className="w-5 h-5" /> : <Calendar className="w-5 h-5" />}
                     </div>
                     <div>
@@ -29,9 +29,9 @@ export default function RequestCard({ request, type, email }: { request: any; ty
                 <div className="flex flex-col items-end gap-2">
                     {statusBadge()}
                     {isPending && request.current_level && (
-                        <div className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                        <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-white bg-black px-2 py-0.5 rounded">
                              <ArrowRight className="w-3 h-3" />
-                             Pending at {request.current_level.toUpperCase()}
+                             Pending at {request.current_level.replace('_', ' ')}
                         </div>
                     )}
                 </div>
@@ -65,7 +65,7 @@ export default function RequestCard({ request, type, email }: { request: any; ty
                 </div>
 
                 {isRejected && request.message && (
-                    <div className="col-span-full mt-2 p-3 bg-red-50 border border-red-100 rounded text-red-800 text-sm">
+                    <div className="col-span-full mt-2 p-3 bg-slate-50 border border-slate-200 rounded text-black text-sm">
                         <span className="font-semibold block mb-1">Rejection Reason:</span>
                         {request.message}
                     </div>
@@ -82,8 +82,8 @@ export default function RequestCard({ request, type, email }: { request: any; ty
                         {request.approval_logs.map((log: any, i: number) => (
                             <div key={i} className="text-xs relative">
                                 <div className={`absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                                     log.action === 'approve' ? 'bg-emerald-500' : 
-                                     log.action === 'reject' ? 'bg-red-500' : 'bg-blue-400'
+                                     log.action === 'approve' ? 'bg-black' : 
+                                     log.action === 'reject' ? 'bg-slate-400' : 'bg-slate-100'
                                 }`}></div>
                                 <div className="flex justify-between items-center text-slate-600">
                                     <span>

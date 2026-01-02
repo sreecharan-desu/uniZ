@@ -506,7 +506,7 @@ export default function StudentProfilePage() {
                         <span className="bg-gray-100 px-3 py-1 rounded-full">{user?.branch}</span>
                         {/* Status Check UI */}
                         {user?.has_pending_requests && (
-                            <span className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1 rounded-full animate-pulse border border-amber-100">
+                            <span className="flex items-center gap-1.5 bg-black text-white px-3 py-1 rounded-full animate-pulse border border-black shadow-lg">
                                 <Clock className="w-3.5 h-3.5" /> Processing Request...
                             </span>
                         )}
@@ -670,12 +670,12 @@ export default function StudentProfilePage() {
                          {/* Action Buttons */}
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              {user?.has_pending_requests ? (
-                                <div className="col-span-full p-8 bg-amber-50 border border-amber-100/50 rounded-2xl text-center">
-                                    <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                                <div className="col-span-full p-8 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+                                    <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                                         <Clock className="w-8 h-8" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-yellow-900 mb-2">Request Pending</h3>
-                                    <p className="text-yellow-700 max-w-md mx-auto">
+                                    <h3 className="text-lg font-bold text-black mb-2">Request Pending</h3>
+                                    <p className="text-slate-600 max-w-md mx-auto">
                                         You already have an active request pending approval. You cannot submit a new request until the current one is processed.
                                     </p>
                                 </div>
@@ -683,27 +683,27 @@ export default function StudentProfilePage() {
                                  <>
                                      <button 
                                         onClick={() => setRequestType('outing')}
-                                        className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50 transition-all duration-300"
+                                        className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-slate-200 bg-white hover:bg-black hover:text-white transition-all duration-300 shadow-sm"
                                      >
-                                         <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                         <div className="w-16 h-16 rounded-full bg-slate-50 text-slate-900 flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all">
                                              <Clock className="w-8 h-8" />
                                          </div>
                                          <div className="text-center">
                                              <h3 className="text-lg font-bold mb-1">Request Outing</h3>
-                                             <p className="text-sm text-gray-500 group-hover:text-gray-300">Short duration (Few hours)</p>
+                                             <p className="text-sm text-slate-500 group-hover:text-slate-300">Short duration (Few hours)</p>
                                          </div>
                                      </button>
 
                                      <button 
                                         onClick={() => setRequestType('outpass')}
-                                        className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-gray-100 bg-white hover:border-purple-200 hover:shadow-lg hover:shadow-purple-50 transition-all duration-300"
+                                        className="group flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-slate-200 bg-white hover:bg-black hover:text-white transition-all duration-300 shadow-sm"
                                      >
-                                         <div className="w-16 h-16 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                         <div className="w-16 h-16 rounded-full bg-slate-50 text-slate-900 flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all">
                                              <Calendar className="w-8 h-8" />
                                          </div>
                                          <div className="text-center">
                                              <h3 className="text-lg font-bold mb-1">Request Outpass</h3>
-                                             <p className="text-sm text-gray-500 group-hover:text-gray-300">Long duration (Days/Overnight)</p>
+                                             <p className="text-sm text-slate-500 group-hover:text-slate-300">Long duration (Days/Overnight)</p>
                                          </div>
                                      </button>
                                  </>
