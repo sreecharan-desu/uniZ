@@ -132,6 +132,7 @@ export const student = atom<Student>({
     mother_phonenumber: '',
     outings_list: [],
     outpasses_list: [],
+    profile_url: '',
     created_at: '',
     updated_at: '',
   },

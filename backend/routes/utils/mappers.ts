@@ -42,8 +42,8 @@ export const mapStudentToLegacy = (user: any) => {
     father_occupation: user.FatherOccupation,
     mother_occupation: user.MotherOccupation,
     is_disabled: user.isDisabled,
-    profile_url: user.ProfileUrl,
-    _id: user.id, // Legacy compatibility
+    profile_url: user.ProfileUrl ?? "",
+    _id: user.id || user._id, // Legacy compatibility
   };
 };
 
@@ -105,5 +105,5 @@ export const mapStudentSuggestionToLegacy = (student: any) => ({
   name: student.Name,
   branch: student.Branch,
   year: student.Year,
-  profile_url: student.ProfileUrl,
+  profile_url: student.ProfileUrl ?? "",
 });

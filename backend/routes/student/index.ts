@@ -258,13 +258,19 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
     const updated = await prisma.student.update({
       where: { Username: username.toLowerCase() },
       data,
-      select: { id: true, Username: true, Email: true, Name: true },
+      select: { id: true, Username: true, Email: true, Name: true, ProfileUrl: true },
     });
 
     await sendEmail(updated.Email, "Account details updated", "Your account details have been updated successfully.");
 
     res.json({
-      student: { _id: updated.id, username: updated.Username, email: updated.Email, name: updated.Name },
+      student: { 
+        _id: updated.id, 
+        username: updated.Username, 
+        email: updated.Email, 
+        name: updated.Name,
+        profile_url: updated.ProfileUrl 
+      },
       success: true,
     });
   } catch (error: any) {
