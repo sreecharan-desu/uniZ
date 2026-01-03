@@ -1,4 +1,34 @@
 // Interfaces
+
+export interface Subject {
+    id: string;
+    name: string;
+    credits: number;
+}
+
+export interface Semester {
+    id: string;
+    name: string;
+    year: string;
+}
+
+export interface Grade {
+    id: string;
+    subjectId: string;
+    grade: number;
+    subject: Subject;
+    semester: Semester;
+}
+
+export interface Attendance {
+    id: string;
+    subjectId: string;
+    totalClasses: number;
+    attendedClasses: number;
+    subject: Subject;
+    semester: Semester;
+}
+
 export interface Outing {
     _id: string;
     from_time: string;
@@ -35,34 +65,58 @@ export interface Outpass {
     no_of_days: number;
 }
 
-export interface Grade {
-    subject: string;
-    credits: number;
-    grade: number;
-    semester: string;
-}
-
 export interface Student {
-    _id: string;
+    _id: string; // usually the username/id
     username: string;
     name: string;
     email: string;
     gender: string;
     year: string;
     branch: string;
+    section: string;
+    roomno: string;
     has_pending_requests: boolean;
     is_in_campus: boolean;
+    
+    // Academic
     grades: Grade[];
+    attendance: Attendance[];
+    
+    // Personal
     blood_group: string;
     phone_number: string;
     date_of_birth: string;
+    address?: string;
+
+    // Parents
     father_name: string;
     father_phonenumber: string;
+    father_email?: string;
     mother_name: string;
     mother_phonenumber: string;
+    mother_email?: string;
+    
+    // History
     outings_list: Outing[];
     outpasses_list: Outpass[];
+    
     profile_url?: string;
+    
     created_at: string;
     updated_at: string;
+}
+
+export interface Faculty {
+    id: string;
+    Username: string;
+    Name: string;
+    Email: string;
+    Department: string;
+    Designation: string;
+    Role: 'teacher' | 'hod';
+    Contact: string;
+    ProfileUrl?: string;
+    subjects?: {
+        subject: Subject
+    }[];
 }

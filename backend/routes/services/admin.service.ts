@@ -106,6 +106,8 @@ export const forwardOutpass = async (id: string, adminName: string, adminRole: s
   let nextLevel = "";
   if (pass.currentLevel === 'caretaker') nextLevel = 'warden';
   else if (pass.currentLevel === 'warden') nextLevel = 'dsw';
+  else if (pass.currentLevel === 'dsw') nextLevel = 'dean';
+  else if (pass.currentLevel === 'dean') nextLevel = 'director';
   else return { success: false, msg: "Cannot forward further" };
 
   await prisma.outpass.update({
@@ -195,6 +197,8 @@ export const forwardOuting = async (id: string, adminName: string, adminRole: st
   let nextLevel = "";
   if (outing.currentLevel === 'caretaker') nextLevel = 'warden';
   else if (outing.currentLevel === 'warden') nextLevel = 'dsw';
+  else if (outing.currentLevel === 'dsw') nextLevel = 'dean';
+  else if (outing.currentLevel === 'dean') nextLevel = 'director';
   else return { success: false, msg: "Cannot forward further" };
 
   await prisma.outing.update({

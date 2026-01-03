@@ -41,5 +41,6 @@ export const RESET_PASS = `${BASE_URL}/student/resetpass`;
   export const SET_NEW_PASS_ENDPOINT = `${BASE_URL}/student/setnewpass`; // PUT { username, otp, new_password }
 
 // Common endpoints
-export const SIGNIN = (type: "student" | "admin") => `${BASE_URL}/${type}/signin`;
-export const SIGNUP = (type: "student" | "admin") => `${BASE_URL}/${type}/signup`;
+export const SIGNIN = (type: "student" | "admin" | "faculty") => `${BASE_URL}/${type}/signin`;
+export const SIGNUP = (type: "student" | "admin" | "faculty") => `${BASE_URL}/${type}/signup`;
+export const CREATE_FACULTY = `${BASE_URL}/admin/faculty/create`;

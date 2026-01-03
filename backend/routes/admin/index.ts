@@ -12,6 +12,8 @@ import { bannerRouter } from "./routes/banner";
 import { curriculumRouter } from "./routes/curriculum";
 import { staffRouter } from "./routes/staff";
 import { notificationsRouter } from "./routes/notifications";
+import { securityRouter } from "./routes/security";
+import { facultyRouter } from "./routes/faculty";
 import progressStore from "./utils/progress";
 
 export const adminRouter = Router();
@@ -47,6 +49,8 @@ adminRouter.use("/banners", bannerRouter);
 adminRouter.use("/curriculum", curriculumRouter);
 adminRouter.use("/staff", staffRouter);
 adminRouter.use("/notify", notificationsRouter);
+adminRouter.use("/security", securityRouter);
+adminRouter.use("/faculty", facultyRouter);
 
 // Legacy/Compatibility Routes
 adminRouter.get("/getstudents", (req, res, next) => { req.url = "/getstudents"; studentAdminRouter(req, res, next); });

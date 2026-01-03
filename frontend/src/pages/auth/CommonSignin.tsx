@@ -8,10 +8,10 @@ import { adminUsername, is_authenticated } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FORGOT_PASS_ENDPOINT, SET_NEW_PASS_ENDPOINT, SIGNIN } from "../../api/endpoints";
-import { User, Lock, Mail, KeyRound, ArrowLeft } from "lucide-react";
+import { User, Lock, Mail, KeyRound, ArrowLeft, GraduationCap } from "lucide-react";
 
 type SigninProps = {
-  type: "student" | "admin";
+  type: "student" | "admin" | "faculty";
 };
 
 interface SigninResponse {
@@ -37,7 +37,7 @@ export default function Signin({ type }: SigninProps) {
   // Redirect if already authenticated
   useEffect(() => {
     if (authState.is_authnticated) {
-      const redirectPath = authState.type === "student" ? "/student" : "/admin";
+      const redirectPath = authState.type === "student" ? "/student" : authState.type === "admin" ? "/admin" : "/faculty";
       navigate(redirectPath, { replace: true });
     }
   }, [authState, navigate]);
@@ -69,7 +69,7 @@ export default function Signin({ type }: SigninProps) {
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
       const data: SigninResponse = await response.json();
 
-      if (data.msg && !data.student_token && !data.admin_token) {
+      if (data.msg && !data.student_token && !data.admin_token && !(data as any).token) {
         toast.error(data.msg);
         return;
       }
@@ -88,6 +88,14 @@ export default function Signin({ type }: SigninProps) {
         setAdmin(username.trim());
         toast.success("Welcome back, Admin!");
         navigate("/admin", { replace: true });
+      } else if ((data as any).token) {
+         // Faculty Token (generic or specific)
+         localStorage.setItem("faculty_token", JSON.stringify((data as any).token));
+         localStorage.setItem("username", JSON.stringify(username.trim()));
+         localStorage.setItem("role", (data as any).role);
+         setAuth({ is_authnticated: true, type: "faculty" }); // You might need to update the atom type
+         toast.success(`Welcome Professor ${username.trim()}!`);
+         navigate("/faculty", { replace: true });
       }
     } catch (error: any) {
       toast.error(`Failed to sign in: ${error.message || "Network error"}`);
@@ -185,13 +193,15 @@ export default function Signin({ type }: SigninProps) {
                         <User className="w-6 h-6 text-white" />
                     ) : step === "forgot" ? (
                         <Mail className="w-6 h-6 text-white" />
+                    ) : type === "faculty" ? (
+                        <GraduationCap className="w-6 h-6 text-white" />
                     ) : (
                         <KeyRound className="w-6 h-6 text-white" />
                     )}
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-tight">
                     {step === "signin"
-                        ? type === "student" ? "Student Login" : "Administrator"
+                        ? type === "student" ? "Student Login" : type === "faculty" ? "Faculty Portal" : "Administrator"
                         : step === "forgot" ? "Reset Password" : "New Credentials"
                     }
                 </h2>
@@ -214,7 +224,7 @@ export default function Signin({ type }: SigninProps) {
                             icon={<User className="w-4 h-4" />}
                             value={username}
                             onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                            placeholder={type === 'student' ? 'University ID' : 'Admin ID'}
+                            placeholder={type === 'student' ? 'University ID' : type === 'faculty' ? 'Staff ID / Email' : 'Admin ID'}
                         />
                         <Input
                             label="Password"

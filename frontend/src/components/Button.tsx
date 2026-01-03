@@ -37,7 +37,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 onClick={finalOnClick}
                 disabled={disabled || finalIsLoading}
                 className={cn(
-                    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none",
+                    "inline-flex items-center justify-center rounded-xl font-bold transition-all focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]",
                     variants[variant],
                     sizes[size],
                     className
@@ -46,9 +46,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             >
                 {finalIsLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {/* Legacy 'value' prop or children */}
-                {!finalIsLoading && (children || value)}
-                {finalIsLoading && value && !children ? "Loading..." : null}
-                {finalIsLoading && children}
+                {children || value}
             </button>
         );
     }
