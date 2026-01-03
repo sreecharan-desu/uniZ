@@ -275,7 +275,7 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
     });
   } catch (error: any) {
     logger.error(`Update Details Error: ${error.message || error}`);
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    res.status(500).json({ msg: error.message || "Internal Server Error", success: false });
   }
 });
 
