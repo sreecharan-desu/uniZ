@@ -322,10 +322,10 @@ studentRouter.get("/getsemesters", async (req, res) => {
       select: { id: true, name: true, year: true },
       orderBy: [{ year: 'asc' }, { name: 'asc' }]
     });
-    res.json({ semesters, success: true });
+    return res.json({ semesters, success: true });
   } catch (error: any) {
     logger.error(`Get Semesters Error: ${error.message || error}`);
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
 
@@ -394,10 +394,10 @@ studentRouter.post("/getgrades", authMiddleware, async (req, res) => {
       success: true,
     };
 
-    res.json(responsePayload);
+    return res.json(responsePayload);
   } catch (error: any) {
     logger.error(`Get Grades Error: ${error.message || error}`);
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
 
@@ -449,9 +449,9 @@ studentRouter.post("/getattendance", authMiddleware, async (req, res) => {
     });
 
     const response = { attendance_data: attendanceData, success: true };
-    res.json(response);
+    return res.json(response);
   } catch (error: any) {
     logger.error(`Get Attendance Error: ${error.message || error}`);
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
