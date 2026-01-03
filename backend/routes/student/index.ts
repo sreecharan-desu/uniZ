@@ -36,18 +36,14 @@ studentRouter.post("/signin", validateSigninInputs, fetchStudent, async (req, re
 
   const { username } = req.body;
   try {
-      if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
-  
-  const token = jwt.sign({ username, role: 'student' }, process.env.JWT_SECURITY_KEY);
-  res.json({ student_token: token, success: true });
+    if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
+    
+    const token = jwt.sign({ username, role: 'student' }, process.env.JWT_SECURITY_KEY);
+    return res.json({ student_token: token, success: true });
   } catch (e) {
-    console.log(e)
-    res.status(500).json({ msg: "Internal server error", success: false });
+    console.error("Signin Error:", e);
+    return res.status(500).json({ msg: "Internal server error", success: false });
   }
-  if (!process.env.JWT_SECURITY_KEY) throw new Error("JWT_SECURITY_KEY is not defined");
-  
-  const token = jwt.sign({ username, role: 'student' }, process.env.JWT_SECURITY_KEY);
-  res.json({ student_token: token, success: true });
 });
 
 // STEP 1: Request OTP for Forgot Password

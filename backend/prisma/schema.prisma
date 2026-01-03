@@ -7,7 +7,7 @@ datasource db {
   provider  = "postgresql"
   url  	    = env("DATABASE_URL")
   // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // Existing Schema (Unchanged, Repeated for Context)
