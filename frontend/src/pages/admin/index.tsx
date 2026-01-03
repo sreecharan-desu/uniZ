@@ -16,35 +16,38 @@ import {
   Zap,
   RefreshCcw,
   Search,
-  ScanLine
+  ScanLine,
+  LayoutGrid
 } from "lucide-react";
 import { clearSession } from "../../utils/security";
+import { motion } from "framer-motion";
 
 const QuickActionButton = ({
   onClick,
   title,
   subtitle,
   Icon,
-  colorClass = "text-blue-600 bg-blue-50"
 }: {
   onClick: () => void;
   title: string;
   subtitle: string;
   Icon: any;
-  colorClass?: string;
 }) => (
   <button
     onClick={onClick}
-    className="group relative flex items-start gap-4 p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all duration-200 text-left w-full"
+    className="group relative flex flex-col items-start p-6 bg-white border border-neutral-100 rounded-2xl hover:border-black/10 hover:shadow-lg transition-all duration-300 text-left w-full overflow-hidden"
   >
-    <div className={`p-3 rounded-lg ${colorClass} shrink-0`}>
+    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
+        <Icon className="w-24 h-24" />
+    </div>
+    <div className="p-3 rounded-xl bg-neutral-50 text-neutral-900 mb-4 group-hover:bg-black group-hover:text-white transition-colors duration-300">
       <Icon className="w-6 h-6" />
     </div>
-    <div>
-      <h3 className="font-semibold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">
+    <div className="relative z-10">
+      <h3 className="font-bold text-neutral-900 text-lg leading-tight mb-1 group-hover:translate-x-1 transition-transform">
           {title}
       </h3>
-      <p className="text-sm text-slate-500 mt-1 leading-snug">{subtitle}</p>
+      <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide group-hover:text-neutral-400 transition-colors">{subtitle}</p>
     </div>
   </button>
 );
@@ -68,179 +71,119 @@ export default function Admin() {
   const isCaretaker = role === 'caretaker' || isWarden;
   const isSecurity = role === 'security' || isDirector;
 
-  // Define actions for each role
+  // Define actions using a cleaner data structure
   const priorityActions = [];
   if (isCaretaker) {
-      priorityActions.push({
-          onClick: () => navigate("/admin/approveouting"),
-          title: "Approve Outings",
-          subtitle: "Process student outing requests",
-          Icon: CheckCircle2,
-          colorClass: "bg-emerald-50 text-emerald-600"
-      });
-      priorityActions.push({
-          onClick: () => navigate("/admin/approveoutpass"),
-          title: "Approve Outpasses",
-          subtitle: "Process student outpass requests",
-          Icon: CheckCircle2,
-          colorClass: "bg-emerald-50 text-emerald-600"
-      });
+      priorityActions.push({ onClick: () => navigate("/admin/approveouting"), title: "Approve Outings", subtitle: "Process Requests", Icon: CheckCircle2 });
+      priorityActions.push({ onClick: () => navigate("/admin/approveoutpass"), title: "Approve Outpasses", subtitle: "Process Requests", Icon: CheckCircle2 });
   }
 
   if (role === 'security') {
-      priorityActions.push({
-        onClick: () => navigate("/admin/security"),
-        title: "Security Scanner",
-        subtitle: "Check-in/out students via ID/QR",
-        Icon: ScanLine,
-        colorClass: "bg-amber-50 text-amber-600"
-      });
+      priorityActions.push({ onClick: () => navigate("/admin/security"), title: "Security Scanner", subtitle: "Gate Keeping", Icon: ScanLine });
   }
 
-  const adminActions = [];
-  if (isSecurity) {
-      adminActions.push({
-          onClick: () => navigate("/admin/searchstudents"),
-          title: "Search Students",
-          subtitle: "Find & Manage Students",
-          Icon: Search,
-          colorClass: "bg-blue-50 text-blue-600"
-      });
-  }
-
-  if (isCaretaker) {
-      adminActions.push({
-          onClick: () => navigate("/admin/updatestudentstatus"),
-          title: "Update Status",
-          subtitle: "Mark In/Out of Campus",
-          Icon: RefreshCcw,
-          colorClass: "bg-indigo-50 text-indigo-600"
-      });
-  }
-
-  if (isDean) {
-      adminActions.push({
-          onClick: () => navigate("/admin/addstudents"),
-          title: "Import Students",
-          subtitle: "Bulk add via CSV",
-          Icon: UserPlus,
-          colorClass: "bg-blue-50 text-blue-600"
-      });
-      adminActions.push({
-          onClick: () => navigate("/admin/addgrades"),
-          title: "Academic Records",
-          subtitle: "Upload Grades",
-          Icon: ClipboardList,
-          colorClass: "bg-violet-50 text-violet-600"
-      });
-      adminActions.push({
-          onClick: () => navigate("/admin/addattendance"),
-          title: "Attendance",
-          subtitle: "Update daily logs",
-          Icon: CalendarCheck,
-          colorClass: "bg-violet-50 text-violet-600"
-      });
-      adminActions.push({
-        onClick: () => navigate("/admin/curriculum"),
-        title: "Curriculum",
-        subtitle: "Courses & Syllabus",
-        Icon: BookOpen,
-        colorClass: "bg-cyan-50 text-cyan-600"
-      });
-      adminActions.push({
-        onClick: () => navigate("/admin/addfaculty"),
-        title: "Faculty Management",
-        subtitle: "Add/Manage Teachers",
-        Icon: UserPlus,
-        colorClass: "bg-teal-50 text-teal-600"
-      });
-  }
-
-  if (isDSW) {
-      adminActions.push({
-          onClick: () => navigate("/admin/notifications"),
-          title: "Notifications",
-          subtitle: "Broadcast alerts",
-          Icon: Megaphone,
-          colorClass: "bg-pink-50 text-pink-600"
-      });
-  }
-
-  if (isDean) {
-      adminActions.push({
-          onClick: () => navigate("/admin/banners"),
-          title: "Banners",
-          subtitle: "Manage site banners",
-          Icon: ImageIcon,
-          colorClass: "bg-rose-50 text-rose-600"
-      });
-  }
-
-  if (isDirector) {
-      adminActions.push({
-          onClick: () => navigate("/admin/roles"),
-          title: "Role Management",
-          subtitle: "Admin permissions",
-          Icon: UserCog,
-          colorClass: "bg-orange-50 text-orange-600"
-      });
-  }
+  const sections = [
+      {
+          title: "Academic Management",
+          show: isDean,
+          items: [
+              { onClick: () => navigate("/admin/addgrades"), title: "Academic Records", subtitle: "Upload Grades", Icon: ClipboardList },
+              { onClick: () => navigate("/admin/addattendance"), title: "Attendance", subtitle: "Daily Logs", Icon: CalendarCheck },
+              { onClick: () => navigate("/admin/curriculum"), title: "Curriculum", subtitle: "Courses & Syllabus", Icon: BookOpen },
+          ]
+      },
+      {
+          title: "People & Roles",
+          show: true,
+          items: [
+              ...(isDean ? [
+                  { onClick: () => navigate("/admin/addfaculty"), title: "Faculty", subtitle: "Manage Staff", Icon: UserPlus },
+                  { onClick: () => navigate("/admin/addstudents"), title: "Students", subtitle: "Import CSV", Icon: UserPlus }
+              ] : []),
+              ...(isDirector ? [
+                  { onClick: () => navigate("/admin/roles"), title: "Roles", subtitle: "Permissions", Icon: UserCog }
+              ] : []),
+              ...(isSecurity ? [
+                  { onClick: () => navigate("/admin/searchstudents"), title: "Search", subtitle: "Find Students", Icon: Search }
+               ] : [])
+          ]
+      },
+      {
+          title: "Communication & Site",
+          show: isDSW,
+          items: [
+              { onClick: () => navigate("/admin/notifications"), title: "Notifications", subtitle: "Broadcasts", Icon: Megaphone },
+              ...(isDean ? [{ onClick: () => navigate("/admin/banners"), title: "Banners", subtitle: "Site Visuals", Icon: ImageIcon }] : [])
+          ]
+      },
+      {
+           title: "Operations",
+           show: isCaretaker,
+           items: [
+               { onClick: () => navigate("/admin/updatestudentstatus"), title: "Status Update", subtitle: "Force Check-in/out", Icon: RefreshCcw }
+           ]
+      }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-10">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div>
-             <h1 className="text-2xl font-bold text-slate-900">
-                Welcome, {username}
-             </h1>
-             <p className="text-slate-500 mt-1">
-                Admin Dashboard Overview
-             </p>
+    <div className="min-h-screen bg-white text-neutral-900 pb-20">
+      
+      {/* Header */}
+      <div className="bg-white border-b border-neutral-100 sticky top-0 z-40 bg-white/80 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
+                      {username[0].toUpperCase()}
+                  </div>
+                  <div>
+                      <h1 className="text-xl font-bold leading-none">{username}</h1>
+                      <div className="flex items-center gap-1.5 mt-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{role.replace('_', ' ')} Dashboard</p>
+                      </div>
+                  </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                  <button onClick={() => navigate("/admin/settings")} className="p-2.5 rounded-xl hover:bg-neutral-50 text-neutral-400 hover:text-black transition-colors">
+                      <Settings className="w-5 h-5"/>
+                  </button>
+                  <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-100 hover:bg-red-50 text-neutral-600 hover:text-red-600 font-bold text-xs uppercase tracking-wider transition-all">
+                      <LogOut className="w-4 h-4" /> Logout
+                  </button>
+              </div>
           </div>
-          <div className="flex gap-3">
-             <button
-                onClick={() => navigate("/admin/settings")}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
-             >
-                <Settings className="w-4 h-4" /> Settings
-             </button>
-             <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-medium transition-colors"
-             >
-                <LogOut className="w-4 h-4" /> Logout
-             </button>
-          </div>
-        </div>
+      </div>
 
-        {/* Priority Actions */}
+      <div className="max-w-7xl mx-auto px-6 py-10 space-y-12">
+        
+        {/* Priority Section */}
         {priorityActions.length > 0 && (
-            <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-500">
-                <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900">
-                    <Zap className="w-5 h-5 text-amber-500 fill-amber-500" /> 
-                    Priority Actions
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {priorityActions.map((action, idx) => (
-                        <QuickActionButton key={idx} {...action} />
-                    ))}
-                </div>
-            </div>
+            <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{delay:0.1}}>
+                 <div className="flex items-center gap-2 mb-6 ml-1">
+                    <Zap className="w-5 h-5 text-black fill-black" />
+                    <h2 className="text-lg font-black tracking-tight uppercase">Priority Actions</h2>
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {priorityActions.map((action, idx) => <QuickActionButton key={idx} {...action} />)}
+                 </div>
+            </motion.div>
         )}
 
-         {/* Administration Grid */}
-        <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-700">
-            <h2 className="text-lg font-bold text-slate-900">Administration</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {adminActions.map((action, idx) => (
-                    <QuickActionButton key={idx} {...action} />
-                ))}
-            </div>
-        </div>
-
+        {/* Dynamic Sections */}
+        {sections.map((section, idx) => (
+            section.show && section.items.length > 0 && (
+                <motion.div key={section.title} initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{delay: 0.1 * (idx + 2)}}>
+                    <div className="flex items-center gap-2 mb-6 ml-1 border-b border-neutral-100 pb-2">
+                        <LayoutGrid className="w-4 h-4 text-neutral-400" />
+                        <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest">{section.title}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {section.items.map((item, i) => <QuickActionButton key={i} {...item} />)}
+                    </div>
+                </motion.div>
+            )
+        ))}
       </div>
     </div>
   );

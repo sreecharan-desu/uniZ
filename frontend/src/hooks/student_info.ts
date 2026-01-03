@@ -32,12 +32,11 @@ export function useStudentData() {
 
       try {
         const res = await fetch(STUDENT_INFO, {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({}), // Rely on token for username
         });
 
         const data: StudentInfoResponse = await res.json();
