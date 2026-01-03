@@ -1,7 +1,7 @@
 
 export const mapStudentToLegacy = (user: any) => {
   if (!user) return null;
-  return {
+  const mapped = {
     id: user.id || user._id,
     username: user.Username,
     name: user.Name,
@@ -42,9 +42,10 @@ export const mapStudentToLegacy = (user: any) => {
     father_occupation: user.FatherOccupation,
     mother_occupation: user.MotherOccupation,
     is_disabled: user.isDisabled,
-    profile_url: user.ProfileUrl ?? "",
+    profile_url: user.ProfileUrl || user.profileUrl || user.profile_url || "",
     _id: user.id || user._id, // Legacy compatibility
   };
+  return mapped;
 };
 
 export const mapOutpassToLegacy = (o: any) => ({
@@ -105,5 +106,5 @@ export const mapStudentSuggestionToLegacy = (student: any) => ({
   name: student.Name,
   branch: student.Branch,
   year: student.Year,
-  profile_url: student.ProfileUrl ?? "",
+  profile_url: student.ProfileUrl || student.profileUrl || student.profile_url || "",
 });

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import { student } from "../store";
 import { STUDENT_INFO } from "../api/endpoints";
 
@@ -21,7 +21,6 @@ interface StudentInfoResponse {
 
 export function useStudentData() {
   const setStudent = useSetRecoilState(student);
-  const currentStudent = useRecoilValue(student);
 
     const fetchStudentData = async () => {
       const tokenStr = localStorage.getItem("student_token");
@@ -57,10 +56,8 @@ export function useStudentData() {
     };
 
     useEffect(() => {
-        if (!currentStudent?.username) {
-            fetchStudentData();
-        }
-    }, [currentStudent]);
+        fetchStudentData();
+    }, []);
 
     return { refetch: fetchStudentData };
   };
