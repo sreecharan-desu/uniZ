@@ -1,12 +1,14 @@
 import express from "express";
 import { studentRouter } from "./student";
 import { adminRouter } from "./admin";
+import { facultyRouterPublic } from "./faculty";
 import prisma from "./services/prisma.service";
 import { logger } from "../utils/logger";
 
 export const mainRoute = express.Router();
 mainRoute.use("/student", studentRouter);
 mainRoute.use("/admin", adminRouter);
+mainRoute.use("/faculty", facultyRouterPublic);
 
 mainRoute.get('/banners', async (req, res) => {
   try {

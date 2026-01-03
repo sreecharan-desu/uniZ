@@ -18,6 +18,7 @@ const Sidebar = lazy(() => import("./components/Sidebar"));
 
 // Admin Components
 const AddStudents = lazy(() => import("./pages/admin/AddStudents"));
+const FacultyDashboard = lazy(() => import("./pages/faculty/dashboard"));
 const AddGrades = lazy(() => import("./pages/admin/AddGrades"));
 const AddAttendance = lazy(() => import("./pages/attendance/AddAttendance"));
 const Settings = lazy(() => import("./pages/admin/Settings"));
@@ -28,6 +29,7 @@ const CurriculumManager = lazy(() => import("./pages/admin/Curriculum"));
 const SearchStudents = lazy(() => import("./pages/admin/searchstudents"));
 const UpdateStatus = lazy(() => import("./components/UpdateStudentStatus"));
 const ApproveComp = lazy(() => import("./pages/admin/approve-comp"));
+const AddFaculty = lazy(() => import("./pages/admin/AddFaculty"));
 
 
 export const isMaintenance = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
@@ -142,6 +144,10 @@ export default function App() {
             <Route path="/admin/approveoutpass" element={<PageTransition><ApproveComp type="outpass" /></PageTransition>} />
             <Route path="/admin/updatestudentstatus" element={<PageTransition><UpdateStatus /></PageTransition>} />
             <Route path="/admin/searchstudents" element={<PageTransition><SearchStudents /></PageTransition>} />
+            <Route path="/admin/addfaculty" element={<PageTransition><AddFaculty /></PageTransition>} />
+
+            {/* Faculty Routes */}
+            <Route path="/faculty" element={<PageTransition><FacultyDashboard /></PageTransition>} />
 
             {/* Catch All */}
             <Route path="*" element={<PageTransition><Error /></PageTransition>} />

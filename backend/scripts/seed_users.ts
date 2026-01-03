@@ -4,27 +4,33 @@ import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // 1. Admin
-  const adminUsername = 'admin@uniz';
-  const adminPassword = await bcrypt.hash('12345678', 10);
-  
-  console.log('Seeding Admin...');
-  const admin = await prisma.admin.upsert({
-    where: { Username: adminUsername },
-    update: {
-        Password: adminPassword,
-        role: 'webmaster'
-    },
+async function createAdmin(username: string, passwordRaw: string, role: string, email: string) {
+  const password = await bcrypt.hash(passwordRaw, 10);
+  return await prisma.admin.upsert({
+    where: { Username: username },
+    update: { Password: password, role: role },
     create: {
       id: uuidv4(),
-      Username: adminUsername,
-      Password: adminPassword,
-      Email: 'admin@uniz.com', 
-      role: 'webmaster'
+      Username: username,
+      Password: password,
+      Email: email,
+      role: role
     }
   });
-  console.log('Admin seeded:', admin.Username);
+}
+
+async function main() {
+  console.log('Seeding Administrative accounts...');
+  
+  await createAdmin('director', 'director123', 'director', 'director@uniz.com');
+  await createAdmin('dean', 'dean123', 'dean', 'dean@uniz.com');
+  await createAdmin('dsw', 'dsw123', 'dsw', 'dsw@uniz.com');
+  await createAdmin('warden', 'warden123', 'warden', 'warden@uniz.com');
+  await createAdmin('caretaker', 'caretaker123', 'caretaker', 'caretaker@uniz.com');
+  await createAdmin('security', 'security123', 'security', 'security@uniz.com');
+  await createAdmin('admin@uniz', '12345678', 'webmaster', 'admin@uniz.com');
+
+  console.log('Administrative accounts seeded.');
 
   // 2. Student
   const studentUsername = 'o210008';
@@ -37,7 +43,7 @@ async function main() {
     update: {
         Password: studentPassword,
         ProfileUrl: profileUrl,
-        Name: 'SREECHARAN DESU' // Ensure name is set too
+        Name: 'SREECHARAN DESU'
     },
     create: {
       id: studentUsername,

@@ -206,7 +206,7 @@ studentRouter.post("/requestouting", isPresentInCampus, isApplicationPending, au
 
 // Get Student Details
 // Get Student Details
-studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
+studentRouter.get("/getdetails", authMiddleware, async (req, res) => {
   const username = (req as any).user?.username || req.body.username;
   if (!username) return res.json({ msg: "Username is required", success: false });
 

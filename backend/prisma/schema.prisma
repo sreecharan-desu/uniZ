@@ -59,7 +59,39 @@ model Admin {
   Email    String   @unique @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  role      String   @default("webmaster") // roles: webmaster, dean, director
+  role      String   @default("webmaster") // roles: webmaster, dean, director, dsw, warden, caretaker, security
+}
+
+model Faculty {
+  id           String   @id @default(uuid())
+  Username     String   @unique // Staff ID
+  Password     String
+  Name         String
+  Email        String   @unique
+  Contact      String   @default("")
+  Department   String   // e.g., CSE, ECE
+  Designation  String   // e.g., Assistant Professor, HOD
+  Role         String   @default("teacher") // teacher, hod
+  ProfileUrl   String   @default("")
+  
+  subjects     FacultySubject[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([Department])
+}
+
+model FacultySubject {
+  id        String   @id @default(uuid())
+  facultyId String
+  subjectId String
+  
+  faculty   Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  
+  @@unique([facultyId, subjectId])
 }
 
 model Outpass {
@@ -146,6 +178,7 @@ model Subject {
   semester   Semester     @relation(fields: [semesterId], references: [id])
   grades     Grade[] // Relation to grades
   attendance Attendance[] // Relation to attendance
+  faculty    FacultySubject[]
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 

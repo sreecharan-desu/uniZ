@@ -61,7 +61,7 @@ staffRouter.post("/addadmin", authMiddleware, requireAnyRole("director", "webmas
   try {
     const { username, password, role } = req.body;
     if (!username || !password || !role) return res.status(400).json({ msg: "username, password, and role required", success: false });
-    if (!["webmaster", "dean", "director"].includes(role)) return res.status(400).json({ msg: "Invalid role", success: false });
+    if (!Object.keys(ROLE_PERMISSIONS).includes(role)) return res.status(400).json({ msg: "Invalid role", success: false });
 
     const existing = await prisma.admin.findUnique({ where: { Username: username } });
     if (existing) return res.status(409).json({ msg: "Admin already exists", success: false });

@@ -80,17 +80,24 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     // Role-based lookup optimization
     let admin: { id: string; Username: string; role: string } | null = null;
+    let faculty: { id: string; Username: string; Role: string } | null = null;
     let student: { id: string; Username: string } | null = null;
 
-    if (role === 'admin') {
-         admin = await prisma.admin.findUnique({ where: { Username: username }, select: { id: true, Username: true, role: true } });
-    } else if (role === 'student') {
+    const isStudent = role === 'student';
+    const isFaculty = role === 'teacher' || role === 'hod';
+
+    if (isStudent) {
          student = await prisma.student.findUnique({ where: { Username: username }, select: { id: true, Username: true } });
+    } else if (isFaculty) {
+         faculty = await prisma.faculty.findUnique({ where: { Username: username }, select: { id: true, Username: true, Role: true } });
+    } else if (role) {
+         admin = await prisma.admin.findUnique({ where: { Username: username }, select: { id: true, Username: true, role: true } });
     } else {
-        // Fallback or Legacy: Look up both if role is missing
-        [admin, student] = await Promise.all([
+        // Fallback or Legacy: Look up all
+        [admin, student, faculty] = await Promise.all([
           prisma.admin.findUnique({ where: { Username: username }, select: { id: true, Username: true, role: true } }),
-          prisma.student.findUnique({ where: { Username: username }, select: { id: true, Username: true } })
+          prisma.student.findUnique({ where: { Username: username }, select: { id: true, Username: true } }),
+          prisma.faculty.findUnique({ where: { Username: username }, select: { id: true, Username: true, Role: true } })
         ]);
     }
 
@@ -98,6 +105,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       const adminData = { _id: admin.id, username: admin.Username, role: admin.role || 'admin' };
       (req as any).admin = adminData;
       (req as any).user = { ...adminData, role: 'admin' };
+    } else if (faculty) {
+      const facultyData = { _id: faculty.id, username: faculty.Username, role: faculty.Role, id: faculty.id };
+      (req as any).faculty = facultyData;
+      (req as any).user = facultyData;
     } else if (student) {
       const studentData = { _id: student.id, username: student.Username, role: 'student' };
       (req as any).user = studentData;
@@ -113,7 +124,9 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
 export const isPresentInCampus = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.body;
+    const userId = req.body.userId || (req as any).user?.username;
+    if (!userId) return res.status(400).json({ msg: "User ID missing", success: false });
+
     const isPresent = await isStudentPresentInCampus(userId);
     if (!isPresent) return res.status(403).json({ msg: "You must be in campus to make this request.", success: false });
     next();
@@ -124,7 +137,9 @@ export const isPresentInCampus = async (req: Request, res: Response, next: NextF
 
 export const isApplicationPending = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.body;
+    const userId = req.body.userId || (req as any).user?.username;
+    if (!userId) return res.status(400).json({ msg: "User ID missing", success: false });
+
     const result = await isPendingApplication(userId);
     if (result.success && result.isPending) {
       return res.status(403).json({ msg: "You already have a pending request.", success: false });
