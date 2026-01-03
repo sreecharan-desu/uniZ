@@ -1,6 +1,5 @@
 
 import { memo } from 'react';
-import { motion } from 'framer-motion';
 
 export const InfoCard = memo(({ icon, label, name, value, editable, isEditing, isLoading, onValueChange, type = 'text', fullWidth }: any) => {
     const handleChange = (e: any) => onValueChange(name, e.target.value);

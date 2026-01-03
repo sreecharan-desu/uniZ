@@ -1,6 +1,6 @@
 
 import { Grade, Attendance, Student } from '../../../types';
-import { BookOpen, GraduationCap, Percent, Award } from 'lucide-react';
+import { GraduationCap, Percent, Award } from 'lucide-react';
 
 interface AcademicRecordProps {
   student: Student;

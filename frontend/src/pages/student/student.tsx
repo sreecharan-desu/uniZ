@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState, useRecoilState } from 'recoil';
 import {
-  User, Droplets, Phone, Edit2, GraduationCap, IdCard, DoorOpen, History, Clock, Calendar, MapPin, Mail, Briefcase, Camera, LogOut
+  User, Droplets, Phone, Edit2, GraduationCap, IdCard, DoorOpen, History, Clock, Calendar, MapPin, Mail, Briefcase, Camera
 } from 'lucide-react';
 import axios from 'axios';
 import { student, bannersAtom } from '../../store';
@@ -18,7 +18,7 @@ import { Pagination } from '../../components/Pagination';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
-import { Loader2, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { InfoCard } from './components/InfoCard';
 import AcademicRecord from './components/AcademicRecord';
 import { Student } from '../../types';

@@ -114,7 +114,7 @@ export default function Outpass_Outing({ request }: requestProps) {
                                             Duration: {formatDuration(calculateDuration(outing.from_time, outing.to_time))}
                                         </div>
                                     </div>
-                                    <RequestCard request={outing} email={Student?.email || ''} type="outing" key={outing._id} />
+                                    <RequestCard request={outing} type="outing" key={outing._id} />
                                 </div>
                             ) : null)}
 
@@ -135,7 +135,7 @@ export default function Outpass_Outing({ request }: requestProps) {
                                             Duration: {formatDuration(calculateDuration(outpass.from_day, outpass.to_day))}
                                         </div>
                                     </div>
-                                    <RequestCard request={outpass} type="outpass" key={outpass._id} email={Student?.email || ''} />
+                                    <RequestCard request={outpass} type="outpass" key={outpass._id} />
                                 </div>
                             ) : null)}
                         </div>
