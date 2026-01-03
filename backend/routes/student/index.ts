@@ -174,10 +174,10 @@ studentRouter.post("/requestoutpass", isPresentInCampus, isApplicationPending, a
       }
       broadcast({ type: 'REFRESH_REQUESTS', payload: { userId, type: 'outpass', status: 'created' } });
     }
-    res.json({ msg: result.msg, success: result.success });
+    return res.json({ msg: result.msg, success: result.success });
   } catch (error: any) {
     logger.error(`Outpass Request Error: ${error.message || error}`);
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
 
@@ -197,10 +197,10 @@ studentRouter.post("/requestouting", isPresentInCampus, isApplicationPending, au
       }
       broadcast({ type: 'REFRESH_REQUESTS', payload: { userId, type: 'outing', status: 'created' } });
     }
-    res.json({ msg: result.msg, success: result.success });
+    return res.json({ msg: result.msg, success: result.success });
   } catch (error: any) {
     logger.error(`Outing Request Error: ${error.message || error}`);
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
 
@@ -213,12 +213,12 @@ studentRouter.post("/getdetails", authMiddleware, async (req, res) => {
   try {
     const user = await getStudentDetails(username);
     if (user) {
-      res.json({ student: user, success: true });
+      return res.json({ student: user, success: true });
     } else {
-      res.json({ msg: "Student not found", success: false });
+      return res.json({ msg: "Student not found", success: false });
     }
   } catch {
-    res.status(500).json({ msg: "Internal Server Error", success: false });
+    return res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
 
@@ -259,7 +259,7 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
 
     await sendEmail(updated.Email, "Account details updated", "Your account details have been updated successfully.");
 
-    res.json({
+    return res.json({
       student: { 
         _id: updated.id, 
         username: updated.Username, 
@@ -271,7 +271,7 @@ studentRouter.put("/updatedetails", authMiddleware, async (req, res) => {
     });
   } catch (error: any) {
     logger.error(`Update Details Error: ${error.message || error}`);
-    res.status(500).json({ msg: error.message || "Internal Server Error", success: false });
+    return res.status(500).json({ msg: error.message || "Internal Server Error", success: false });
   }
 });
 
