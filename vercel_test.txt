@@ -1,1 +1,2 @@
 Verifying Vercel ignore rule
+Triggering build with [deploy]
