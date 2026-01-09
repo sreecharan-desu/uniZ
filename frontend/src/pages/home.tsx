@@ -89,10 +89,10 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-                        <StatCard label="Active Students" value="2,482" peak="+12%" />
-                        <StatCard label="Approvals Issued" value="142" peak="Today" />
-                        <StatCard label="Average Speed" value="140ms" peak="Ultra" />
-                        <StatCard label="Security Rank" value="AAA" peak="Safe" />
+                        <StatCard label="Active Students" value="2,842" peak="+14%" />
+                        <StatCard label="Approvals Today" value="189" peak="Live" />
+                        <StatCard label="System Sync" value="99.9%" peak="Stable" />
+                        <StatCard label="Traffic Rank" value="#1" peak="Campus" />
                     </div>
                 </div>
             </section>
