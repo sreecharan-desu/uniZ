@@ -309,22 +309,23 @@ export default function StudentProfilePage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-b border-neutral-100 mb-8 overflow-x-auto no-scrollbar">
-            <div className="flex gap-8 min-w-max">
+        <div className="border-b border-neutral-200 mb-10 overflow-x-auto no-scrollbar">
+            <div className="flex gap-10 min-w-max">
                 {['personal', 'academic', 'family', enableOutingsAndOutpasses ? 'permissions' : ''].filter(Boolean).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab || 'personal')}
-                        className={`pb-4 relative text-xs font-black uppercase tracking-widest transition-colors ${
-                            activeTab === tab ? 'text-black' : 'text-neutral-400 hover:text-neutral-600'
+                        className={`pb-4 relative text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                            activeTab === tab ? 'text-black translate-y-[-2px]' : 'text-neutral-400 hover:text-neutral-600'
                         }`}
                     >
                         {tab}
-                        {activeTab === tab && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />}
+                        {activeTab === tab && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-black" />}
                     </button>
                 ))}
             </div>
         </div>
+
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">
