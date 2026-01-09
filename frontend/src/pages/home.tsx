@@ -44,9 +44,9 @@ export default function Home() {
                         </h1>
 
                         <p className="text-lg md:text-xl text-slate-400 max-w-lg mx-auto lg:mx-0 leading-relaxed font-semibold">
-                            The future of academic management is here.
+                            Next-generation campus management.
                             <br className="hidden md:inline" /> 
-                            Unified. Swift. Intelligent.
+                            Unified. Swift. Efficient.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
