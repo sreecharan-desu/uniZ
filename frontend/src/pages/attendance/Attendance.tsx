@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import axios from 'axios';
 import { student } from '../../store';
-import { ChevronDown, Award, AlertCircle, X, UserCheck, CheckCircle } from 'lucide-react';
+import { ChevronDown, Award, AlertCircle, X, CheckCircle } from 'lucide-react';
 import { GET_ATTENDANCE } from '../../api/endpoints';
 
 interface SubjectAttendance {
@@ -136,39 +136,36 @@ export default function Attendance() {
   // Skeleton Loader Component
   return (
     <div className="min-h-screen bg-white font-sans text-black">
-<div className="text-center mb-8">
-  <h1 className="text-3xl md:text-4xl font-bold text-black flex items-center justify-center space-x-2">
-    <UserCheck size={28} className="text-black" />
-    <span>RollCall</span>
-  </h1>
-  <div className="h-1 w-16 bg-black mx-auto mt-3"></div>
-</div>
+      <div className="max-w-6xl mx-auto px-4 pt-12 pb-6">
+        <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-black mb-4">Attendance</h1>
+        <p className="text-neutral-500 font-medium text-lg">Track your daily attendance and semester progress.</p>
+      </div>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Selection Criteria */}
-        <div className="mb-12 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold mb-6 pb-2 border-b border-gray-300 flex items-center">
-            <CheckCircle className="mr-2" size={22} /> Select Criteria
+        <div className="mb-12 bg-white p-8 rounded-3xl border border-neutral-200 shadow-sm">
+          <h2 className="text-xl font-bold mb-8 flex items-center gap-3">
+            <div className="p-2 bg-black rounded-lg text-white"><CheckCircle size={20} /></div>
+            Select Criteria
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="relative">
-              <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600">Academic Year</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="relative group">
+              <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2 block ml-1">Academic Year</label>
               <div
-                className="w-full flex items-center justify-between bg-white border border-gray-300 rounded p-3 cursor-pointer hover:bg-gray-50"
+                className="w-full flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-xl p-4 cursor-pointer hover:border-black transition-colors"
                 onClick={() => setShowDropdown(!showDropdown)}
               >
-                <span className="font-medium">{selectedYear}</span>
-                <ChevronDown size={18} />
+                <span className="font-bold text-lg">{selectedYear}</span>
+                <ChevronDown size={20} className={`transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`} />
               </div>
 
               {showDropdown && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg">
+                <div className="absolute z-20 mt-2 w-full bg-white border border-neutral-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                   {years.map((year) => (
                     <div
                       key={year}
-                      className={`p-3 cursor-pointer hover:bg-gray-100 ${
-                        selectedYear === year ? 'bg-gray-100 font-medium' : ''
-                      }`}
+                      className={`p-4 cursor-pointer font-medium hover:bg-neutral-50 transition-colors ${selectedYear === year ? 'bg-black text-white hover:bg-black' : 'text-neutral-600'
+                        }`}
                       onClick={() => {
                         setSelectedYear(year);
                         setSelectedSemester(
@@ -187,153 +184,177 @@ export default function Attendance() {
             </div>
 
             <div>
-              <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600">Semester</h3>
-              <select
-                value={selectedSemester}
-                onChange={(e) => {
-                  setSelectedSemester(e.target.value);
-                  setResultsFetched(false);
-                  setAttendanceData(null);
-                }}
-                className="w-full bg-white border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                {availableSemesters.map((semester) => (
-                  <option key={semester} value={semester}>
-                    {semester}
-                  </option>
-                ))}
-              </select>
+              <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2 block ml-1">Semester</label>
+              <div className="relative">
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => {
+                    setSelectedSemester(e.target.value);
+                    setResultsFetched(false);
+                    setAttendanceData(null);
+                  }}
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-4 font-bold text-lg appearance-none focus:outline-none focus:border-black transition-colors cursor-pointer"
+                >
+                  {availableSemesters.map((semester) => (
+                    <option key={semester} value={semester}>
+                      {semester}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500" size={20} />
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600">Actions</h3>
+            <div className="flex items-end">
               <button
                 onClick={handleFetchAttendance}
-                className={`w-full flex items-center justify-center font-medium p-3 rounded transition-all duration-200 focus:outline-none ${
-                  isLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'
-                }`}
+                className={`w-full flex items-center justify-center font-bold text-lg p-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 ${isLoading ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none' : 'bg-black text-white hover:bg-neutral-800'
+                  }`}
                 disabled={isLoading || !user?.username}
               >
                 {isLoading ? (
-                  <span className="flex items-center">
-                    Loading . . .
+                  <span className="flex items-center gap-2 text-base">
+                    Fetching...
                   </span>
                 ) : (
-                  <span className="flex items-center">View Attendance</span>
+                  <span className="flex items-center gap-2">View Attendance</span>
                 )}
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded p-3 flex items-start">
-              <AlertCircle size={20} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-              <div className="text-red-700">{error}</div>
+            <div className="mt-8 bg-black text-white rounded-xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+              <AlertCircle size={20} className="text-white flex-shrink-0" />
+              <div className="font-medium">{error}</div>
             </div>
           )}
         </div>
 
         {/* Loading State */}
         {isLoading && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <img
-              src={PIKACHU_IMAGE}
-              alt="Pikachu"
-              className="w-24 h-24 mx-auto mb-4 animate-bounce"
-            />
-            <h3 className="text-xl font-semibold mb-2">Pikachu is on the case!</h3>
-            <p className="text-gray-600">{loadingMessage}</p>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-3xl p-12 text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full p-4 border border-neutral-100 shadow-sm flex items-center justify-center">
+              <img
+                src={PIKACHU_IMAGE}
+                alt="Pikachu"
+                className="w-full h-full object-contain animate-bounce"
+              />
+            </div>
+            <h3 className="text-2xl font-black mb-3">Pikachu is on the case!</h3>
+            <p className="text-neutral-500 font-medium">{loadingMessage}</p>
           </div>
         )}
 
         {/* Results Section */}
         {resultsFetched && attendanceData && attendanceData.success && !isLoading && (
-          <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
-            {/* Results Header */}
-            <div className="bg-black text-white p-4 flex justify-between items-center">
-              <h2 className="text-xl font-bold">
-                {selectedYear} / {selectedSemester}
-              </h2>
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
+
+            {/* Header */}
+            <div className="flex items-end justify-between border-b pb-4 border-neutral-200">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 block mb-1">Results For</span>
+                <h2 className="text-4xl font-black tracking-tight">{selectedYear} - {selectedSemester}</h2>
+              </div>
             </div>
 
             {/* Content */}
             {Object.values(attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.subjects || {}).every(
               (subject: SubjectAttendance) => subject.classesAttended === 0
             ) ? (
-              <div className="p-6 text-center">
-                <AlertCircle size={48} className="mx-auto mb-4 text-gray-500" />
-                <h3 className="text-xl font-semibold mb-2">Attendance Not Available</h3>
-                <p className="text-gray-600">
+              <div className="bg-neutral-50 rounded-3xl p-12 text-center border border-neutral-200">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+                  <AlertCircle size={32} className="text-neutral-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Attendance Not Available</h3>
+                <p className="text-neutral-500 font-medium">
                   These details are not yet updated, please check back shortly...
                 </p>
               </div>
             ) : (
-              <div className="p-6">
-                <h3 className="text-2xl font-bold mb-6 border-b border-gray-300 pb-2">Attendance</h3>
+              <div className="glass-panel rounded-3xl overflow-hidden border border-neutral-200 shadow-sm">
+
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-100 border-b border-gray-300">
-                        <th className="p-3 text-left font-semibold">Subject</th>
-                        <th className="p-3 text-center font-semibold">Total Classes</th>
-                        <th className="p-3 text-center font-semibold">Classes Attended</th>
-                        <th className="p-3 text-center font-semibold">Attendance %</th>
+                      <tr className="border-b border-neutral-200 bg-neutral-50/50">
+                        <th className="p-6 text-left text-xs font-bold uppercase tracking-widest text-neutral-500">Subject</th>
+                        <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Total Classes</th>
+                        <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Attended</th>
+                        <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Percentage</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-neutral-100">
                       {Object.entries(
                         attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.subjects || {}
                       ).map(([subject, attendance]: [string, SubjectAttendance], index) => (
                         attendance.classesAttended === 0 ? (
-                          <tr
-                            key={index}
-                            className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                              index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                            }`}
-                          >
-                            <td className="p-3 font-medium" colSpan={4}>
+                          <tr key={index} className="hover:bg-neutral-50 transition-colors">
+                            <td className="p-6 font-bold text-neutral-400 text-center" colSpan={4}>
                               Attendance data not yet available for {subject}.
                             </td>
                           </tr>
                         ) : (
-                          <tr
-                            key={index}
-                            className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                              index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                            }`}
-                          >
-                            <td className="p-3 font-medium">{subject}</td>
-                            <td className="p-3 text-center">{attendance.totalClasses}</td>
-                            <td className="p-3 text-center">{attendance.classesAttended}</td>
-                            <td className="p-3 text-center">{attendance.attendancePercentage}%</td>
+                          <tr key={index} className="group hover:bg-neutral-50 transition-colors">
+                            <td className="p-6 font-bold text-lg text-neutral-900">{subject}</td>
+                            <td className="p-6 text-center text-neutral-600 font-medium">{attendance.totalClasses}</td>
+                            <td className="p-6 text-center text-neutral-600 font-medium">{attendance.classesAttended}</td>
+                            <td className="p-6 text-center">
+                              <span className={`inline-block px-4 py-1.5 rounded-lg text-sm font-bold ${parseFloat(attendance.attendancePercentage) >= 75
+                                ? 'bg-black text-white'
+                                : parseFloat(attendance.attendancePercentage) >= 65
+                                  ? 'bg-neutral-200 text-neutral-700'
+                                  : 'bg-neutral-100 text-neutral-400'
+                                }`}>
+                                {attendance.attendancePercentage}%
+                              </span>
+                            </td>
                           </tr>
                         )
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4 text-lg">
-                  <p>
-                    <span className="font-semibold">Semester Total:</span>{' '}
-                    {attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.classesAttended}/
-                    {attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.totalClasses} (
-                    {attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.attendancePercentage}%)
-                  </p>
+
+                <div className="p-8 bg-neutral-900 text-white mt-0">
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                      <p className="text-neutral-400 font-bold uppercase text-xs tracking-widest mb-1">Semester Summary</p>
+                      <h3 className="text-2xl font-black">Overall Attendance</h3>
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        <p className="text-neutral-400 font-bold text-xs uppercase tracking-widest">Attended / Total</p>
+                        <p className="text-xl font-bold">
+                          {attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.classesAttended}
+                          <span className="text-neutral-500 mx-1">/</span>
+                          {attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.totalClasses}
+                        </p>
+                      </div>
+                      <div className="w-px h-12 bg-neutral-800 hidden md:block"></div>
+                      <div className="text-right">
+                        <p className="text-neutral-400 font-bold text-xs uppercase tracking-widest">Percentage</p>
+                        <p className="text-4xl font-black text-white">
+                          {attendanceData.attendance_data[selectedYear]?.[selectedSemester]?.attendancePercentage}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="flex justify-end pt-4">
               <button
                 onClick={() => {
                   setResultsFetched(false);
                   setAttendanceData(null);
                   setError('');
                 }}
-                className="flex items-center px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                className="flex items-center px-8 py-4 bg-black text-white font-bold rounded-xl hover:bg-neutral-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
               >
-                <X size={18} className="mr-2" /> Close
+                <X size={18} className="mr-2" /> Close Results
               </button>
             </div>
           </div>
@@ -341,25 +362,29 @@ export default function Attendance() {
 
         {/* Not Logged In State */}
         {!user?.username && !isLoading && !resultsFetched && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <AlertCircle size={48} className="mx-auto mb-4 text-gray-500" />
-            <h3 className="text-xl font-semibold mb-2">Sign In Required</h3>
-            <p className="text-gray-600 mb-6">
-              Please sign in to view your attendance records.
+          <div className="bg-neutral-50 border border-neutral-200 rounded-3xl p-12 text-center">
+            <div className="bg-white w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+              <AlertCircle size={40} className="text-black" />
+            </div>
+            <h3 className="text-2xl font-black mb-3">Sign In Required</h3>
+            <p className="text-neutral-500 mb-8 max-w-md mx-auto font-medium">
+              Please sign in to your student account to view your attendance records.
             </p>
-            <button className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition-colors">
-              Sign In
+            <button className="bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-neutral-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+              Sign In to Continue
             </button>
           </div>
         )}
 
         {/* Empty State */}
         {user?.username && !isLoading && !resultsFetched && !error && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <Award size={48} className="mx-auto mb-4 text-gray-500" />
-            <h3 className="text-xl font-semibold mb-2">No Attendance Selected</h3>
-            <p className="text-gray-600 mb-4">
-              Select a year and semester, then click "View Attendance" to see your records.
+          <div className="bg-neutral-50 border border-neutral-200 rounded-3xl p-12 text-center">
+            <div className="bg-white w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+              <Award size={40} className="text-black" />
+            </div>
+            <h3 className="text-2xl font-black mb-3">No Attendance Selected</h3>
+            <p className="text-neutral-500 mb-6 max-w-sm mx-auto font-medium">
+              Select an academic year and semester above, then click "View Attendance" to see your complete records.
             </p>
           </div>
         )}

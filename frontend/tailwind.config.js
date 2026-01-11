@@ -4,7 +4,9 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // ... other extensions
+      fontFamily: {
+        sans: ['Outfit', 'sans-serif'],
+      },
     },
   },
   plugins: [

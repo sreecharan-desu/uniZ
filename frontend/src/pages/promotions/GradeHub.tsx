@@ -58,15 +58,15 @@ export default function GradeHub() {
   // Fetch Semester Options on Mount
   useEffect(() => {
     const fetchSemesters = async () => {
-        try {
-            const response = await axios.get(GET_SEMESTERS);
-            if (response.data.success) {
-                setSemesterOptions(response.data.semesters);
-            }
-        } catch (err) {
-            console.error('Failed to fetch semester options', err);
-            setError('Could not load semester options. Please refresh.');
+      try {
+        const response = await axios.get(GET_SEMESTERS);
+        if (response.data.success) {
+          setSemesterOptions(response.data.semesters);
         }
+      } catch (err) {
+        console.error('Failed to fetch semester options', err);
+        setError('Could not load semester options. Please refresh.');
+      }
     };
     fetchSemesters();
   }, []);
@@ -157,17 +157,17 @@ export default function GradeHub() {
       .filter((item: any) => item.value > 0);
   };
 
-const prepareBarChartData = () => {
-  if (!grades?.visualization_data?.barChart) return [];
-  return grades.visualization_data.barChart.map((item: any) => ({
-    subject: truncateText(
-      item.subject,
-      15
-    ),
-    fullSubject: item.subject, // Add full subject name for tooltip
-    points: item.points,
-  }));
-};
+  const prepareBarChartData = () => {
+    if (!grades?.visualization_data?.barChart) return [];
+    return grades.visualization_data.barChart.map((item: any) => ({
+      subject: truncateText(
+        item.subject,
+        15
+      ),
+      fullSubject: item.subject, // Add full subject name for tooltip
+      points: item.points,
+    }));
+  };
 
   // Function to cycle through motivational messages
   const cycleMessage = () => {
@@ -177,40 +177,41 @@ const prepareBarChartData = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-black ">
-            <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-black flex items-center justify-center space-x-2">
-            <Award size={28} className="text-black" />
-            <span>GradeHub</span>
-          </h1>
-          <div className="h-1 w-16 bg-black mx-auto mt-3"></div>
+    <div className="min-h-screen bg-white font-sans text-neutral-900 pb-20">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-black mb-4">Results</h1>
+          <p className="text-neutral-500 font-medium text-lg">Track your academic performance across semesters.</p>
         </div>
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Selection Criteria */}
-        <div className="mb-12 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-bold mb-6 pb-2 border-b border-gray-300 flex items-center">
-            <Award className="mr-2" size={22} /> Select Criteria
-          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="relative">
-              <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600">Academic Year</h3>
+        {/* Selection Criteria */}
+        <div className="mb-12 bg-white p-8 rounded-3xl border border-neutral-200">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-black text-white p-2 rounded-lg">
+              <Award size={20} />
+            </div>
+            <h2 className="text-xl font-bold tracking-tight">Select Criteria</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="relative group">
+              <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2 block">Academic Year</label>
               <div
-                className="w-full flex items-center justify-between bg-white border border-gray-300 rounded p-3 cursor-pointer hover:bg-gray-50"
+                className="w-full flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-xl p-4 cursor-pointer hover:border-black transition-colors"
                 onClick={() => setShowDropdown(!showDropdown)}
               >
-                <span className="font-medium">{selectedYear}</span>
-                <ChevronDown size={18} />
+                <span className="font-bold text-lg">{selectedYear}</span>
+                <ChevronDown size={20} className="text-neutral-400 group-hover:text-black transition-colors" />
               </div>
 
               {showDropdown && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg">
+                <div className="absolute z-50 mt-2 w-full bg-white border border-neutral-200 rounded-xl shadow-xl overflow-hidden">
                   {years.map((year) => (
                     <div
                       key={year}
-                      className={`p-3 cursor-pointer hover:bg-gray-100 ${
-                        selectedYear === year ? 'bg-gray-100 font-medium' : ''
-                      }`}
+                      className={`p-4 cursor-pointer font-medium transition-colors ${selectedYear === year ? 'bg-black text-white' : 'hover:bg-neutral-50 text-neutral-700'
+                        }`}
                       onClick={() => {
                         setSelectedYear(year);
                         setSelectedSemester(
@@ -228,47 +229,49 @@ const prepareBarChartData = () => {
             </div>
 
             <div>
-              <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600">Semester</h3>
-              <select
-                value={selectedSemester}
-                onChange={(e) => {
-                  setSelectedSemester(e.target.value);
-                  setResultsFetched(false);
-                }}
-                className="w-full bg-white border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                {semesterOptions.filter(opt => opt.year === selectedYear).map((opt) => (
-                  <option key={opt.name} value={opt.name}>
-                    {opt.name}
-                  </option>
-                ))}
-              </select>
+              <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2 block">Semester</label>
+              <div className="relative">
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => {
+                    setSelectedSemester(e.target.value);
+                    setResultsFetched(false);
+                  }}
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-4 font-bold text-lg appearance-none focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                >
+                  {semesterOptions.filter(opt => opt.year === selectedYear).map((opt) => (
+                    <option key={opt.name} value={opt.name}>
+                      {opt.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" size={20} />
+              </div>
             </div>
 
             <div>
-              <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600">Actions</h3>
+              <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2 block">Actions</label>
               <button
                 onClick={handleFetchResults}
-                className={`w-full flex items-center justify-center font-medium p-3 rounded transition-all duration-200 focus:outline-none ${
-                  isLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'
-                }`}
+                className={`w-full h-[62px] flex items-center justify-center font-bold text-lg rounded-xl transition-all duration-300 ${isLoading ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-black text-white hover:bg-neutral-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
+                  }`}
                 disabled={isLoading || !user?.username}
               >
                 {isLoading ? (
-                  <span className="flex items-center">
-                    Loading . . .
+                  <span className="flex items-center gap-2">
+                    Loading...
                   </span>
                 ) : (
-                  <span className="flex items-center">View Results</span>
+                  <span>View Results</span>
                 )}
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded p-3 flex items-start">
-              <AlertCircle size={20} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-              <div className="text-red-700">{error}</div>
+            <div className="mt-8 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 text-red-600 font-medium">
+              <AlertCircle size={20} />
+              {error}
             </div>
           )}
         </div>
@@ -288,73 +291,63 @@ const prepareBarChartData = () => {
 
         {/* Results Section */}
         {resultsFetched && grades && grades.success && !isLoading && (
-          <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white border border-neutral-200 rounded-3xl overflow-hidden">
             {/* Results Header */}
-            <div className="bg-black text-white p-4 flex justify-between items-center">
-              <h2 className="text-xl font-bold">
-                {grades.year} / {grades.semester}
-              </h2>
+            <div className="bg-white border-b border-neutral-100 p-8 flex justify-between items-center">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 block mb-1">Results For</span>
+                <h2 className="text-3xl font-black text-black">
+                  {grades.year} <span className="text-neutral-300">/</span> {grades.semester}
+                </h2>
+              </div>
             </div>
 
             {/* Content */}
             {grades.gpa === null ? (
-              <div className="p-6 text-center">
-                <AlertCircle size={48} className="mx-auto mb-4 text-gray-500" />
-                <h3 className="text-xl font-semibold mb-2">Results Not Available</h3>
-                <p className="text-gray-600">
-                  These details are not yet updated, please pull back shortly...
+              <div className="p-12 text-center">
+                <AlertCircle size={48} className="mx-auto mb-4 text-neutral-300" />
+                <h3 className="text-xl font-bold mb-2">Results Not Available</h3>
+                <p className="text-neutral-500">
+                  These details are not yet updated, please check back shortly.
                 </p>
               </div>
             ) : (
               <>
-                <div className="p-6 space-y-12">
+                <div className="p-8 space-y-16">
                   {/* Grades Section */}
                   <div>
-                    <h3 className="text-2xl font-bold mb-6 border-b border-gray-300 pb-2">Grades</h3>
-                    <div className="overflow-x-auto">
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><div className="w-1 h-6 bg-black"></div> Grades</h3>
+                    <div className="overflow-hidden rounded-2xl border border-neutral-200">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-100 border-b border-gray-300">
-                            <th className="p-3 text-left font-semibold">S.no</th>
-                            <th className="p-3 text-left font-semibold">Subjects</th>
-                            <th className="p-3 text-center font-semibold">Credits</th>
-                            <th className="p-3 text-center font-semibold">Grade</th>
-                            <th className="p-3 text-center font-semibold">Points</th>
+                          <tr className="bg-neutral-50 border-b border-neutral-200">
+                            <th className="p-4 text-left font-bold text-xs uppercase tracking-widest text-neutral-500">S.no</th>
+                            <th className="p-4 text-left font-bold text-xs uppercase tracking-widest text-neutral-500">Subjects</th>
+                            <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Credits</th>
+                            <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Grade</th>
+                            <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Points</th>
                           </tr>
                         </thead>
                         <tbody>
                           {grades.calculation_details?.map((item: any, index: any) => (
                             <tr
                               key={index}
-                              className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                                index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                              }`}
+                              className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors last:border-0"
                             >
-                              <td className="p-3">{index + 1}.</td>
-                              <td className="p-3 font-medium">{item.subject}</td>
-                              <td className="p-3 text-center">{item.credits}</td>
-                              <td className="p-3 text-center">
+                              <td className="p-4 text-neutral-400 font-medium">{index + 1}</td>
+                              <td className="p-4 font-bold text-neutral-800">{item.subject}</td>
+                              <td className="p-4 text-center text-neutral-600 font-medium">{item.credits}</td>
+                              <td className="p-4 text-center">
                                 <span
-                                  className={`inline-block py-1 px-3 rounded ${
-                                    item.grade === 'Ex'
-                                      ? 'bg-black text-white'
-                                      : item.grade === 'A'
-                                      ? 'bg-gray-800 text-white'
-                                      : item.grade === 'B'
-                                      ? 'bg-gray-600 text-white'
-                                      : item.grade === 'C'
-                                      ? 'bg-gray-500 text-white'
-                                      : item.grade === 'D'
-                                      ? 'bg-gray-400 text-black'
-                                      : item.grade === 'E'
-                                      ? 'bg-gray-300 text-black'
-                                      : 'bg-gray-200 text-black'
-                                  }`}
+                                  className={`inline-block w-10 h-8 leading-8 rounded-lg font-bold text-sm ${item.grade === 'Ex'
+                                    ? 'bg-black text-white'
+                                    : 'bg-neutral-100 text-neutral-800'
+                                    }`}
                                 >
                                   {item.grade}
                                 </span>
                               </td>
-                              <td className="p-3 text-center font-medium">{item.points}</td>
+                              <td className="p-4 text-center font-bold text-neutral-800">{item.points}</td>
                             </tr>
                           ))}
                           {!grades.calculation_details &&
@@ -362,35 +355,22 @@ const prepareBarChartData = () => {
                               ([subject, grade]: any, index) => (
                                 <tr
                                   key={index}
-                                  className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                                    index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                                  }`}
+                                  className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors last:border-0"
                                 >
-                                  <td className="p-3">{index + 1}.</td>
-                                  <td className="p-3 font-medium">{subject}</td>
-                                  <td className="p-3 text-center">-</td>
-                                  <td className="p-3 text-center">
+                                  <td className="p-4 text-neutral-400 font-medium">{index + 1}</td>
+                                  <td className="p-4 font-bold text-neutral-800">{subject}</td>
+                                  <td className="p-4 text-center text-neutral-400">-</td>
+                                  <td className="p-4 text-center">
                                     <span
-                                      className={`inline-block py-1 px-3 rounded ${
-                                        grade === 'Ex'
-                                          ? 'bg-black text-white'
-                                          : grade === 'A'
-                                          ? 'bg-gray-800 text-white'
-                                          : grade === 'B'
-                                          ? 'bg-gray-600 text-white'
-                                          : grade === 'C'
-                                          ? 'bg-gray-500 text-white'
-                                          : grade === 'D'
-                                          ? 'bg-gray-400 text-black'
-                                          : grade === 'E'
-                                          ? 'bg-gray-300 text-black'
-                                          : 'bg-gray-200 text-black'
-                                      }`}
+                                      className={`inline-block w-10 h-8 leading-8 rounded-lg font-bold text-sm ${grade === 'Ex'
+                                        ? 'bg-black text-white'
+                                        : 'bg-neutral-100 text-neutral-800'
+                                        }`}
                                     >
                                       {grade}
                                     </span>
                                   </td>
-                                  <td className="p-3 text-center">-</td>
+                                  <td className="p-4 text-center text-neutral-400">-</td>
                                 </tr>
                               )
                             )}
@@ -402,13 +382,11 @@ const prepareBarChartData = () => {
                   {/* Charts Section */}
                   {grades.visualization_data && (
                     <div>
-                      <h3 className="text-2xl font-bold mb-6 border-b border-gray-300 pb-2">
-                        Charts
-                      </h3>
+                      <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><div className="w-1 h-6 bg-black"></div> Performance Visualization</h3>
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Pie Chart */}
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-lg font-semibold mb-4 text-center">
+                        <div className="bg-neutral-50 p-6 rounded-3xl border border-neutral-200">
+                          <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-6 text-center">
                             Grade Distribution
                           </h4>
                           <div className="h-64">
@@ -442,26 +420,26 @@ const prepareBarChartData = () => {
                         </div>
 
                         {/* Bar Chart */}
-<div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-  <h4 className="text-lg font-semibold mb-4 text-center">
-    Points by Subject
-  </h4>
-  <div className="h-64">
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={prepareBarChartData()}>
-        <XAxis
-          dataKey="subject"
-          angle={-35}
-          textAnchor="end"
-          height={70}
-        />
-        <YAxis domain={[0, 10]} />
-        <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="points" fill="#000000" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+                        <div className="bg-neutral-50 p-6 rounded-3xl border border-neutral-200">
+                          <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-6 text-center">
+                            Points by Subject
+                          </h4>
+                          <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={prepareBarChartData()}>
+                                <XAxis
+                                  dataKey="subject"
+                                  angle={-35}
+                                  textAnchor="end"
+                                  height={70}
+                                />
+                                <YAxis domain={[0, 10]} />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar dataKey="points" fill="#000000" />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
 
                       </div>
                     </div>
@@ -470,68 +448,53 @@ const prepareBarChartData = () => {
                   {/* Calculation Details Section */}
                   {grades.calculation_details && (
                     <div>
-                      <h3 className="text-2xl font-bold mb-6 border-b border-gray-300 pb-2">
-                        Details
-                      </h3>
-                      <div className="overflow-x-auto">
+                      <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><div className="w-1 h-6 bg-black"></div> Details Breakdown</h3>
+                      <div className="overflow-hidden rounded-2xl border border-neutral-200">
                         <table className="w-full">
                           <thead>
-                            <tr className="bg-gray-100 border-b border-gray-300">
-                              <th className="p-3 text-left font-semibold">Subject</th>
-                              <th className="p-3 text-center font-semibold">Credits</th>
-                              <th className="p-3 text-center font-semibold">Grade</th>
-                              <th className="p-3 text-center font-semibold">Points</th>
-                              <th className="p-3 text-center font-semibold">Contribution</th>
+                            <tr className="bg-neutral-50 border-b border-neutral-200">
+                              <th className="p-4 text-left font-bold text-xs uppercase tracking-widest text-neutral-500">Subject</th>
+                              <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Credits</th>
+                              <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Grade</th>
+                              <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Points</th>
+                              <th className="p-4 text-center font-bold text-xs uppercase tracking-widest text-neutral-500">Contribution</th>
                             </tr>
                           </thead>
                           <tbody>
                             {grades.calculation_details.map((item: any, index: any) => (
                               <tr
                                 key={index}
-                                className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                                  index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                                }`}
+                                className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors last:border-0"
                               >
-                                <td className="p-3 font-medium">{item.subject}</td>
-                                <td className="p-3 text-center">{item.credits}</td>
-                                <td className="p-3 text-center">
+                                <td className="p-4 font-bold text-neutral-800">{item.subject}</td>
+                                <td className="p-4 text-center text-neutral-600 font-medium">{item.credits}</td>
+                                <td className="p-4 text-center">
                                   <span
-                                    className={`inline-block py-1 px-3 rounded ${
-                                      item.grade === 'Ex'
-                                        ? 'bg-black text-white'
-                                        : item.grade === 'A'
-                                        ? 'bg-gray-800 text-white'
-                                        : item.grade === 'B'
-                                        ? 'bg-gray-600 text-white'
-                                        : item.grade === 'C'
-                                        ? 'bg-gray-500 text-white'
-                                        : item.grade === 'D'
-                                        ? 'bg-gray-400 text-black'
-                                        : item.grade === 'E'
-                                        ? 'bg-gray-300 text-black'
-                                        : 'bg-gray-200 text-black'
-                                    }`}
+                                    className={`inline-block w-10 h-8 leading-8 rounded-lg font-bold text-sm ${item.grade === 'Ex'
+                                      ? 'bg-black text-white'
+                                      : 'bg-neutral-100 text-neutral-800'
+                                      }`}
                                   >
                                     {item.grade}
                                   </span>
                                 </td>
-                                <td className="p-3 text-center">{item.points}</td>
-                                <td className="p-3 text-center font-medium">
+                                <td className="p-4 text-center font-bold text-neutral-800">{item.points}</td>
+                                <td className="p-4 text-center font-medium text-neutral-600">
                                   {item.contribution}
                                 </td>
                               </tr>
                             ))}
                             {/* Total Row */}
-                            <tr className="bg-gray-100 font-bold">
-                              <td className="p-3">Total</td>
-                              <td className="p-3 text-center">
+                            <tr className="bg-black text-white font-bold">
+                              <td className="p-4">Total</td>
+                              <td className="p-4 text-center">
                                 {grades.calculation_details
                                   .reduce((sum: any, item: any) => sum + item.credits, 0)
                                   .toFixed(1)}
                               </td>
-                              <td className="p-3 text-center">-</td>
-                              <td className="p-3 text-center">-</td>
-                              <td className="p-3 text-center">
+                              <td className="p-4 text-center">-</td>
+                              <td className="p-4 text-center">-</td>
+                              <td className="p-4 text-center">
                                 {grades.calculation_details
                                   .reduce(
                                     (sum: any, item: any) => sum + item.contribution,
@@ -548,79 +511,87 @@ const prepareBarChartData = () => {
                 </div>
 
                 {/* GPA and Motivational Message */}
-<div className="p-6 bg-gray-50 border-t border-gray-200">
-  <div className="flex flex-col lg:flex-row justify-between items-stretch gap-6">
-    {/* GPA Card */}
-    <div className="bg-black text-white px-6 py-4 rounded-lg shadow-md w-full max-w-sm flex flex-col justify-center">
-      <h3 className="text-lg font-bold text-center">GPA</h3>
-      <div className="text-4xl font-bold text-center">
-        {grades.gpa !== null ? grades.gpa.toFixed(2) : 'N/A'}
-      </div>
-      {grades.gpa === null && (
-        <div className="text-sm text-gray-300 mt-1 text-center">
-          Results not yet updated
-        </div>
-      )}
-    </div>
+                <div className="p-8 bg-neutral-50 border-t border-neutral-100">
+                  <div className="flex flex-col lg:flex-row justify-between items-stretch gap-6">
+                    {/* GPA Card */}
+                    <div className="bg-black text-white p-8 rounded-3xl shadow-xl w-full max-w-sm relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-neutral-800 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity translate-x-1/3 -translate-y-1/3"></div>
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 mb-2">Semester GPA</h3>
+                      <div className="text-6xl font-black tracking-tighter mb-2">
+                        {grades.gpa !== null ? grades.gpa.toFixed(2) : 'N/A'}
+                      </div>
+                      {grades.gpa === null && (
+                        <div className="text-sm text-neutral-400">
+                          Results not formatted yet
+                        </div>
+                      )}
+                      <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full">
+                        <Award size={14} /> Official Grade
+                      </div>
+                    </div>
 
-    {/* Motivational Messages Card */}
-    {grades.motivational_messages && grades.motivational_messages.length > 0 && (
-      <div
-        className="bg-white p-4 border border-gray-300 rounded-lg shadow-sm w-full max-w-sm flex flex-col justify-center cursor-pointer min-h-[120px]"
-        onClick={cycleMessage}
-      >
-        {showMessage ? (
-          <>
-            <p className="italic font-medium text-center line-clamp-2">
-              "{grades.motivational_messages[messageIdx]}"
-            </p>
-            <div className="text-xs text-gray-500 mt-1 text-center">
-              Click to see another message
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-2">
-            <span className="inline-block w-2 h-2 bg-gray-300 rounded-full animate-pulse"></span>
-            <span className="inline-block w-2 h-2 bg-gray-300 rounded-full animate-pulse mx-1"></span>
-            <span className="inline-block w-2 h-2 bg-gray-300 rounded-full animate-pulse"></span>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
+                    {/* Motivational Messages Card */}
+                    {grades.motivational_messages && grades.motivational_messages.length > 0 && (
+                      <div
+                        className="bg-white p-8 border border-neutral-200 rounded-3xl w-full flex flex-col justify-center cursor-pointer hover:border-black transition-colors relative group"
+                        onClick={cycleMessage}
+                      >
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4 absolute top-6 left-8">Daily Motivation</h3>
+                        {showMessage ? (
+                          <div className="mt-4">
+                            <p className="font-bold text-2xl text-black leading-tight">
+                              "{grades.motivational_messages[messageIdx]}"
+                            </p>
+                            <div className="flex items-center gap-2 mt-4 text-neutral-400 text-sm font-medium group-hover:text-black transition-colors">
+                              <span>Tap for more</span> <ChevronDown size={14} className="-rotate-90" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="py-2">
+                            <div className="flex gap-2">
+                              <span className="inline-block w-2.5 h-2.5 bg-black rounded-full animate-bounce"></span>
+                              <span className="inline-block w-2.5 h-2.5 bg-black rounded-full animate-bounce [animation-delay:0.1s]"></span>
+                              <span className="inline-block w-2.5 h-2.5 bg-black rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-  {/* GradeLite Branding */}
-  {grades.gpa !== null && (
-    <div className="mt-4 text-center">
-      <p className="text-sm font-medium text-gray-600">
-        Grade Calculation by{' '}
-        <a
-          href="https://sreecharan-desu.github.io/Gradelite/#GradeLite"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-black underline hover:text-gray-800 transition-colors"
-          aria-label="Visit GradeLite for grade calculation"
-        >
-          GradeLite
-        </a>
-      </p>
-    </div>
-  )}
-</div>
+                  {/* GradeLite Branding */}
+                  {grades.gpa !== null && (
+                    <div className="mt-8 text-center bg-white border border-neutral-100 rounded-2xl p-4 max-w-md mx-auto">
+                      <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">
+                        Powered by{' '}
+                        <a
+                          href="https://sreecharan-desu.github.io/Gradelite/#GradeLite"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-black hover:underline ml-1"
+                          aria-label="Visit GradeLite"
+                        >
+                          GradeLite Algorithm
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
             {/* Action Buttons */}
-            <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+            {/* Action Buttons */}
+            <div className="p-8 border-t border-neutral-100 flex justify-end space-x-3 bg-neutral-50">
               <button
                 onClick={() => {
                   setResultsFetched(false);
                   setGrades(null);
                   setError('');
                 }}
-                className="flex items-center px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                className="flex items-center px-6 py-3 bg-black text-white font-bold rounded-xl hover:bg-neutral-800 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-300"
               >
-                <X size={18} className="mr-2" /> Close
+                <X size={18} className="mr-2" /> Close Results
               </button>
             </div>
           </div>
@@ -628,25 +599,30 @@ const prepareBarChartData = () => {
 
         {/* Not Logged In State */}
         {!user?.username && !isLoading && !resultsFetched && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <AlertCircle size={48} className="mx-auto mb-4 text-gray-500" />
-            <h3 className="text-xl font-semibold mb-2">Sign In Required</h3>
-            <p className="text-gray-600 mb-6">
-              Please sign in to view your academic results.
+          <div className="bg-neutral-50 border border-neutral-200 rounded-3xl p-12 text-center">
+            <div className="bg-white w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+              <AlertCircle size={40} className="text-black" />
+            </div>
+            <h3 className="text-2xl font-black mb-3">Sign In Required</h3>
+            <p className="text-neutral-500 mb-8 max-w-md mx-auto font-medium">
+              Please sign in to your student account to access your academic performance records and grades.
             </p>
-            <button className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition-colors">
-              Sign In
+            <button className="bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-neutral-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+              Sign In to Continue
             </button>
           </div>
         )}
 
         {/* Empty State */}
         {user?.username && !isLoading && !resultsFetched && !error && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <Award size={48} className="mx-auto mb-4 text-gray-500" />
-            <h3 className="text-xl font-semibold mb-2">No Results Selected</h3>
-            <p className="text-gray-600 mb-4">
-              Select a year and semester, then click "View Results" to see your grades.
+          <div className="bg-neutral-50 border border-neutral-200 rounded-3xl p-12 text-center">
+            <div className="bg-white w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+              <Award size={40} className="text-black" />
+            </div>
+
+            <h3 className="text-2xl font-black mb-3">No Results Selected</h3>
+            <p className="text-neutral-500 mb-6 max-w-sm mx-auto font-medium">
+              Select an academic year and semester above, then click "View Results" to see your grades.
             </p>
           </div>
         )}
